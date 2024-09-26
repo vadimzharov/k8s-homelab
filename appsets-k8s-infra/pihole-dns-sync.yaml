@@ -44,6 +44,9 @@ spec:
         targetRevision: 1.15.0
       - helm:
           releaseName: 'first-dns-sync'
+          parameters:
+            - name: installCRDs
+              value: "false"          
           values: |
             sources:
               - ingress
@@ -60,6 +63,9 @@ spec:
         targetRevision: 1.15.0
       - helm:
           releaseName: 'second-dns-sync'
+          parameters:
+            - name: installCRDs
+              value: "false"
           values: |
             sources:
               - ingress
