@@ -6,6 +6,9 @@ metadata:
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
   description: Project for k8s homelab - K8S clusters appsets
   orphanedResources:
     warn: false
