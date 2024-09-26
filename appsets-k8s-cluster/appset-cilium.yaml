@@ -7,7 +7,7 @@ spec:
   syncPolicy:
     preserveResourcesOnDeletion: true
   generators:
-    - matrix:
+    - merge:
         generators:
           - clusters:
               selector:
