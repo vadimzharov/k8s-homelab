@@ -72,6 +72,7 @@ spec:
             policy: "{{ values.dnspolicy }}"
             registry: noop
             provider: pihole
+            logLevel: debug
             env:
               - name: "EXTERNAL_DNS_PIHOLE_SERVER"
                 value: {{ seconddnsserver }}
