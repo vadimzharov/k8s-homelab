@@ -1,0 +1,51 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: app-of-apps
+  namespace: argocd
+spec:
+  generators:
+  - clusters:
+      selector:
+        matchLabels:
+          appsets-infra: "installed"
+      values:
+        revision: '{{metadata.annotations.branch-name}}' 
+      template:
+        metadata:
+          name: '{{name}}-appsets-infra'
+        spec:
+          project: k8s-homelab-hub
+          sources:
+          - repoURL: git@github.com:vadimzharov/k8s-homelab
+            path: "appsets-k8s-infra"
+            targetRevision: '{{values.revision}}'
+          destination:
+            server: '{{server}}'
+            namespace: argocd
+          syncPolicy:
+            automated:
+              prune: true
+              selfHeal: true
+  - clusters:
+      selector:
+        matchLabels:
+          appsets-cluster: "installed"
+      values:
+        revision: '{{metadata.annotations.branch-name}}' 
+  template:
+    metadata:
+      name: '{{name}}-appsets-cluster'
+    spec:
+      project: k8s-homelab-hub
+      sources:
+      - repoURL: "git@github.com:vadimzharov/k8s-homelab"
+        path: "appsets-k8s-cluster"
+        targetRevision: '{{values.revision}}'
+      destination:
+        server: '{{server}}'
+        namespace: argocd
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
