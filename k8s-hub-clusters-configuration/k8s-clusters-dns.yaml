@@ -15,7 +15,7 @@ spec:
   - secretKey: edgednsserver
     remoteRef:
       key: infra/pihole
-      property: nginxingressip
+      property: edgednsserver
   - secretKey: piholepassword
     remoteRef:
       key: infra/pihole
