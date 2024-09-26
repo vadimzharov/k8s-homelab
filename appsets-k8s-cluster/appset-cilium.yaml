@@ -30,6 +30,8 @@ spec:
           values: |
             debug:
               enabled: false
+            securityContext:
+              privileged: true              
             bgpControlPlane:
               enabled: true
             operator:
