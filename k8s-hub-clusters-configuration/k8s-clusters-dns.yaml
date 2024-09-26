@@ -16,7 +16,15 @@ spec:
     remoteRef:
       key: infra/pihole
       property: edgednsserver
+  - secretKey: firstdnsserver
+    remoteRef:
+      key: infra/pihole
+      property: firstdnsserver
+  - secretKey: seconddnsserver
+    remoteRef:
+      key: infra/pihole
+      property: seconddnsserver
   - secretKey: piholepassword
     remoteRef:
       key: infra/pihole
-      property: piholepassword      
+      property: piholepassword
