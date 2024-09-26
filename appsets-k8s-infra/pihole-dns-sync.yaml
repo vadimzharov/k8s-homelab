@@ -3,8 +3,6 @@ kind: ApplicationSet
 metadata:
   name: pihole-dns-sync
   namespace: argocd
-  annotations:
-    avp.kubernetes.io/path: "k8secrets/infra/pihole"
 spec:
   generators:
     - matrix:
@@ -14,7 +12,7 @@ spec:
                 matchLabels:
                   pihole-sync: "installed"
               values:
-                dns-policy: '{{ metadata.labels.external-dns-policy }}'
+                dnspolicy: '{{ metadata.labels.external-dns-policy }}'
           - plugin:
               # Specify the configMap where the plugin configuration is located.
               configMapRef:
@@ -33,7 +31,7 @@ spec:
           values: |
             sources:
               - ingress
-            policy: '{{ dns-policy }}'
+            policy: '{{ dnspolicy }}'
             registry: noop
             provider: pihole
             env:
