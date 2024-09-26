@@ -7,26 +7,18 @@ spec:
   syncPolicy:
     preserveResourcesOnDeletion: true
   generators:
-    - merge:
+    - matrix:
         generators:
           - clusters:
               selector:
                 matchLabels:
                   cluster-apps: "installed"
-              values:
-                revision: '{{ metadata.annotations.branch-name }}'                  
           - plugin:
               configMapRef:
                 name: argocd-secrets-plugin
               input:
                 parameters:
-                  secretName: "k8s-clusters-cni-secrets"
-          - plugin:
-              configMapRef:
-                name: argocd-secrets-plugin
-              input:
-                parameters:
-                  secretName: "{{ name }}-cni-secrets"                  
+                  secretName: "{{ name }}-cni-secrets"
   template:
     metadata:
       name: '{{ name }}-cilium' 
