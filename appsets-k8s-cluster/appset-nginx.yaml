@@ -17,7 +17,7 @@ spec:
                 name: argocd-secrets-plugin
               input:
                 parameters:
-                  secretName: "{{ name }}-secrets"
+                  secretName: "{{ name }}-network-secrets"
   template:
     metadata:
       name: '{{name}}-nginx'
