@@ -8,9 +8,9 @@ spec:
     - matrix:
         generators:
           - clusters:
-            selector:
-              matchLabels:
-                nginx: "installed"
+              selector:
+                matchLabels:
+                  nginx: "installed"
           - plugin:
               # Specify the configMap where the plugin configuration is located.
               configMapRef:
