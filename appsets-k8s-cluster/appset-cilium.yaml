@@ -12,7 +12,7 @@ spec:
           - clusters:
               selector:
                 matchLabels:
-                  cluster-apps: "installed"
+                  cilium: "installed"
           - plugin:
               configMapRef:
                 name: argocd-secrets-plugin
