@@ -36,9 +36,9 @@ spec:
             provider: pihole
             env:
               - name: "EXTERNAL_DNS_PIHOLE_SERVER"
-                value: {{ edge-dns-server }}
+                value: {{ edgednsserver }}
               - name: "EXTERNAL_DNS_PIHOLE_PASSWORD"
-                value: "{{ pihole-password }}"
+                value: "{{ piholepassword }}"
         repoURL: https://kubernetes-sigs.github.io/external-dns/
         chart: external-dns
         targetRevision: 1.13.1        
