@@ -10,7 +10,7 @@ spec:
           - clusters:
             selector:
               matchLabels:
-                nginx-matrix: "installed"
+                nginx: "installed"
           - plugin:
               # Specify the configMap where the plugin configuration is located.
               configMapRef:
