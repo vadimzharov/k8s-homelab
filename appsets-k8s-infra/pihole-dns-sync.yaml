@@ -13,6 +13,8 @@ spec:
               selector:
                 matchLabels:
                   pihole-sync: "installed"
+              values:
+                dns-policy: '{{ metadata.labels.external-dns-policy }}'
           - plugin:
               # Specify the configMap where the plugin configuration is located.
               configMapRef:
@@ -31,7 +33,7 @@ spec:
           values: |
             sources:
               - ingress
-            policy: '{{metadata.labels.external-dns-policy}}'
+            policy: '{{ dns-policy }}'
             registry: noop
             provider: pihole
             env:
