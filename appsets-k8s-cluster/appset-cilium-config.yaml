@@ -40,6 +40,26 @@ spec:
                     cidrs:
                       - cidr: {{ load-balancer-cidr }}
                     disabled: false
+              bgppeering:
+                apiVersion: cilium.io/v2alpha1
+                kind: CiliumBGPPeeringPolicy
+                spec:
+                  spec:
+                    nodeSelector:
+                      matchLabels:
+                        node-role.kubernetes.io/bgp-router: enabled
+                    virtualRouters:
+                    - localASN: {{ cilium_bgp_local_asn }}
+                      exportPodCIDR: false
+                      neighbors:
+                      - peerAddress: "{{ router_bgp_peer_ip }}"
+                        peerASN: {{ router_bgp_peer_asn }}
+                      serviceSelector:
+                        matchExpressions:
+                          - key: somekey
+                            operator: NotIn
+                            values:
+                              - never-used-value
         repoURL: https://bjw-s.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0
