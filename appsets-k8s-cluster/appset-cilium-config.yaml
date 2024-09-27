@@ -30,7 +30,7 @@ spec:
           values: |
             controllers: 
               main:
-               enabled: true
+               enabled: false
             rawResources:
               loadbalacerpool:
                 apiVersion: cilium.io/v2alpha1
