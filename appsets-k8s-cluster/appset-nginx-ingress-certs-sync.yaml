@@ -28,7 +28,7 @@ spec:
       project: k8s-homelab-cluster
       sources:
       - helm:
-          releaseName: nginx-certs-sync
+          releaseName: wildcard
           values: |
             controllers: 
               main:
@@ -37,7 +37,7 @@ spec:
               wildcard-certs:
                 apiVersion: v1
                 kind: Secret
-                nameOverride: wildcard-apps-certificate
+                nameOverride: apps-certificate
                 spec:
                   data:
                     tls.crt: {{ .tls_crt | b64enc }}
