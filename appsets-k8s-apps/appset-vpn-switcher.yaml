@@ -1,0 +1,53 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: vpn-switcher
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  vpn-switcher: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-apps-configs"
+  template:
+    metadata:
+      name: '{{ .name }}-vpnswitcher'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: vpnswitcher
+          values: |
+            controllers: 
+              main:
+               enabled: false
+            rawResources:
+              vpnswitcher-config:
+                apiVersion: v1
+                kind: Secret
+                nameOverride: config
+                spec:
+                  data:
+                    config.yaml: {{ .vpnswitcher-config | b64enc }}
+        repoURL: https://bjw-s.github.io/helm-charts
+        chart: app-template
+        targetRevision: 3.4.0
+      destination:
+        server: '{{ .server }}'
+        namespace: vpn-switcher
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true          
