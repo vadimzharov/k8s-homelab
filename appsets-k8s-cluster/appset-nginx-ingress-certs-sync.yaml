@@ -40,8 +40,8 @@ spec:
                 nameOverride: wildcard-apps-certificate
                 spec:
                   data:
-                    tls.crt: {{ .tls.crt | base64.Encode }}
-                    tls.key: {{ .tls.key | base64.Encode }}
+                    tls.crt: {{ .tls.crt | b64enc }}
+                    tls.key: {{ .tls.key | b64enc }}
         repoURL: https://bjw-s.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0
