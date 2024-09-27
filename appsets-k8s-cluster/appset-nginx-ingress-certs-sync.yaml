@@ -23,7 +23,7 @@ spec:
                   namespaceName: "ingress-nginx"
   template:
     metadata:
-      name: '{{name}}-nginx-certs'
+      name: '{{ .name }}-nginx-certs'
     spec:
       project: k8s-homelab-cluster
       sources:
@@ -46,7 +46,7 @@ spec:
         chart: app-template
         targetRevision: 3.4.0
       destination:
-        server: '{{server}}'
+        server: '{{ .server }}'
         namespace: ingress-nginx
       syncPolicy:
         automated:
