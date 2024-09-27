@@ -1,0 +1,72 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: k8s-csi-nfs
+  namespace: argocd
+spec:
+  syncPolicy:
+    preserveResourcesOnDeletion: true
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  csi-nfs: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-infra-secrets"    
+  template:
+    metadata:
+      name: '{{name}}-k8s-csi-nfs' 
+    spec:
+      project: k8s-homelab-infra
+      sources:
+      - helm:
+          releaseName: csi-driver-nfs
+          parameters:
+            - name: controller.replicas
+              value: "1"
+        repoURL: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
+        chart: csi-driver-nfs
+        targetRevision: v4.4.0
+      - helm:
+          releaseName: sc-nfs
+          values: |
+            controllers: 
+              main:
+               enabled: false
+            rawResources:
+              sc-nfs-default:
+                apiVersion: storage.k8s.io/v1
+                kind: StorageClass
+                nameOverride: default
+                annotations:
+                  storageclass.kubernetes.io/is-default-class: "true"
+                spec:
+                  provisioner: nfs.csi.k8s.io
+                  parameters:
+                    server: {{ k8s-nfs-server-name }}
+                    share: {{ k8s-nfs-share-name }}
+                    subDir: ${pvc.metadata.namespace}/${pvc.metadata.name}
+                    onDelete: retain
+                  reclaimPolicy: Delete
+                  volumeBindingMode: Immediate
+                  mountOptions:
+                    - nfsvers=4.1
+        repoURL: https://bjw-s.github.io/helm-charts
+        chart: app-template
+        targetRevision: 3.4.0        
+      destination:
+        server: '{{server}}'
+        namespace: kube-system
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          
