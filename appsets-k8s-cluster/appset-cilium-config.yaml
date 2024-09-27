@@ -60,6 +60,21 @@ spec:
                             operator: NotIn
                             values:
                               - never-used-value
+              egresspolicy:
+                apiVersion: cilium.io/v2
+                kind: CiliumEgressGatewayPolicy
+                spec:
+                  selectors:
+                  - podSelector:
+                      matchLabels:
+                        vpn: required
+                  destinationCIDRs:
+                    - 0.0.0.0/0
+                  egressGateway:
+                    egressIP: {{ egressipvpn }}
+                    nodeSelector:
+                      matchLabels:
+                        node-role.kubernetes.io/egress-gw: vpn                  
         repoURL: https://bjw-s.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0
