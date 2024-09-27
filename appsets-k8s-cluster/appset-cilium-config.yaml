@@ -1,0 +1,56 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: cilium-config
+  namespace: argocd
+spec:
+  syncPolicy:
+    preserveResourcesOnDeletion: true
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  cilium-config: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "{{ name }}-cni-secrets"
+  template:
+    metadata:
+      name: '{{ name }}-cilium-config' 
+    spec:
+      project: k8s-homelab-cluster
+      sources:
+      - helm:
+          releaseName: cilium-config
+          values: |
+            controllers: 
+              main:
+               enabled: true
+            rawResources:
+              loadbalacerpool:
+                apiVersion: cilium.io/v2alpha1
+                kind: CiliumLoadBalancerIPPool
+                metadata:
+                  name: bpg-ippool
+                spec:
+                  cidrs:
+                    - cidr: {{ load-balancer-cidr }}
+                  disabled: false
+        repoURL: https://bjw-s.github.io/helm-charts
+        chart: app-template
+        targetRevision: 3.4.0
+      destination:
+        server: '{{server}}'
+        namespace: kube-system
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          
