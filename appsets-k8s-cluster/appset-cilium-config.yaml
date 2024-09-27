@@ -39,7 +39,7 @@ spec:
                   spec:
                     cidrs:
                       - cidr: {{ load-balancer-cidr }}
-                  disabled: false
+                    disabled: false
         repoURL: https://bjw-s.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0
