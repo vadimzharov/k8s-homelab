@@ -18,7 +18,7 @@ spec:
                 name: argocd-secrets-plugin
               input:
                 parameters:
-                  secretName: "k8s-apps-configs"
+                  secretName: "k8s-clusters-apps-secrets"
   template:
     metadata:
       name: '{{ .name }}-vpnswitcher'
@@ -42,6 +42,48 @@ spec:
         repoURL: https://bjw-s.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0
+      - helm:
+          releaseName: vpnswitcher-app
+          values: |
+            controllers:            
+              main:
+                type: deployment             
+                containers:
+                  main:
+                    image: 
+                      repository: quay.io/vadimzharov/vpnswitcher
+                      pullPolicy: IfNotPresent
+                      tag: latest
+            service:
+              main:
+                primary: true
+                enabled: true
+                controller: main
+                ports:
+                  http:
+                    port: 8080
+            ingress:
+              main:
+                enabled: true
+                className: nginx
+                hosts: 
+                  - host: vpn.{{ .domainname }}
+                    paths:
+                      - path: /
+                        pathType: Prefix
+                        service:
+                          name: vpnswitcher-app
+                          port: 8080
+            persistence:
+              config:
+                enabled: true
+                type: secret
+                name: vpnswitcher-config
+                mountPath: /etc/vpnswitcher/config.yaml
+                subPath: config.yaml
+        repoURL: https://bjw-s.github.io/helm-charts
+        chart: app-template
+        targetRevision: 3.4.0                
       destination:
         server: '{{ .server }}'
         namespace: vpn-switcher
