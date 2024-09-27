@@ -56,4 +56,24 @@ spec:
   - '*'
   destinations:
   - namespace: '*'
-    server: '*'    
+    server: '*'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: k8s-homelab-apps
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  description: Project for k8s homelab - K8S applications
+  orphanedResources:
+    warn: false
+  sourceRepos:
+  - '*'
+  destinations:
+  - namespace: '*'
+    server: '*'        
