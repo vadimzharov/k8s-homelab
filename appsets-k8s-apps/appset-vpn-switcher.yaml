@@ -75,12 +75,12 @@ spec:
                           name: vpnswitcher-app
                           port: 8080
             persistence:
-              config:
+              vpnswitcher-config:
                 enabled: true
                 type: secret
-                name: vpnswitcher-config
-                mountPath: /etc/vpnswitcher/config.yaml
-                subPath: config.yaml
+                globalMounts:
+                  - path: /etc/vpnswitcher/config.yaml
+                    subPath: config.yaml
         repoURL: https://bjw-s.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0                
