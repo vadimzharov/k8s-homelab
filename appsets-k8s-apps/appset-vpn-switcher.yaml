@@ -78,6 +78,7 @@ spec:
               vpnswitcher-config:
                 enabled: true
                 type: secret
+                name: vpnswitcher-config
                 globalMounts:
                   - path: /etc/vpnswitcher/config.yaml
                     subPath: config.yaml
