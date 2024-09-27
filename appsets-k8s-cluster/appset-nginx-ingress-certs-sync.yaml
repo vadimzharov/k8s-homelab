@@ -4,6 +4,8 @@ metadata:
   name: nginx-certificates-sync
   namespace: argocd
 spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
   generators:
     - matrix:
         generators:
@@ -38,8 +40,8 @@ spec:
                 nameOverride: wildcard-apps-certificate
                 spec:
                   data:
-                    tls.crt: {{ tls.crt }}
-                    tls.key: {{ tls.key }}
+                    tls.crt: {{ .tls.crt | base64.Encode }}
+                    tls.key: {{ .tls.key | base64.Encode }}
         repoURL: https://bjw-s.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0
