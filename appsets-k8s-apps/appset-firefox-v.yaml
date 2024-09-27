@@ -119,9 +119,6 @@ spec:
                         name: firefox-b-r-secret
                     - configMapRef:
                         name: firefox-b-r-settings
-                    volumeMounts:
-                    - name:  config
-                      mountPath: /config/
         repoURL: https://bjw-s.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0
