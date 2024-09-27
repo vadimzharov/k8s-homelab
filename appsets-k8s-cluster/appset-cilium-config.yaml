@@ -35,8 +35,6 @@ spec:
               loadbalacerpool:
                 apiVersion: cilium.io/v2alpha1
                 kind: CiliumLoadBalancerIPPool
-                metadata:
-                  name: bpg-ippool
                 spec:
                   cidrs:
                     - cidr: {{ load-balancer-cidr }}
