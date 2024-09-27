@@ -36,8 +36,9 @@ spec:
                 apiVersion: cilium.io/v2alpha1
                 kind: CiliumLoadBalancerIPPool
                 spec:
-                  cidrs:
-                    - cidr: {{ load-balancer-cidr }}
+                  spec:
+                    cidrs:
+                      - cidr: {{ load-balancer-cidr }}
                   disabled: false
         repoURL: https://bjw-s.github.io/helm-charts
         chart: app-template
