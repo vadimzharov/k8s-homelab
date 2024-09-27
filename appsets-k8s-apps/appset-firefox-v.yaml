@@ -29,7 +29,8 @@ spec:
             service:
               main:
                 primary: true
-                enabled: true              
+                enabled: true
+                controller: main                
                 ports:
                   http:
                     port: 3000
@@ -94,9 +95,6 @@ spec:
                         name: firefox-b-r-secret
                     - configMapRef:
                         name: firefox-b-r-settings
-                    volumeMounts:
-                    - name:  config
-                      mountPath: /config/
                 containers:
                   main:
                     image:
