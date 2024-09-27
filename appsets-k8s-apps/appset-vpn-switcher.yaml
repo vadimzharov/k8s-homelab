@@ -38,7 +38,7 @@ spec:
                 nameOverride: config
                 spec:
                   data:
-                    config.yaml: {{ .vpnswitcher-config | b64enc }}
+                    config.yaml: {{ .vpnswitcherconfig | b64enc }}
         repoURL: https://bjw-s.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0
