@@ -1,0 +1,139 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: invidious
+  namespace: argocd
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  invidious: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{ name }}-invidious'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: invidious
+          values: |
+            name: invidious
+
+            image:
+              repository: quay.io/invidious/invidious
+              tag: latest
+              pullPolicy: Always
+
+            imagePullSecrets: []
+            nameOverride: ""
+            fullnameOverride: ""
+
+            # Setting replicaCount higher than 1 may cause PostgreSQL database deadlocks.
+            # This happens when multiple Invidious processes simultaneously attempt to refresh channel subscriptions for users.
+            replicaCount: 1
+
+            autoscaling:
+              enabled: false
+              minReplicas: 1
+              maxReplicas: 16
+              targetCPUUtilizationPercentage: 50
+
+            service:
+              type: ClusterIP
+              port: 3000
+              # loadBalancerIP:
+
+            ingress:
+              enabled: true
+              className: "nginx"
+              annotations: {}
+              hosts:
+                - host: invidious.{{ domainname }}
+                  paths:
+                    - path: /
+                      pathType: ImplementationSpecific
+              tls: []
+              #  - secretName: chart-example-tls
+              #    hosts:
+              #      - chart-example.local
+
+            resources: {}
+              # requests:
+              #   cpu: 100m
+              #   memory: 64Mi
+              # limits:
+              #   cpu: 800m
+              #   memory: 512Mi
+
+            deploymentLabels: {}
+
+            podSecurityContext:
+              runAsUser: 1000
+              runAsGroup: 1000
+              fsGroup: 1000
+
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+
+            nodeSelector: {}
+
+            tolerations: []
+
+            affinity: {}
+
+
+            # Reference: https://github.com/bitnami/charts/tree/main/bitnami/postgresql
+            postgresql:
+              enabled: true
+
+              image:
+                tag: 16
+              auth:
+                username: kemal
+                password: kemal
+                database: invidious
+              primary:
+                initdb:
+                  username: kemal
+                  password: kemal
+                  scriptsConfigMap: invidious-postgresql-init
+                persistence:
+                  enabled: false
+            # Reference: https://github.com/iv-org/invidious/blob/master/config/config.example.yml
+            config:
+              db:
+                user: kemal
+                password: kemal
+                host: invidious-postgresql
+                port: 5432
+                dbname: invidious
+              port: 3000
+              domain: ""
+              https_only: false
+              channel_threads: 1
+              full_refresh: false
+              feed_threads: 1
+        repoURL: https://charts-helm.invidious.io
+        chart: invidious/invidious
+        targetRevision: 2.0.4
+      destination:
+        server: '{{ server }}'
+        namespace: invidious
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true          
