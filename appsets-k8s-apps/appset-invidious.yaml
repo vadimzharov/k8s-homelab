@@ -130,6 +130,38 @@ spec:
         repoURL: https://charts-helm.invidious.io
         chart: invidious
         targetRevision: 2.0.4
+      - helm:
+          releaseName: inv_sig_helper
+          values: |      
+            service:
+              main:
+                primary: true
+                enabled: true
+                controller: main                
+                ports:
+                  http:
+                    port: 12999
+            ingress:
+              main:
+                enabled: false
+            controllers:
+              main:
+                type: deployment
+                pod:
+                  labels:
+                    vpn: required
+                enabled: true
+                containers:
+                  main:
+                    image:
+                      repository: quay.io/invidious/inv-sig-helper
+                      pullPolicy: IfNotPresent
+                      tag: latest
+                    env:
+                      RUST_LOG: info
+        repoURL: https://bjw-s.github.io/helm-charts
+        chart: app-template
+        targetRevision: 3.4.0
       destination:
         server: '{{ server }}'
         namespace: invidious
