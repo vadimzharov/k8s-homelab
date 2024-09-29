@@ -7,12 +7,10 @@ spec:
   syncPolicy:
     preserveResourcesOnDeletion: true
   generators:
-    - matrix:
-        generators:
-          - clusters:
-              selector:
-                matchLabels:
-                  metrics-server: "installed"
+  - clusters:
+      selector:
+        matchLabels:
+          metrics-server: "installed"
   template:
     metadata:
       name: '{{ name }}-metrics-server' 
