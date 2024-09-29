@@ -131,7 +131,7 @@ spec:
         chart: invidious
         targetRevision: 2.0.4
       - helm:
-          releaseName: inv_sig_helper
+          releaseName: inv-sig-helper
           values: |      
             service:
               main:
