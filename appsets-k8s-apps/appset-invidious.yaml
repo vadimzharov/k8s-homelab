@@ -74,7 +74,9 @@ spec:
               #   cpu: 800m
               #   memory: 512Mi
 
-            deploymentLabels: {}
+            deploymentLabels:
+              vpn: required
+              
 
             podSecurityContext:
               runAsUser: 1000
