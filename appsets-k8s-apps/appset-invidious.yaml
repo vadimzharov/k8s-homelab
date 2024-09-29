@@ -126,7 +126,7 @@ spec:
               full_refresh: false
               feed_threads: 1
         repoURL: https://charts-helm.invidious.io
-        chart: invidious/invidious
+        chart: invidious
         targetRevision: 2.0.4
       destination:
         server: '{{ server }}'
