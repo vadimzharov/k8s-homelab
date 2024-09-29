@@ -104,12 +104,12 @@ spec:
                 tag: 16
               auth:
                 username: kemal
-                password: kemal
+                password: {{invidiouspgpw}}
                 database: invidious
               primary:
                 initdb:
                   username: kemal
-                  password: kemal
+                  password: {{invidiouspgpw}}
                   scriptsConfigMap: invidious-postgresql-init
                 persistence:
                   enabled: false
@@ -117,16 +117,17 @@ spec:
             config:
               db:
                 user: kemal
-                password: kemal
+                password: {{invidiouspgpw}}
                 host: invidious-postgresql
                 port: 5432
                 dbname: invidious
               port: 3000
-              domain: ""
+              domain: invidious.{{ domainname }}
               https_only: false
               channel_threads: 1
               full_refresh: false
               feed_threads: 1
+              hmac_key: {{ invidioushmackey }}
         repoURL: https://charts-helm.invidious.io
         chart: invidious
         targetRevision: 2.0.4
