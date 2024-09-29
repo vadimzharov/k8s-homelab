@@ -11,7 +11,7 @@ spec:
             selector:
               matchLabels:
                 immich-v: "installed"
-                k8s-csi-nfs: "installed"    
+                csi-nfs: "installed"    
         - plugin:
             configMapRef:
               name: argocd-secrets-plugin
@@ -24,7 +24,7 @@ spec:
             selector:
               matchLabels:
                 immich-v-db: "installed"
-                k8s-csi-nfs: "installed"
+                csi-nfs: "installed"
         - plugin:
             configMapRef:
               name: argocd-secrets-plugin
