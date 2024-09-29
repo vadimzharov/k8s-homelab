@@ -76,13 +76,12 @@ spec:
 
             deploymentLabels:
               vpn: required
-              
-
+            podLabels:
+              vpn: required
             podSecurityContext:
               runAsUser: 1000
               runAsGroup: 1000
               fsGroup: 1000
-
             securityContext:
               allowPrivilegeEscalation: false
               capabilities:
