@@ -76,7 +76,7 @@ spec:
                 enabled: true
                 className: nginx
                 hosts: 
-                  - host: arr-d.{{ domainname }}
+                  - host: radarr-d.{{ domainname }}
                     paths:
                       - path: /
                         pathType: Prefix
