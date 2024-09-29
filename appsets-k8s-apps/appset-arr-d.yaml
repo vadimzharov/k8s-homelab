@@ -95,7 +95,7 @@ spec:
                 type: persistentVolumeClaim
                 size: 1Gi
                 accessMode: ReadWriteMany
-                storageClass: sc-nfs
+                storageClass: sc-nfs-default
                 globalMounts:
                   - path: /arr-d
                     readOnly: false
@@ -316,7 +316,7 @@ spec:
                 type: persistentVolumeClaim
                 size: 1Gi
                 accessMode: ReadWriteMany
-                storageClass: sc-nfs
+                storageClass: sc-nfs-default
                 globalMounts:
                   - path: /downloads/complete
                     readOnly: false
