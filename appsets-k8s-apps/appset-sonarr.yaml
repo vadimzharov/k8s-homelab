@@ -93,7 +93,7 @@ spec:
               root-folder:
                 enabled: true
                 type: persistentVolumeClaim
-                existingClaim: sonarr-tranarr-pvc                
+                existingClaim: sonarr-sonarr-pvc                
                 globalMounts:
                   - path: /sonarr
                     readOnly: false
