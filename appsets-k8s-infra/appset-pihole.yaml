@@ -24,7 +24,7 @@ spec:
       project: k8s-homelab-infra
       sources:      
       - helm:
-          releaseName: 'pihole-{{metadata.labels.cluster-name}}'      
+          releaseName: 'pihole-{{ name }}'
           values: |
             ingress:
               enabled: true
