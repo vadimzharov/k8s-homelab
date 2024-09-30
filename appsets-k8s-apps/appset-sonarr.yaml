@@ -93,6 +93,9 @@ spec:
               root-folder:
                 enabled: true
                 type: persistentVolumeClaim
+                size: 1Gi
+                accessMode: ReadWriteMany
+                storageClass: sc-nfs-default
                 globalMounts:
                   - path: /sonarr
                     readOnly: false
