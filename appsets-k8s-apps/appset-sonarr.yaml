@@ -1,0 +1,161 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: sonarr
+  namespace: argocd
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  sonarr: "installed"
+                  csi-nfs: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-sonarr'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: sonarr
+          values: |
+            controllers:            
+              main:
+                type: deployment
+                initContainers:
+                  sonarr-restore-config:
+                    image: 
+                      repository: quay.io/vadimzharov/podbackup
+                      pullPolicy: IfNotPresent
+                      tag: latest
+                    command:
+                      - podbackup
+                    args: 
+                      - restore
+                    envFrom:
+                    - configMapRef:
+                        name: sonarr-b-r-settings
+                    - secretRef:
+                        name: sonarr-b-r-creds                
+                containers:
+                  main:
+                    image: 
+                      repository: lscr.io/linuxserver/sonarr
+                      pullPolicy: IfNotPresent
+                      tag: latest
+                  sonarr-backup-config-daemon:
+                    image: 
+                      repository: quay.io/vadimzharov/podbackup
+                      pullPolicy: IfNotPresent
+                      tag: latest
+                    command: ["podbackup"]
+                    args: ["backup-daemon"]
+                    envFrom:
+                    - configMapRef:
+                        name: sonarr-b-r-settings
+                    - secretRef:
+                        name: sonarr-b-r-creds
+            service:
+              main:
+                primary: true
+                enabled: true
+                controller: main
+                ports:
+                  http:
+                    port: 8989
+            ingress:
+              main:
+                enabled: true
+                className: nginx
+                hosts: 
+                  - host: sonarr.{{ domainname }}
+                    paths:
+                      - path: /
+                        pathType: Prefix
+                        service:
+                          name: sonarr
+                          port: 8989
+            persistence:
+              config:
+                enabled: true
+                type: emptyDir
+                globalMounts:
+                  - path: /config
+                    readOnly: false
+              root-folder:
+                enabled: true
+                type: persistentVolumeClaim
+                globalMounts:
+                  - path: /sonarr
+                    readOnly: false
+              tranarr:
+                enabled: true
+                type: persistentVolumeClaim
+                existingClaim: tranarr
+                globalMounts:
+                  - path: /tranarr
+                    readOnly: false                    
+            configMaps:
+              b-r-settings:
+                enabled: true
+                data:
+                  AWS_BUCKET: "sonarr"
+                  S3_BUCKET_FOLDER: "sonarr-config"
+                  S3_FILE_PREFIX: "sonarr-config"
+                  BACKUP_INTERVAL: "1h"
+                  PRUNE_INTERVAL: "48h"
+                  COPIES_TO_KEEP: "35"
+                  FORCE_RESTORE: "true"
+                  DIR_TO_BACKUP: /config
+                  DIR_TO_RESTORE: /config
+                  ARCHIVE_TYPE: targz
+            secrets:
+              b-r-creds:
+                enabled: true
+                labels: {}
+                annotations: {}
+                stringData:
+                  S3_ENDPOINT: {{ minioendpoint }}
+                  AWS_KEY: {{ miniokey }}
+                  AWS_SECRET_KEY: {{ miniosecretkey }}
+            rawResources:
+              tranarr-pv:
+                apiVersion: v1
+                kind: PersistentVolume
+                spec:
+                  capacity:
+                    storage: 10Gi
+                  accessModes:
+                    - ReadWriteMany
+                  persistentVolumeReclaimPolicy: Retain
+                  storageClassName: sc-nfs-default
+                  csi:
+                    driver: nfs.csi.k8s.io
+                    readOnly: false
+                    # volumeHandle format: {nfs-server-address}#{sub-dir-name}#{share-name}
+                    # make sure this value is unique for every share in the cluster
+                    volumeHandle: nfs-server#subdirname#sonarr-app
+                    volumeAttributes:
+                      server: {{ k8s-nfs-server-name }}
+                      share: {{ k8s-tranarr-share }}
+        repoURL: https://bjw-s.github.io/helm-charts
+        chart: app-template
+        targetRevision: 3.4.0
+      destination:
+        server: '{{server}}' 
+        namespace: arr-d
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
