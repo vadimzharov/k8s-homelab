@@ -61,14 +61,15 @@ spec:
                 apiVersion: storage.k8s.io/v1
                 kind: StorageClass
                 nameOverride: custom
-                provisioner: nfs.csi.k8s.io
-                parameters:
-                  server: {{ k8s-nfs-server-name }}
-                  share: {{ k8s-nfs-share-name }}
-                reclaimPolicy: Delete
-                volumeBindingMode: Immediate
-                mountOptions:
-                  - nfsvers=4.1                    
+                spec:
+                  provisioner: nfs.csi.k8s.io
+                  parameters:
+                    server: {{ k8s-nfs-server-name }}
+                    share: {{ k8s-nfs-share-name }}
+                  reclaimPolicy: Delete
+                  volumeBindingMode: Immediate
+                  mountOptions:
+                    - nfsvers=4.1                    
         repoURL: https://bjw-s.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0        
