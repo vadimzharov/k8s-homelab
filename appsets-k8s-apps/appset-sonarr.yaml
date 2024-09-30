@@ -102,7 +102,7 @@ spec:
               tranarr:
                 enabled: true
                 type: persistentVolumeClaim
-                existingClaim: tranarr-pvc
+                existingClaim: sonarr-tranarr-pvc
                 globalMounts:
                   - path: /tranarr
                     readOnly: false                    
