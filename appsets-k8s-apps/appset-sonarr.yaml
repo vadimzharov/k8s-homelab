@@ -167,7 +167,7 @@ spec:
         targetRevision: 3.4.0
       destination:
         server: '{{server}}' 
-        namespace: arr-d
+        namespace: sonarr
       syncPolicy:
         automated:
           prune: true
