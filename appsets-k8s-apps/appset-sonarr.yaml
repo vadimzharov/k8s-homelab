@@ -161,7 +161,7 @@ spec:
                     resources:
                       requests:
                         storage: 10Gi
-                    volumeName: tranarr-pv
+                    volumeName: sonarr-tranarr-pv
         repoURL: https://bjw-s.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0
