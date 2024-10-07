@@ -1,0 +1,130 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: prowlarr
+  namespace: argocd
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  prowlarr: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-prowlarr'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: prowlarr
+          values: |
+            controllers:            
+              main:
+                type: deployment
+                pod:
+                  labels:
+                    vpn: required
+                initContainers:
+                  prowlarr-restore-config:
+                    image: 
+                      repository: quay.io/vadimzharov/podbackup
+                      pullPolicy: IfNotPresent
+                      tag: latest
+                    command:
+                      - podbackup
+                    args: 
+                      - restore
+                    envFrom:
+                    - configMapRef:
+                        name: prowlarr-b-r-settings
+                    - secretRef:
+                        name: prowlarr-b-r-creds                
+                containers:
+                  main:
+                    image: 
+                      repository: lscr.io/linuxserver/prowlarr
+                      pullPolicy: IfNotPresent
+                      tag: latest
+                  prowlarr-backup-config-daemon:
+                    image: 
+                      repository: quay.io/vadimzharov/podbackup
+                      pullPolicy: IfNotPresent
+                      tag: latest
+                    command: ["podbackup"]
+                    args: ["backup-daemon"]
+                    envFrom:
+                    - configMapRef:
+                        name: prowlarr-b-r-settings
+                    - secretRef:
+                        name: prowlarr-b-r-creds
+            service:
+              main:
+                primary: true
+                enabled: true
+                controller: main
+                ports:
+                  http:
+                    port: 9696
+            ingress:
+              main:
+                enabled: true
+                className: nginx
+                hosts: 
+                  - host: prowlarr.{{ domainname }}
+                    paths:
+                      - path: /
+                        pathType: Prefix
+                        service:
+                          name: prowlarr
+                          port: 9696
+            persistence:
+              config:
+                enabled: true
+                type: emptyDir
+                globalMounts:
+                  - path: /config
+                    readOnly: false
+            configMaps:
+              b-r-settings:
+                enabled: true
+                data:
+                  AWS_BUCKET: "arr-bkp"
+                  S3_BUCKET_FOLDER: "prowlarr-config"
+                  S3_FILE_PREFIX: "prowlarr-config"
+                  BACKUP_INTERVAL: "1h"
+                  PRUNE_INTERVAL: "48h"
+                  COPIES_TO_KEEP: "35"
+                  FORCE_RESTORE: "true"
+                  DIR_TO_BACKUP: /config
+                  DIR_TO_RESTORE: /config
+                  ARCHIVE_TYPE: targz
+            secrets:
+              b-r-creds:
+                enabled: true
+                labels: {}
+                annotations: {}
+                stringData:
+                  S3_ENDPOINT: {{ minioendpoint }}
+                  AWS_KEY: {{ miniokey }}
+                  AWS_SECRET_KEY: {{ miniosecretkey }}
+        repoURL: https://bjw-s.github.io/helm-charts
+        chart: app-template
+        targetRevision: 3.4.0
+      destination:
+        server: '{{server}}' 
+        namespace: prowlarr
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
