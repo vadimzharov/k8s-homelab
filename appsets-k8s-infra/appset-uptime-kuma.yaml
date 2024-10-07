@@ -29,6 +29,7 @@ spec:
             persistence:
               enabled: true
             ingress:
+              enabled: true
               className: nginx
               annotations:
                 nginx.ingress.kubernetes.io/force-ssl-redirect: "true"   
