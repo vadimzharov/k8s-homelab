@@ -29,11 +29,11 @@ spec:
             persistence:
               enabled: true
             ingress:
-              ingressClassName: nginx
+              className: nginx
               annotations:
                 nginx.ingress.kubernetes.io/force-ssl-redirect: "true"   
               hosts:
-                - uptime-kuma.{{ domainname }}
+                - host: uptime-kuma.{{ domainname }}
                   paths:
                     - path: /
                       pathType: ImplementationSpecific              
