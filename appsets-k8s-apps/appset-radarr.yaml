@@ -1,0 +1,207 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: radarr
+  namespace: argocd
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  radarr: "installed"
+                  csi-nfs: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-radarr'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: radarr
+          values: |
+            controllers:            
+              main:
+                type: deployment
+                initContainers:
+                  radarr-restore-config:
+                    image: 
+                      repository: quay.io/vadimzharov/podbackup
+                      pullPolicy: IfNotPresent
+                      tag: latest
+                    command:
+                      - podbackup
+                    args: 
+                      - restore
+                    envFrom:
+                    - configMapRef:
+                        name: radarr-b-r-settings
+                    - secretRef:
+                        name: radarr-b-r-creds                
+                containers:
+                  main:
+                    image: 
+                      repository: lscr.io/linuxserver/radarr
+                      pullPolicy: IfNotPresent
+                      tag: latest
+                  radarr-backup-config-daemon:
+                    image: 
+                      repository: quay.io/vadimzharov/podbackup
+                      pullPolicy: IfNotPresent
+                      tag: latest
+                    command: ["podbackup"]
+                    args: ["backup-daemon"]
+                    envFrom:
+                    - configMapRef:
+                        name: radarr-b-r-settings
+                    - secretRef:
+                        name: radarr-b-r-creds
+            service:
+              main:
+                primary: true
+                enabled: true
+                controller: main
+                ports:
+                  http:
+                    port: 7878
+            ingress:
+              main:
+                enabled: true
+                className: nginx
+                hosts: 
+                  - host: radarr.{{ domainname }}
+                    paths:
+                      - path: /
+                        pathType: Prefix
+                        service:
+                          name: radarr
+                          port: 7878
+            persistence:
+              config:
+                enabled: true
+                type: emptyDir
+                globalMounts:
+                  - path: /config
+                    readOnly: false
+              root-folder:
+                enabled: true
+                type: persistentVolumeClaim
+                existingClaim: radarr-radarr-pvc                
+                globalMounts:
+                  - path: /radarr
+                    readOnly: false
+              tranarr:
+                enabled: true
+                type: persistentVolumeClaim
+                existingClaim: radarr-tranarr-pvc
+                globalMounts:
+                  - path: /tranarr
+                    readOnly: false                    
+            configMaps:
+              b-r-settings:
+                enabled: true
+                data:
+                  AWS_BUCKET: "arr-bkp"
+                  S3_BUCKET_FOLDER: "radarr-config"
+                  S3_FILE_PREFIX: "radarr-config"
+                  BACKUP_INTERVAL: "1h"
+                  PRUNE_INTERVAL: "48h"
+                  COPIES_TO_KEEP: "35"
+                  FORCE_RESTORE: "true"
+                  DIR_TO_BACKUP: /config
+                  DIR_TO_RESTORE: /config
+                  ARCHIVE_TYPE: targz
+            secrets:
+              b-r-creds:
+                enabled: true
+                labels: {}
+                annotations: {}
+                stringData:
+                  S3_ENDPOINT: {{ minioendpoint }}
+                  AWS_KEY: {{ miniokey }}
+                  AWS_SECRET_KEY: {{ miniosecretkey }}
+            rawResources:
+              tranarr-pv:
+                apiVersion: v1
+                kind: PersistentVolume
+                spec:
+                  spec:
+                    capacity:
+                      storage: 10Gi
+                    accessModes:
+                      - ReadWriteMany
+                    persistentVolumeReclaimPolicy: Retain
+                    storageClassName: sc-nfs-default
+                    csi:
+                      driver: nfs.csi.k8s.io
+                      readOnly: false
+                      # volumeHandle format: {nfs-server-address}#{sub-dir-name}#{share-name}
+                      # make sure this value is unique for every share in the cluster
+                      volumeHandle: "nfs-server#radarr-tranarr#radarr-app"
+                      volumeAttributes:
+                        server: {{ k8s-nfs-server-name }}
+                        share: {{ k8s-tranarr-share }}
+              tranarr-pvc:
+                apiVersion: v1
+                kind: PersistentVolumeClaim
+                spec:
+                  spec:
+                    storageClassName: sc-nfs-default
+                    accessModes:
+                      - ReadWriteMany
+                    resources:
+                      requests:
+                        storage: 10Gi
+                    volumeName: radarr-tranarr-pv
+              radarr-pv:
+                apiVersion: v1
+                kind: PersistentVolume
+                spec:
+                  spec:
+                    capacity:
+                      storage: 10Gi
+                    accessModes:
+                      - ReadWriteMany
+                    persistentVolumeReclaimPolicy: Retain
+                    storageClassName: sc-nfs-default
+                    csi:
+                      driver: nfs.csi.k8s.io
+                      readOnly: false
+                      # volumeHandle format: {nfs-server-address}#{sub-dir-name}#{share-name}
+                      # make sure this value is unique for every share in the cluster
+                      volumeHandle: "nfs-server#radarr#radarr-app"
+                      volumeAttributes:
+                        server: {{ k8s-nfs-server-name }}
+                        share: {{ k8s-radarr-share }}
+              radarr-pvc:
+                apiVersion: v1
+                kind: PersistentVolumeClaim
+                spec:
+                  spec:
+                    storageClassName: sc-nfs-default
+                    accessModes:
+                      - ReadWriteMany
+                    resources:
+                      requests:
+                        storage: 10Gi
+                    volumeName: radarr-radarr-pv                    
+        repoURL: https://bjw-s.github.io/helm-charts
+        chart: app-template
+        targetRevision: 3.4.0
+      destination:
+        server: '{{server}}' 
+        namespace: radarr
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
