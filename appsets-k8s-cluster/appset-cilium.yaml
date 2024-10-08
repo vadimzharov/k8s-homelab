@@ -69,9 +69,9 @@ spec:
                   - name: {{ mesh-peer-cluster1name }}
                     address: {{ mesh-peer-cluster1address }}
                     port:  {{ mesh-peer-cluster1port }}
-                  - name: {{ mesh-peer-cluster2name }}
-                    address: {{ mesh-peer-cluster2address }}
-                    port:  {{ mesh-peer-cluster2port }}                    
+                  #- name: {{ mesh-peer-cluster2name }}
+                  #  address: {{ mesh-peer-cluster2address }}
+                  #  port:  {{ mesh-peer-cluster2port }}                    
               useAPIServer: true
             ipv4:
               enabled: true
