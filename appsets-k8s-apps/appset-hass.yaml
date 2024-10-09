@@ -1,0 +1,130 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: hass
+  namespace: argocd
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  hass: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-hass'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: hass
+          values: |      
+            service:
+              main:
+                primary: true
+                enabled: true
+                controller: main                
+                ports:
+                  http:
+                    port: 8123
+            ingress:
+              main:
+                enabled: true
+                className: nginx
+                hosts:
+                  - host: hass.{{ domainname }}
+                    paths:
+                      - path: /
+                        pathType: Prefix
+                        service:
+                          name: hass
+                          port: 8123
+            persistence:
+              config:
+                enabled: true
+                type: emptyDir
+                globalMounts: 
+                  - path: /config/
+            secrets:
+              b-r-secret:
+                enabled: true
+                labels: {}
+                annotations: {}
+                stringData:
+                  AWS_BUCKET: {{ awsbucket }}
+                  AWS_KEY: {{ awskey }}
+                  AWS_SECRET_KEY: {{ awssecretkey }}
+                  ENCRYPT_PASSWORD: {{ awsencryptpassword }}
+            configMaps:
+              b-r-settings:
+                enabled: true
+                data:
+                  S3_BUCKET_FOLDER: "homehass"
+                  S3_FILE_PREFIX: "hass-backup"
+                  DIR_TO_BACKUP: "/config"
+                  DIR_TO_RESTORE: "/config"  
+                  BACKUP_INTERVAL: "24h"
+                  PRUNE_INTERVAL: "48h"
+                  COPIES_TO_KEEP: "35"
+                  FORCE_RESTORE: "True"  
+            controllers:
+              main:
+                type: deployment
+                enabled: true
+                initContainers:
+                  hass-restore:
+                    image: 
+                      repository: quay.io/vadimzharov/podbackup
+                      pullPolicy: IfNotPresent
+                      tag: latest
+                    command:
+                      - podbackup
+                    args:
+                      - restore
+                    envFrom:
+                    - secretRef:
+                        name: hass-b-r-secret
+                    - configMapRef:
+                        name: hass-b-r-settings
+                containers:
+                  main:
+                    image:
+                      repository: lscr.io/linuxserver/hass
+                      pullPolicy: IfNotPresent
+                      tag: latest
+                    env:
+                      TZ: UTC
+                  hass-backup-daemon:
+                    image: 
+                      repository: quay.io/vadimzharov/podbackup
+                      pullPolicy: IfNotPresent
+                      tag: latest
+                    command:
+                      - podbackup
+                    args:
+                      - backup-daemon
+                    envFrom:
+                    - secretRef:
+                        name: hass-b-r-secret
+                    - configMapRef:
+                        name: hass-b-r-settings
+        repoURL: https://bjw-s.github.io/helm-charts
+        chart: app-template
+        targetRevision: 3.4.0
+      destination:
+        server: '{{server}}' 
+        namespace: hass
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
