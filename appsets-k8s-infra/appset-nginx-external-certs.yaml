@@ -12,7 +12,7 @@ spec:
           - clusters:
               selector:
                 matchLabels:
-                  nginx-external: "installed"
+                  nginx-external-certs: "installed"
           - plugin:
               # Specify the configMap where the plugin configuration is located.
               configMapRef:

@@ -25,7 +25,7 @@ spec:
       project: k8s-homelab-cluster
       sources:
       - helm:
-          releaseName: nginx
+          releaseName: nginx-external
           values: |
             controller:
               extraArgs:
