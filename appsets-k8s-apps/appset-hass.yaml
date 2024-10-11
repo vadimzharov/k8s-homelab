@@ -61,7 +61,7 @@ spec:
                   AWS_BUCKET: {{ awsbucket }}
                   AWS_KEY: {{ awskey }}
                   AWS_SECRET_KEY: {{ awssecretkey }}
-                  ENCRYPT_PASSWORD: {{ awsencryptpassword }}
+                  ENCRYPT_PASSWORD: {{ encryptpassword }}
             configMaps:
               b-r-settings:
                 enabled: true
