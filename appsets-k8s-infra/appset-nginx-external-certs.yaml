@@ -4,6 +4,8 @@ metadata:
   name: nginx-external
   namespace: argocd
 spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
   generators:
     - matrix:
         generators:
@@ -17,32 +19,34 @@ spec:
                 name: argocd-secrets-plugin
               input:
                 parameters:
-                  secretName: "{{ name }}-network-secrets"
+                  secretName: "wildcard-apps-certificate"
+                  namespaceName: "ingress-nginx"
   template:
     metadata:
-      name: '{{name}}-nginx-external'
+      name: '{{.name}}-nginx-external-certs'
     spec:
       project: k8s-homelab-cluster
       sources:
       - helm:
-          releaseName: nginx
+          releaseName: nginx-certs
           values: |
-            controller:
-              extraArgs:
-                default-ssl-certificate: "ingress-nginx/wildcard-apps-certificate"
-              service:
-                enabled: true
-                loadBalancerIP: {{ nginxexternalingressip }}
-              ingressClassResource:
-                name: nginx-external
-                default: false
-                controllerValue: "k8s.io/ingress-nginx-external"
-              ingressClass: nginx-external                
-        repoURL: https://kubernetes.github.io/ingress-nginx
-        chart: ingress-nginx
-        targetRevision: 4.11.2
+            controllers: 
+              main:
+               enabled: false
+            rawResources:
+              wildcard-certs:
+                apiVersion: v1
+                kind: Secret
+                nameOverride: apps-certificate
+                spec:
+                  data:
+                    tls.crt: {{ .tls_crt | b64enc }}
+                    tls.key: {{ .tls_key | b64enc }}             
+        repoURL: https://bjw-s.github.io/helm-charts
+        chart: app-template
+        targetRevision: 3.4.0
       destination:
-        server: '{{server}}'
+        server: '{{.server}}'
         namespace: ingress-nginx-external
       syncPolicy:
         automated:
