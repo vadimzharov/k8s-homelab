@@ -96,9 +96,9 @@ spec:
                 containers:
                   main:
                     image:
-                      repository: lscr.io/linuxserver/hass
+                      repository: docker.io/homeassistant/home-assistant
                       pullPolicy: IfNotPresent
-                      tag: latest
+                      tag: 2022.2.0
                     env:
                       TZ: UTC
                   #hass-backup-daemon:
