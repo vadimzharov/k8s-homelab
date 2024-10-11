@@ -39,7 +39,7 @@ spec:
                 enabled: true
                 className: nginx
                 hosts:
-                  - host: hass.{{ domainname }}
+                  - host: hass-new.{{ domainname }}
                     paths:
                       - path: /
                         pathType: Prefix
@@ -101,20 +101,20 @@ spec:
                       tag: latest
                     env:
                       TZ: UTC
-                  hass-backup-daemon:
-                    image: 
-                      repository: quay.io/vadimzharov/podbackup
-                      pullPolicy: IfNotPresent
-                      tag: latest
-                    command:
-                      - podbackup
-                    args:
-                      - backup-daemon
-                    envFrom:
-                    - secretRef:
-                        name: hass-b-r-secret
-                    - configMapRef:
-                        name: hass-b-r-settings
+                  #hass-backup-daemon:
+                  #  image: 
+                  #    repository: quay.io/vadimzharov/podbackup
+                  #    pullPolicy: IfNotPresent
+                  #    tag: latest
+                  #  command:
+                  #    - podbackup
+                  #  args:
+                  #    - backup-daemon
+                  #  envFrom:
+                  #  - secretRef:
+                  #      name: hass-b-r-secret
+                  #  - configMapRef:
+                  #      name: hass-b-r-settings
         repoURL: https://bjw-s.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0
