@@ -37,7 +37,7 @@ spec:
                 kind: CiliumLoadBalancerIPPool
                 spec:
                   spec:
-                    cidrs:
+                    blocks:
                       - cidr: {{ load-balancer-cidr }}
                     disabled: false
               bgppeering:
