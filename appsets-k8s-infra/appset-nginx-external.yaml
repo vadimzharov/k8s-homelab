@@ -1,0 +1,48 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: nginx-external
+  namespace: argocd
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  nginx-external: "installed"
+          - plugin:
+              # Specify the configMap where the plugin configuration is located.
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "{{ name }}-network-secrets"
+  template:
+    metadata:
+      name: '{{name}}-nginx-external'
+    spec:
+      project: k8s-homelab-cluster
+      sources:
+      - helm:
+          releaseName: nginx
+          values: |
+            controller:
+              extraArgs:
+                default-ssl-certificate: "ingress-nginx/wildcard-apps-certificate"
+              service:
+                enabled: true
+                loadBalancerIP: {{ nginxexternalingressip }}
+        repoURL: https://kubernetes.github.io/ingress-nginx
+        chart: ingress-nginx
+        targetRevision: 4.11.2
+      destination:
+        server: '{{server}}'
+        namespace: ingress-nginx-external
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          
