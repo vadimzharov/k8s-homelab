@@ -55,7 +55,7 @@ spec:
                 kind: Secret
                 spec:
                   data:
-                    api-token: {{ .letsencryptpk | b64enc }}                    
+                    tls.key: {{ .letsencryptpk | b64enc }}                    
               clusterissuer:
                 apiVersion: cert-manager.io/v1
                 kind: ClusterIssuer
@@ -65,7 +65,7 @@ spec:
                       email: {{ .email }}
                       preferredChain: ''
                       privateKeySecretRef:
-                        name: letsencrypt-prod
+                        name: cm-config-letsencrypt-pk
                       server: https://acme-v02.api.letsencrypt.org/directory
                       solvers:
                         - dns01:
