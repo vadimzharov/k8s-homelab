@@ -98,7 +98,7 @@ spec:
                     image:
                       repository: docker.io/vaultwarden/server
                       pullPolicy: IfNotPresent
-                      tag: :latest
+                      tag: latest
                     env:
                       LOG_LEVEL: info 
                       WEBSOCKET_ENABLED: 'true'
