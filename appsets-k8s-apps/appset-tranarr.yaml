@@ -87,7 +87,7 @@ spec:
                 enabled: true
                 className: nginx
                 hosts: 
-                  - host: tranarr-new.{{ domainname }}
+                  - host: tranarr.{{ domainname }}
                     paths:
                       - path: /
                         pathType: Prefix
