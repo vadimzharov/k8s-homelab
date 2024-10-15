@@ -9,6 +9,7 @@ spec:
       selector:
         matchLabels:
           gpu-plugin: "installed"
+          nfd: "installed"          
       values:
         revision: '{{metadata.annotations.branch-name}}'
   template:
