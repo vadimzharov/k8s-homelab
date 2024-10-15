@@ -197,7 +197,7 @@ spec:
                       volumeAttributes:
                         server: {{ k8s-nfs-server-name }}
                         share: {{ k8s-tranarr-dedicated-share }}
-              dedicated-movies-pv-pvc:
+              dedicated-movies-pvc:
                 apiVersion: v1
                 kind: PersistentVolumeClaim
                 spec:
