@@ -65,14 +65,14 @@ spec:
                       email: {{ .email }}
                       preferredChain: ''
                       privateKeySecretRef:
-                        name: cm-config-letsencrypt-pk
+                        name:  letsencrypt-prod
                       server: https://acme-v02.api.letsencrypt.org/directory
                       solvers:
                         - dns01:
                             cloudflare:
                               apiTokenSecretRef:
                                 key: api-token
-                                name: cloudflare-api-token
+                                name: cm-config-cloudflare-api-token
                               email: {{ .email }}
                           selector:
                             dnsZones:
