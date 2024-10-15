@@ -24,167 +24,167 @@ spec:
     spec:
       project: k8s-homelab-apps
       sources:   
-      # - helm:
-      #     releaseName: photoprism
-      #     values: |
-      #       controllers:            
-      #         main:
-      #           type: deployment
-      #           containers:
-      #             main:
-      #               image: 
-      #                 repository: photoprism/photoprism
-      #                 pullPolicy: IfNotPresent
-      #                 tag: latest
-      #               envFrom:
-      #               - secretRef:
-      #                   name: photoprism-config
-      #       service:
-      #         main:
-      #           primary: true
-      #           enabled: true
-      #           controller: main
-      #           ports:
-      #             http:
-      #               port: 2342
-      #       ingress:
-      #         main:
-      #           enabled: true
-      #           className: nginx
-      #           annotations:
-      #             nginx.ingress.kubernetes.io/service-upstream: "true"
-      #             nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-      #             nginx.ingress.kubernetes.io/proxy-body-size: "0"
-      #             nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-      #             nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-      #             nginx.ingress.kubernetes.io/client-body-buffer-size: 1M
-      #             nginx.ingress.kubernetes.io/proxy-max-temp-file-size: "0"
-      #             nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
-      #           hosts: 
-      #             - host: photos.{{ domainname }}
-      #               paths:
-      #                 - path: /
-      #                   pathType: Prefix
-      #                   service:
-      #                     name: photoprism
-      #                     port: 2342
-      #       persistence:
-      #         originals:
-      #           enabled: true
-      #           type: persistentVolumeClaim
-      #           existingClaim: photoprism-originals
-      #           globalMounts:
-      #             - path: /photoprism/originals
-      #               readOnly: false
-      #         storage:
-      #           enabled: true
-      #           type: persistentVolumeClaim
-      #           existingClaim: photoprism-storage
-      #           globalMounts:
-      #             - path: /photoprism/storage
-      #               readOnly: false
-      #       secrets:
-      #         config:
-      #           enabled: true
-      #           labels: {}
-      #           annotations: {}
-      #           stringData:
-      #             PHOTOPRISM_AUTH_MODE: "password"               # authentication mode (public, password)
-      #             PHOTOPRISM_ORIGINALS_LIMIT: "5000"               # file size limit for originals in MB (increase for high-res video)
-      #             PHOTOPRISM_HTTP_COMPRESSION: "gzip"            # improves transfer speed and bandwidth utilization (none or gzip)
-      #             PHOTOPRISM_LOG_LEVEL: "info"                   # log level: trace, debug, info, warning, error, fatal, or panic
-      #             PHOTOPRISM_READONLY: "false"                    # do not modify originals directory (reduced functionality)
-      #             PHOTOPRISM_EXPERIMENTAL: "false"               # enables experimental features
-      #             PHOTOPRISM_DISABLE_CHOWN: "false"              # disables updating storage permissions via chmod and chown on startup
-      #             PHOTOPRISM_DISABLE_WEBDAV: "false"             # disables built-in WebDAV server
-      #             PHOTOPRISM_DISABLE_SETTINGS: "false"           # disables settings UI and API
-      #             PHOTOPRISM_DISABLE_TENSORFLOW: "true"         # disables all features depending on TensorFlow
-      #             PHOTOPRISM_DISABLE_FACES: "true"              # disables face detection and recognition (requires TensorFlow)
-      #             PHOTOPRISM_DISABLE_CLASSIFICATION: "true"     # disables image classification (requires TensorFlow)
-      #             PHOTOPRISM_DISABLE_RAW: "true"                # disables indexing and conversion of RAW files
-      #             PHOTOPRISM_RAW_PRESETS: "true"                # enables applying user presets when converting RAW files (reduces performance)
-      #             PHOTOPRISM_JPEG_QUALITY: "85"                    # a higher value increases the quality and file size of JPEG images and thumbnails (25-100)
-      #             PHOTOPRISM_DETECT_NSFW: "false"                # automatically flags photos as private that MAY be offensive (requires TensorFlow)
-      #             PHOTOPRISM_UPLOAD_NSFW: "true"                 # allows uploads that MAY be offensive (no effect without TensorFlow)
-      #             PHOTOPRISM_DATABASE_DRIVER: "mysql"         # SQLite is an embedded database that doesn't require a server
-      #             PHOTOPRISM_DATABASE_SERVER: "mariadb:3306" 
-      #             PHOTOPRISM_SITE_CAPTION: "AI-Powered Photos App"
-      #             PHOTOPRISM_SITE_DESCRIPTION: ""                # meta site description
-      #             PHOTOPRISM_SITE_AUTHOR: ""                     # meta site author
-      #             PHOTOPRISM_ADMIN_PASSWORD: "{{ PHOTOPRISM_ADMIN_PASSWORD }}"
-      #             PHOTOPRISM_ADMIN_USER: "{{ PHOTOPRISM_ADMIN_USER }}"
-      #             PHOTOPRISM_SITE_URL: "https://photos.{{ domainname }}/"
-      #             PHOTOPRISM_DATABASE_NAME: {{ MARIADB_DATABASE }}
-      #             PHOTOPRISM_DATABASE_USER: {{ MARIADB_USER }}
-      #             PHOTOPRISM_DATABASE_PASSWORD: {{ MARIADB_PASSWORD }}
-      #       rawResources:
-      #         originals-pv:
-      #           apiVersion: v1
-      #           kind: PersistentVolume
-      #           spec:
-      #             spec:
-      #               capacity:
-      #                 storage: 10Gi
-      #               accessModes:
-      #                 - ReadWriteMany
-      #               persistentVolumeReclaimPolicy: Retain
-      #               storageClassName: sc-nfs-default
-      #               csi:
-      #                 driver: nfs.csi.k8s.io
-      #                 readOnly: false
-      #                 # volumeHandle format: {nfs-server-address}#{sub-dir-name}#{share-name}
-      #                 # make sure this value is unique for every share in the cluster
-      #                 volumeHandle: "nfs-server#k8s-photoprism#k8s-photoprism-originals-share"
-      #                 volumeAttributes:
-      #                   server: {{ k8s-nfs-server-name }}
-      #                   share: {{ k8s-photoprism-originals-share }}
-      #         originals:
-      #           apiVersion: v1
-      #           kind: PersistentVolumeClaim
-      #           spec:
-      #             spec:
-      #               storageClassName: sc-nfs-default
-      #               accessModes:
-      #                 - ReadWriteMany
-      #               resources:
-      #                 requests:
-      #                   storage: 10Gi
-      #               volumeName: photoprism-originals-pv
-      #         storage-pv:
-      #           apiVersion: v1
-      #           kind: PersistentVolume
-      #           spec:
-      #             spec:
-      #               capacity:
-      #                 storage: 10Gi
-      #               accessModes:
-      #                 - ReadWriteMany
-      #               persistentVolumeReclaimPolicy: Retain
-      #               storageClassName: sc-nfs-default
-      #               csi:
-      #                 driver: nfs.csi.k8s.io
-      #                 readOnly: false
-      #                 # volumeHandle format: {nfs-server-address}#{sub-dir-name}#{share-name}
-      #                 # make sure this value is unique for every share in the cluster
-      #                 volumeHandle: "nfs-server#k8s-photoprism#k8s-photoprism-storage-share"
-      #                 volumeAttributes:
-      #                   server: {{ k8s-nfs-server-name }}
-      #                   share: {{ k8s-photoprism-storage-share }}
-      #         storage-pvc:
-      #           apiVersion: v1
-      #           kind: PersistentVolumeClaim
-      #           spec:
-      #             spec:
-      #               storageClassName: sc-nfs-default
-      #               accessModes:
-      #                 - ReadWriteMany
-      #               resources:
-      #                 requests:
-      #                   storage: 10Gi
-      #               volumeName: photoprism-storage-pv
-      #   repoURL: https://bjw-s.github.io/helm-charts
-      #   chart: app-template
-      #   targetRevision: 3.4.0
+      - helm:
+          releaseName: photoprism
+          values: |
+            controllers:            
+              main:
+                type: deployment
+                containers:
+                  main:
+                    image: 
+                      repository: photoprism/photoprism
+                      pullPolicy: IfNotPresent
+                      tag: latest
+                    envFrom:
+                    - secretRef:
+                        name: photoprism-config
+            service:
+              main:
+                primary: true
+                enabled: true
+                controller: main
+                ports:
+                  http:
+                    port: 2342
+            ingress:
+              main:
+                enabled: true
+                className: nginx
+                annotations:
+                  nginx.ingress.kubernetes.io/service-upstream: "true"
+                  nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+                  nginx.ingress.kubernetes.io/proxy-body-size: "0"
+                  nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+                  nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+                  nginx.ingress.kubernetes.io/client-body-buffer-size: 1M
+                  nginx.ingress.kubernetes.io/proxy-max-temp-file-size: "0"
+                  nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
+                hosts: 
+                  - host: photos.{{ domainname }}
+                    paths:
+                      - path: /
+                        pathType: Prefix
+                        service:
+                          name: photoprism
+                          port: 2342
+            persistence:
+              originals:
+                enabled: true
+                type: persistentVolumeClaim
+                existingClaim: photoprism-originals
+                globalMounts:
+                  - path: /photoprism/originals
+                    readOnly: false
+              storage:
+                enabled: true
+                type: persistentVolumeClaim
+                existingClaim: photoprism-storage
+                globalMounts:
+                  - path: /photoprism/storage
+                    readOnly: false
+            secrets:
+              config:
+                enabled: true
+                labels: {}
+                annotations: {}
+                stringData:
+                  PHOTOPRISM_AUTH_MODE: "password"               # authentication mode (public, password)
+                  PHOTOPRISM_ORIGINALS_LIMIT: "5000"               # file size limit for originals in MB (increase for high-res video)
+                  PHOTOPRISM_HTTP_COMPRESSION: "gzip"            # improves transfer speed and bandwidth utilization (none or gzip)
+                  PHOTOPRISM_LOG_LEVEL: "info"                   # log level: trace, debug, info, warning, error, fatal, or panic
+                  PHOTOPRISM_READONLY: "false"                    # do not modify originals directory (reduced functionality)
+                  PHOTOPRISM_EXPERIMENTAL: "false"               # enables experimental features
+                  PHOTOPRISM_DISABLE_CHOWN: "false"              # disables updating storage permissions via chmod and chown on startup
+                  PHOTOPRISM_DISABLE_WEBDAV: "false"             # disables built-in WebDAV server
+                  PHOTOPRISM_DISABLE_SETTINGS: "false"           # disables settings UI and API
+                  PHOTOPRISM_DISABLE_TENSORFLOW: "true"         # disables all features depending on TensorFlow
+                  PHOTOPRISM_DISABLE_FACES: "true"              # disables face detection and recognition (requires TensorFlow)
+                  PHOTOPRISM_DISABLE_CLASSIFICATION: "true"     # disables image classification (requires TensorFlow)
+                  PHOTOPRISM_DISABLE_RAW: "true"                # disables indexing and conversion of RAW files
+                  PHOTOPRISM_RAW_PRESETS: "true"                # enables applying user presets when converting RAW files (reduces performance)
+                  PHOTOPRISM_JPEG_QUALITY: "85"                    # a higher value increases the quality and file size of JPEG images and thumbnails (25-100)
+                  PHOTOPRISM_DETECT_NSFW: "false"                # automatically flags photos as private that MAY be offensive (requires TensorFlow)
+                  PHOTOPRISM_UPLOAD_NSFW: "true"                 # allows uploads that MAY be offensive (no effect without TensorFlow)
+                  PHOTOPRISM_DATABASE_DRIVER: "mysql"         # SQLite is an embedded database that doesn't require a server
+                  PHOTOPRISM_DATABASE_SERVER: "mariadb:3306" 
+                  PHOTOPRISM_SITE_CAPTION: "AI-Powered Photos App"
+                  PHOTOPRISM_SITE_DESCRIPTION: ""                # meta site description
+                  PHOTOPRISM_SITE_AUTHOR: ""                     # meta site author
+                  PHOTOPRISM_ADMIN_PASSWORD: "{{ PHOTOPRISM_ADMIN_PASSWORD }}"
+                  PHOTOPRISM_ADMIN_USER: "{{ PHOTOPRISM_ADMIN_USER }}"
+                  PHOTOPRISM_SITE_URL: "https://photos.{{ domainname }}/"
+                  PHOTOPRISM_DATABASE_NAME: {{ MARIADB_DATABASE }}
+                  PHOTOPRISM_DATABASE_USER: {{ MARIADB_USER }}
+                  PHOTOPRISM_DATABASE_PASSWORD: {{ MARIADB_PASSWORD }}
+            rawResources:
+              originals-pv:
+                apiVersion: v1
+                kind: PersistentVolume
+                spec:
+                  spec:
+                    capacity:
+                      storage: 10Gi
+                    accessModes:
+                      - ReadWriteMany
+                    persistentVolumeReclaimPolicy: Retain
+                    storageClassName: sc-nfs-default
+                    csi:
+                      driver: nfs.csi.k8s.io
+                      readOnly: false
+                      # volumeHandle format: {nfs-server-address}#{sub-dir-name}#{share-name}
+                      # make sure this value is unique for every share in the cluster
+                      volumeHandle: "nfs-server#k8s-photoprism#k8s-photoprism-originals-share"
+                      volumeAttributes:
+                        server: {{ k8s-nfs-server-name }}
+                        share: {{ k8s-photoprism-originals-share }}
+              originals:
+                apiVersion: v1
+                kind: PersistentVolumeClaim
+                spec:
+                  spec:
+                    storageClassName: sc-nfs-default
+                    accessModes:
+                      - ReadWriteMany
+                    resources:
+                      requests:
+                        storage: 10Gi
+                    volumeName: photoprism-originals-pv
+              storage-pv:
+                apiVersion: v1
+                kind: PersistentVolume
+                spec:
+                  spec:
+                    capacity:
+                      storage: 10Gi
+                    accessModes:
+                      - ReadWriteMany
+                    persistentVolumeReclaimPolicy: Retain
+                    storageClassName: sc-nfs-default
+                    csi:
+                      driver: nfs.csi.k8s.io
+                      readOnly: false
+                      # volumeHandle format: {nfs-server-address}#{sub-dir-name}#{share-name}
+                      # make sure this value is unique for every share in the cluster
+                      volumeHandle: "nfs-server#k8s-photoprism#k8s-photoprism-storage-share"
+                      volumeAttributes:
+                        server: {{ k8s-nfs-server-name }}
+                        share: {{ k8s-photoprism-storage-share }}
+              storage-pvc:
+                apiVersion: v1
+                kind: PersistentVolumeClaim
+                spec:
+                  spec:
+                    storageClassName: sc-nfs-default
+                    accessModes:
+                      - ReadWriteMany
+                    resources:
+                      requests:
+                        storage: 10Gi
+                    volumeName: photoprism-storage-pv
+        repoURL: https://bjw-s.github.io/helm-charts
+        chart: app-template
+        targetRevision: 3.4.0
       - helm:
           releaseName: mariadb
           values: |
