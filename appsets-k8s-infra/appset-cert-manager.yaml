@@ -49,13 +49,13 @@ spec:
                 kind: Secret
                 spec:
                   data:
-                    api-token: {{ .cloudflare-api-token | b64enc }}
+                    api-token: {{ .cloudflareapitoken | b64enc }}
               letsencrypt-pk:
                 apiVersion: v1
                 kind: Secret
                 spec:
                   data:
-                    api-token: {{ .letsencrypt-pk | b64enc }}                    
+                    api-token: {{ .letsencryptpk | b64enc }}                    
               clusterissuer:
                 apiVersion: cert-manager.io/v1
                 kind: ClusterIssuer
