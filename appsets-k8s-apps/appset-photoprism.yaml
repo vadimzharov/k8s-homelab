@@ -170,7 +170,7 @@ spec:
                       volumeAttributes:
                         server: {{ k8s-nfs-server-name }}
                         share: {{ k8s-photoprism-storage-share }}
-              storage-pvc:
+              storage:
                 apiVersion: v1
                 kind: PersistentVolumeClaim
                 spec:
