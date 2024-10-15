@@ -298,7 +298,7 @@ spec:
         targetRevision: 3.4.0        
       destination:
         server: '{{server}}' 
-        namespace: immich-v
+        namespace: photoprism
       syncPolicy:
         automated:
           prune: true
