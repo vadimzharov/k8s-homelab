@@ -21,7 +21,7 @@ spec:
                   secretName: "k8s-clusters-infra-secrets" 
   template:
     metadata:
-      name: '{{name}}-cert-manager' 
+      name: '{{ .name }}-cert-manager' 
     spec:
       project: k8s-homelab-infra
       sources:
@@ -81,7 +81,7 @@ spec:
         chart: app-template
         targetRevision: 3.4.0        
       destination:
-        server: '{{server}}'
+        server: '{{ .server }}'
         namespace: cert-manager
       syncPolicy:
         automated:
