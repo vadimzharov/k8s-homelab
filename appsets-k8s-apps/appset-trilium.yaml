@@ -96,9 +96,9 @@ spec:
                 containers:
                   main:
                     image:
-                      repository: docker.io/trilium/server
+                      repository: docker.io/zadam/trilium
                       pullPolicy: IfNotPresent
-                      tag: :latest
+                      tag: latest
                     env:
                       TRILIUM_PORT: "8080"
                   #trilium-backup-daemon:
