@@ -14,8 +14,8 @@ spec:
       name: '{{name}}-cert-manager' 
     spec:
       project: k8s-homelab-cluster
-      source:
-        helm:
+      sources:
+      - helm:
           values: |
             installCRD: true
             extraArgs:
