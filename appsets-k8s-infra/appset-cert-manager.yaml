@@ -50,12 +50,12 @@ spec:
                 spec:
                   data:
                     api-token: {{ .cloudflareapitoken | b64enc }}
-              letsencrypt-pk:
-                apiVersion: v1
-                kind: Secret
-                spec:
-                  data:
-                    tls.key: {{ .letsencryptpk | b64enc }}                    
+              # letsencrypt-pk:
+              #   apiVersion: v1
+              #   kind: Secret
+              #   spec:
+              #     data:
+              #       tls.key: {{ .letsencryptpk | b64enc }}                    
               clusterissuer:
                 apiVersion: cert-manager.io/v1
                 kind: ClusterIssuer
