@@ -262,9 +262,6 @@ spec:
                 ports:
                   http:
                     port: 3306
-            ingress:
-              main:
-                enabled: false
             persistence:
               mysql-storage:
                 enabled: true
