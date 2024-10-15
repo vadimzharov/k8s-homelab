@@ -46,7 +46,7 @@ spec:
                 enabled: true
                 className: nginx
                 hosts:
-                  - host: vaultwarden.{{ domainname }}
+                  - host: vwint.{{ domainname }}
                     paths:
                       - path: /
                         pathType: Prefix
@@ -111,20 +111,20 @@ spec:
                       WEBSOCKET_ENABLED: 'true'
                       SIGNUPS_ALLOWED: 'false'
                       ADMIN_TOKEN: {{ vwadminkey }}
-                  #vaultwarden-backup-daemon:
-                  #  image: 
-                  #    repository: quay.io/vadimzharov/podbackup
-                  #    pullPolicy: IfNotPresent
-                  #    tag: latest
-                  #  command:
-                  #    - podbackup
-                  #  args:
-                  #    - backup-daemon
-                  #  envFrom:
-                  #  - secretRef:
-                  #      name: vaultwarden-b-r-secret
-                  #  - configMapRef:
-                  #      name: vaultwarden-b-r-settings
+                  vaultwarden-backup-daemon:
+                    image: 
+                      repository: quay.io/vadimzharov/podbackup
+                      pullPolicy: IfNotPresent
+                      tag: latest
+                    command:
+                      - podbackup
+                    args:
+                      - backup-daemon
+                    envFrom:
+                    - secretRef:
+                        name: vaultwarden-b-r-secret
+                    - configMapRef:
+                        name: vaultwarden-b-r-settings
         repoURL: https://bjw-s.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0
