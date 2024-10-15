@@ -30,9 +30,16 @@ spec:
               main:
                 primary: true
                 enabled: true
-                controller: main                
+                controller: main
                 ports:
                   http:
+                    port: 80
+              websocket:
+                primary: true
+                enabled: true
+                controller: main
+                ports:
+                  port-ws:
                     port: 3012
             ingress:
               main:
@@ -45,7 +52,7 @@ spec:
                         pathType: Prefix
                         service:
                           name: vaultwarden
-                          port: 3012
+                          port: 80
             persistence:
               config:
                 enabled: true
