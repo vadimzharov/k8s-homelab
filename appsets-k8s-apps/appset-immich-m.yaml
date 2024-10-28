@@ -45,6 +45,9 @@ spec:
                     runAsGroup: 1024              
                 service:
                   main:
+                    primary: true
+                    enabled: true
+                    controller: main
                     ports:
                       http:
                         port: 5432
