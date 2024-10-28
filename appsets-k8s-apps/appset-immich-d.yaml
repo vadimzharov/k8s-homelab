@@ -55,7 +55,7 @@ spec:
                   pgdb:
                     enabled: true
                     type: persistentVolumeClaim
-                    storageClass: sc-nfs
+                    storageClass: sc-nfs-default
                     accessMode: ReadWriteMany
                     size: 1G
                     globalMounts: 
@@ -188,7 +188,7 @@ spec:
               photos:
                 enabled: true
                 type: persistentVolumeClaim
-                storageClass: sc-nfs
+                storageClass: sc-nfs-default
                 accessMode: ReadWriteMany
                 size: 1G
         repoURL: https://bjw-s.github.io/helm-charts
