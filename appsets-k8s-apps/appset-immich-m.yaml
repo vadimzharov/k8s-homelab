@@ -181,9 +181,6 @@ spec:
             service:
               main:
                 enabled: false
-            ingress:
-              main:
-                enabled: false
             persistence:
               photos:
                 enabled: true
@@ -260,7 +257,7 @@ spec:
                 pullPolicy: IfNotPresent                
         repoURL: https://immich-app.github.io/immich-charts
         chart: immich
-        targetRevision: 0.7.0
+        targetRevision: 0.8.2
       destination:
         server: '{{server}}' 
         namespace: immich-m
