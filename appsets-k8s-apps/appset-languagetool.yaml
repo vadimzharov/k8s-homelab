@@ -70,8 +70,8 @@ spec:
                       - path: /
                         pathType: Prefix
                         service:
-                          name: main
-                          port: http
+                          name: languagetool
+                          port: 8010
         repoURL: https://bjw-s.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0
