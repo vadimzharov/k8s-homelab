@@ -138,6 +138,7 @@ spec:
                 service:
                   main:
                     enabled: false
+                    controller: main                    
                 secrets:
                   br-creds:
                     enabled: true
@@ -181,6 +182,7 @@ spec:
             service:
               main:
                 enabled: false
+                controller: main                
             persistence:
               photos-m:
                 enabled: true
