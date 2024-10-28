@@ -59,7 +59,7 @@ spec:
             ingress:
               main:
                 enabled: true
-                ingressClassName: nginx
+                className: nginx
                 annotations:
                   nginx.ingress.kubernetes.io/service-upstream: "true"
                   nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
