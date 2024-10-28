@@ -205,7 +205,7 @@ spec:
             immich:
               persistence:
                 library:
-                  existingClaim: immich-m-pvc-photos
+                  existingClaim: immich-m-pvc-photos-m
             redis:
               enabled: true
               architecture: standalone
