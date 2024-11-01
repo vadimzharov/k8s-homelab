@@ -55,6 +55,32 @@ spec:
                       protocol: TCP
                     env:
                       REGISTRY_PROXY_REMOTEURL: "https://registry.k8s.io"
+              quay:
+                containers:
+                  main:
+                    image:
+                      repository: docker.io/library/registry
+                      pullPolicy: IfNotPresent
+                      tag: 2
+                    ports:
+                    - name: http
+                      containerPort: 5000
+                      protocol: TCP
+                    env:
+                      REGISTRY_PROXY_REMOTEURL: "https://quay.io"
+              gcr:
+                containers:
+                  main:
+                    image:
+                      repository: docker.io/library/registry
+                      pullPolicy: IfNotPresent
+                      tag: 2
+                    ports:
+                    - name: http
+                      containerPort: 5000
+                      protocol: TCP
+                    env:
+                      REGISTRY_PROXY_REMOTEURL: "https://gcr.io"
             service:
               docker:
                 primary: true              
@@ -67,6 +93,20 @@ spec:
                 primary: false
                 enabled: true
                 controller: k8s-registry
+                ports:
+                  http:
+                    port: 5000
+              quay:
+                primary: false
+                enabled: true
+                controller: quay
+                ports:
+                  http:
+                    port: 5000
+              gcr:
+                primary: false
+                enabled: true
+                controller: quay
                 ports:
                   http:
                     port: 5000                    
@@ -100,7 +140,37 @@ spec:
                         pathType: Prefix
                         service:
                           name: k8s-registry
-                          port: 5000                          
+                          port: 5000
+              quay:
+                enabled: true
+                className: nginx-external
+                annotations:
+                  nginx.ingress.kubernetes.io/service-upstream: "true"
+                  nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+                  nginx.ingress.kubernetes.io/proxy-body-size: "0"
+                hosts:
+                  - host: quay-mirror.{{ domainname }}
+                    paths:
+                      - path: /
+                        pathType: Prefix
+                        service:
+                          name: quay
+                          port: 5000
+              gcr:
+                enabled: true
+                className: nginx-external
+                annotations:
+                  nginx.ingress.kubernetes.io/service-upstream: "true"
+                  nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+                  nginx.ingress.kubernetes.io/proxy-body-size: "0"
+                hosts:
+                  - host: gcr-mirror.{{ domainname }}
+                    paths:
+                      - path: /
+                        pathType: Prefix
+                        service:
+                          name: gcr
+                          port: 5000
         repoURL: https://bjw-s.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0        
