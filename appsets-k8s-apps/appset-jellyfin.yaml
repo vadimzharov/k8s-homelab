@@ -51,22 +51,22 @@ spec:
                 type: emptyDir
                 globalMounts: 
                   - path: /jellyfin-data
-              jelarr-arr:
+              arr:
                 enabled: true
                 type: persistentVolumeClaim
-                existingClaim: jelarr-arr
+                existingClaim: jellyfin-arr-pvc
                 globalMounts: 
                   - path: /arr
               dedicated-movies:
                 enabled: true
                 type: persistentVolumeClaim
-                existingClaim: dedicated-movies
+                existingClaim: jellyfin-dedicated-movies-pvc
                 globalMounts: 
                   - path: /dedicated-movies/
-              arr-d-movies:
+              arr-d:
                 enabled: true
                 type: persistentVolumeClaim
-                existingClaim: arr-d-movies
+                existingClaim: jellyfin-arr-d-pvc
                 globalMounts: 
                   - path: /arr-d/
             secrets:
@@ -141,7 +141,7 @@ spec:
                   #  - name:  config
                   #    mountPath: /jellyfin-data
             rawResources:
-              complete-pv:
+              arr-pv:
                 apiVersion: v1
                 kind: PersistentVolume
                 spec:
@@ -157,11 +157,11 @@ spec:
                       readOnly: false
                       # volumeHandle format: {nfs-server-address}#{sub-dir-name}#{share-name}
                       # make sure this value is unique for every share in the cluster
-                      volumeHandle: "nfs-server#k8s-tranarr#k8s-tranarr-share"
+                      volumeHandle: "nfs-server#k8s-jellyfin#k8s-arr-share"
                       volumeAttributes:
                         server: {{ k8s-nfs-server-name }}
-                        share: {{ k8s-tranarr-share }}
-              complete-pvc:
+                        share: {{ k8s-arr-share }}
+              arr-pvc:
                 apiVersion: v1
                 kind: PersistentVolumeClaim
                 spec:
@@ -172,7 +172,7 @@ spec:
                     resources:
                       requests:
                         storage: 10Gi
-                    volumeName: tranarr-complete-pv
+                    volumeName: jellyfin-arr-pv
               dedicated-movies-pv:
                 apiVersion: v1
                 kind: PersistentVolume
@@ -189,11 +189,43 @@ spec:
                       readOnly: false
                       # volumeHandle format: {nfs-server-address}#{sub-dir-name}#{share-name}
                       # make sure this value is unique for every share in the cluster
-                      volumeHandle: "nfs-server#k8s-tranarr#k8s-tranarr-dedicated-share"
+                      volumeHandle: "nfs-server#k8s-jellyfin#k8s-dedicated-share"
                       volumeAttributes:
                         server: {{ k8s-nfs-server-name }}
                         share: {{ k8s-tranarr-dedicated-share }}
               dedicated-movies-pvc:
+                apiVersion: v1
+                kind: PersistentVolumeClaim
+                spec:
+                  spec:
+                    storageClassName: sc-nfs-default
+                    accessModes:
+                      - ReadWriteMany
+                    resources:
+                      requests:
+                        storage: 10Gi
+                    volumeName: jellyfin-dedicated-movies-pv
+              arr-d-pv:
+                apiVersion: v1
+                kind: PersistentVolume
+                spec:
+                  spec:
+                    capacity:
+                      storage: 10Gi
+                    accessModes:
+                      - ReadWriteMany
+                    persistentVolumeReclaimPolicy: Retain
+                    storageClassName: sc-nfs-default
+                    csi:
+                      driver: nfs.csi.k8s.io
+                      readOnly: false
+                      # volumeHandle format: {nfs-server-address}#{sub-dir-name}#{share-name}
+                      # make sure this value is unique for every share in the cluster
+                      volumeHandle: "nfs-server#k8s-jellyfin#k8s-arr-d-share"
+                      volumeAttributes:
+                        server: {{ k8s-nfs-server-name }}
+                        share: {{ k8s-arr-d-share }}
+              arr-d-pvc:
                 apiVersion: v1
                 kind: PersistentVolumeClaim
                 spec:
@@ -210,7 +242,7 @@ spec:
         targetRevision: 3.4.0
       destination:
         server: '{{server}}' 
-        namespace: jelarr
+        namespace: jellyfin
       syncPolicy:
         automated:
           prune: true
