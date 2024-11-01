@@ -42,6 +42,19 @@ spec:
                       protocol: TCP
                     env:
                       REGISTRY_PROXY_REMOTEURL: "https://docker.io"
+              k8s-registry:
+                containers:
+                  main:
+                    image:
+                      repository: docker.io/library/registry
+                      pullPolicy: IfNotPresent
+                      tag: 2
+                    ports:
+                    - name: http
+                      containerPort: 5000
+                      protocol: TCP
+                    env:
+                      REGISTRY_PROXY_REMOTEURL: "https://registry.k8s.io"
             service:
               docker:
                 primary: true              
@@ -50,6 +63,13 @@ spec:
                 ports:
                   http:
                     port: 5000
+              k8s-registry:
+                primary: true              
+                enabled: true
+                controller: k8s-registry
+                ports:
+                  http:
+                    port: 5000                    
             ingress:
               docker:
                 enabled: true
@@ -64,12 +84,26 @@ spec:
                       - path: /
                         pathType: Prefix
                         service:
-                          name: registry-mirrors
+                          name: docker
                           port: 5000
+              k8s-registry:
+                enabled: true
+                className: nginx-external
+                annotations:
+                  nginx.ingress.kubernetes.io/service-upstream: "true"
+                  nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+                  nginx.ingress.kubernetes.io/proxy-body-size: "0"
+                hosts:
+                  - host: k8s-mirror.{{ domainname }}
+                    paths:
+                      - path: /
+                        pathType: Prefix
+                        service:
+                          name: k8s-registry
+                          port: 5000                          
         repoURL: https://bjw-s.github.io/helm-charts
         chart: app-template
-        targetRevision: 3.4.0
-        
+        targetRevision: 3.4.0        
       destination:
         server: '{{server}}' 
         namespace: registry-mirrors
