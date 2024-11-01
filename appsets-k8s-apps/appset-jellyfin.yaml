@@ -1,0 +1,213 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: jellyfin
+  namespace: argocd
+spec:
+  generators:
+  - clusters:
+      selector:
+        matchLabels:
+          jellyfin: "installed"
+          k8s-csi-nfs: "installed"
+  template:
+    metadata:
+      name: '{{name}}-jellyfin'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: jellyfin
+          values: |
+            service:
+              main:
+                controller: main
+                ports:
+                  http:
+                    port: 8096
+            ingress:
+              main:
+                enabled: true
+                className: nginx
+                hosts:
+                  - host: jellyfin.{{ domainname }}
+                    paths:
+                      - path: /
+                        pathType: Prefix
+                        service:
+                          name: jellyfin
+                          port: 8096                        
+            persistence:
+              config:
+                enabled: true
+                type: emptyDir
+                globalMounts: 
+                  - path: /jellyfin-data
+              jelarr-arr:
+                enabled: true
+                type: persistentVolumeClaim
+                existingClaim: jelarr-arr
+                globalMounts: 
+                  - path: /arr
+              dedicated-movies:
+                enabled: true
+                type: persistentVolumeClaim
+                existingClaim: dedicated-movies
+                mountPath: /dedicated-movies/
+              arr-d-movies:
+                enabled: true
+                type: persistentVolumeClaim
+                existingClaim: arr-d-movies
+                mountPath: /arr-d/
+            secrets:
+              b-r-secret:
+                enabled: true
+                labels: {}
+                annotations: {}
+                stringData:
+                  S3_ENDPOINT: {{ minioendpoint }}
+                  AWS_KEY: {{ miniokey }}
+                  AWS_SECRET_KEY: {{ miniosecretkey }}                
+            configMaps:
+              b-r-settings:
+                enabled: true
+                data:
+                  AWS_BUCKET: "arr-bkp"
+                  S3_BUCKET_FOLDER: "jelarr-config"
+                  S3_FILE_PREFIX: "jelarr-config"
+                  BACKUP_INTERVAL: "1h"
+                  PRUNE_INTERVAL: "48h"
+                  COPIES_TO_KEEP: "35"
+                  FORCE_RESTORE: "true"
+                  DIR_TO_BACKUP: /jellyfin-data
+                  DIR_TO_RESTORE: /jellyfin-data
+                  ARCHIVE_TYPE: targz
+            controllers:
+              main:
+                initContainers:
+                  jelarr-restore:
+                    image: 
+                      repository: quay.io/vadimzharov/podbackup
+                      pullPolicy: IfNotPresent
+                      tag: latest
+                    command:
+                      - podbackup
+                    args:
+                      - restore
+                    envFrom:
+                    - secretRef:
+                        name: jelarr-b-r-secret
+                    - configMapRef:
+                        name: jelarr-b-r-settings
+                    volumeMounts:
+                    - name:  config
+                      mountPath: /jellyfin-data
+                containers:
+                  main:
+                    image:
+                      repository: docker.io/jellyfin/jellyfin
+                      pullPolicy: IfNotPresent
+                      tag: latest
+                    env:
+                      JELLYFIN_DATA_DIR: "/jellyfin-data"
+                      JELLYFIN_CONFIG_DIR: "/jellyfin-data/config"
+                      TZ: "CST"
+                      MALLOC_TRIM_THRESHOLD_: "131072"
+                    resources:
+                      limits:
+                        gpu.intel.com/i915: 1
+                  #jelarr-backup-daemon:
+                  #  image: 
+                  #    repository: quay.io/vadimzharov/podbackup
+                  #    pullPolicy: IfNotPresent
+                  #    tag: latest
+                  #  command:
+                  #    - podbackup
+                  #  args:
+                  #    - backup-daemon
+                  #  envFrom:
+                  #  - secretRef:
+                  #      name: jelarr-b-r-secret
+                  #  - configMapRef:
+                  #      name: jelarr-b-r-settings
+                  #  volumeMounts:
+                  #  - name:  config
+                  #    mountPath: /jellyfin-data
+            rawResources:
+              complete-pv:
+                apiVersion: v1
+                kind: PersistentVolume
+                spec:
+                  spec:
+                    capacity:
+                      storage: 10Gi
+                    accessModes:
+                      - ReadWriteMany
+                    persistentVolumeReclaimPolicy: Retain
+                    storageClassName: sc-nfs-default
+                    csi:
+                      driver: nfs.csi.k8s.io
+                      readOnly: false
+                      # volumeHandle format: {nfs-server-address}#{sub-dir-name}#{share-name}
+                      # make sure this value is unique for every share in the cluster
+                      volumeHandle: "nfs-server#k8s-tranarr#k8s-tranarr-share"
+                      volumeAttributes:
+                        server: {{ k8s-nfs-server-name }}
+                        share: {{ k8s-tranarr-share }}
+              complete-pvc:
+                apiVersion: v1
+                kind: PersistentVolumeClaim
+                spec:
+                  spec:
+                    storageClassName: sc-nfs-default
+                    accessModes:
+                      - ReadWriteMany
+                    resources:
+                      requests:
+                        storage: 10Gi
+                    volumeName: tranarr-complete-pv
+              dedicated-movies-pv:
+                apiVersion: v1
+                kind: PersistentVolume
+                spec:
+                  spec:
+                    capacity:
+                      storage: 10Gi
+                    accessModes:
+                      - ReadWriteMany
+                    persistentVolumeReclaimPolicy: Retain
+                    storageClassName: sc-nfs-default
+                    csi:
+                      driver: nfs.csi.k8s.io
+                      readOnly: false
+                      # volumeHandle format: {nfs-server-address}#{sub-dir-name}#{share-name}
+                      # make sure this value is unique for every share in the cluster
+                      volumeHandle: "nfs-server#k8s-tranarr#k8s-tranarr-dedicated-share"
+                      volumeAttributes:
+                        server: {{ k8s-nfs-server-name }}
+                        share: {{ k8s-tranarr-dedicated-share }}
+              dedicated-movies-pvc:
+                apiVersion: v1
+                kind: PersistentVolumeClaim
+                spec:
+                  spec:
+                    storageClassName: sc-nfs-default
+                    accessModes:
+                      - ReadWriteMany
+                    resources:
+                      requests:
+                        storage: 10Gi
+                    volumeName: tranarr-dedicated-movies-pv
+        repoURL: https://bjw-s.github.io/helm-charts
+        chart: app-template
+        targetRevision: 3.4.0
+      destination:
+        server: '{{server}}' 
+        namespace: jelarr
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
