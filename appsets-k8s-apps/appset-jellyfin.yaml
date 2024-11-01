@@ -44,7 +44,14 @@ spec:
                         pathType: Prefix
                         service:
                           name: jellyfin
-                          port: 8096                        
+                          port: 8096
+                  - host: jelarr.{{ domainname }}
+                    paths:
+                      - path: /
+                        pathType: Prefix
+                        service:
+                          name: jellyfin
+                          port: 8096                             
             persistence:
               config:
                 enabled: true
@@ -123,23 +130,23 @@ spec:
                     resources:
                       limits:
                         gpu.intel.com/i915: 1
-                  #jelarr-backup-daemon:
-                  #  image: 
-                  #    repository: quay.io/vadimzharov/podbackup
-                  #    pullPolicy: IfNotPresent
-                  #    tag: latest
-                  #  command:
-                  #    - podbackup
-                  #  args:
-                  #    - backup-daemon
-                  #  envFrom:
-                  #  - secretRef:
-                  #      name: jelarr-b-r-secret
-                  #  - configMapRef:
-                  #      name: jelarr-b-r-settings
-                  #  volumeMounts:
-                  #  - name:  config
-                  #    mountPath: /jellyfin-data
+                  jelarr-backup-daemon:
+                    image: 
+                      repository: quay.io/vadimzharov/podbackup
+                      pullPolicy: IfNotPresent
+                      tag: latest
+                    command:
+                      - podbackup
+                    args:
+                      - backup-daemon
+                    envFrom:
+                    - secretRef:
+                        name: jelarr-b-r-secret
+                    - configMapRef:
+                        name: jelarr-b-r-settings
+                    volumeMounts:
+                    - name:  config
+                      mountPath: /jellyfin-data
             rawResources:
               arr-pv:
                 apiVersion: v1
