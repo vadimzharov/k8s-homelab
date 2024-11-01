@@ -9,7 +9,7 @@ spec:
       selector:
         matchLabels:
           jellyfin: "installed"
-          k8s-csi-nfs: "installed"
+          csi-nfs: "installed"
   template:
     metadata:
       name: '{{name}}-jellyfin'
