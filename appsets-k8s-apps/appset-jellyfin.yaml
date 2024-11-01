@@ -109,9 +109,6 @@ spec:
                         name: jelarr-b-r-secret
                     - configMapRef:
                         name: jelarr-b-r-settings
-                    volumeMounts:
-                    - name:  config
-                      mountPath: /jellyfin-data
                 containers:
                   main:
                     image:
