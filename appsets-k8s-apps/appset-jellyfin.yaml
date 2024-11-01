@@ -5,11 +5,19 @@ metadata:
   namespace: argocd
 spec:
   generators:
-  - clusters:
-      selector:
-        matchLabels:
-          jellyfin: "installed"
-          csi-nfs: "installed"
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  jellyfin: "installed"
+                  csi-nfs: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
   template:
     metadata:
       name: '{{name}}-jellyfin'
