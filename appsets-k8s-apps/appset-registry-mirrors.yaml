@@ -113,7 +113,7 @@ spec:
             ingress:
               docker:
                 enabled: true
-                className: nginx-external
+                className: '{{ metadata.labels.registry-mirrors-ingress }}'
                 annotations:
                   nginx.ingress.kubernetes.io/service-upstream: "true"
                   nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
@@ -128,7 +128,7 @@ spec:
                           port: 5000
               k8s-registry:
                 enabled: true
-                className: nginx-external
+                className: '{{ metadata.labels.registry-mirrors-ingress }}'
                 annotations:
                   nginx.ingress.kubernetes.io/service-upstream: "true"
                   nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
@@ -143,7 +143,7 @@ spec:
                           port: 5000
               quay:
                 enabled: true
-                className: nginx-external
+                className: '{{ metadata.labels.registry-mirrors-ingress }}'
                 annotations:
                   nginx.ingress.kubernetes.io/service-upstream: "true"
                   nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
@@ -158,7 +158,7 @@ spec:
                           port: 5000
               gcr:
                 enabled: true
-                className: nginx-external
+                className: '{{ metadata.labels.registry-mirrors-ingress }}'
                 annotations:
                   nginx.ingress.kubernetes.io/service-upstream: "true"
                   nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
