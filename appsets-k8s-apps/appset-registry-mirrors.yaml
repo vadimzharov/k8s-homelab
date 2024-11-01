@@ -1,8 +1,10 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: languagetool
+  name: registry-mirrors
   namespace: argocd
+  annotations:
+    avp.kubernetes.io/path: "k8secrets/ingresses"
 spec:
   generators:
     - matrix:
@@ -10,7 +12,7 @@ spec:
           - clusters:
               selector:
                 matchLabels:
-                  languagetool: "installed"
+                  registry-mirrors: "installed"
           - plugin:
               configMapRef:
                 name: argocd-secrets-plugin
@@ -19,31 +21,27 @@ spec:
                   secretName: "k8s-clusters-apps-secrets"
   template:
     metadata:
-      name: '{{name}}-languagetool'
+      name: '{{name}}-registry-mirrors'
     spec:
       project: k8s-homelab-apps
       sources:
       - helm:
-          releaseName: languagetool
+          releaseName: docker-mirror
           values: |
-            defaultPodOptions:
-              securityContext:
-                runAsUser: 1000
-                runAsGroup: 1000
             controllers:
               main:
                 containers:
                   main:
                     image:
-                      repository: docker.io/erikvl87/languagetool
+                      repository: docker.io/library/registry
                       pullPolicy: IfNotPresent
-                      tag: latest                  
+                      tag: 2
                     ports:
                     - name: http
-                      containerPort: 8010
+                      containerPort: 5000
                       protocol: TCP
                     env:
-                      EXTRAOPTIONS: "-Xmx382M"
+                      REGISTRY_PROXY_REMOTEURL: "https://docker.io"
             service:
               main:
                 primary: true              
@@ -51,29 +49,29 @@ spec:
                 controller: main
                 ports:
                   http:
-                    port: 8010
+                    port: 5000
             ingress:
               main:
                 enabled: true
-                className: nginx
+                className: nginx-external
                 annotations:
                   nginx.ingress.kubernetes.io/service-upstream: "true"
                   nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
                   nginx.ingress.kubernetes.io/proxy-body-size: "0"
                 hosts:
-                  - host: lt.{{ domainname }}
+                  - host: docker-mirror.{{ domainname }}
                     paths:
                       - path: /
                         pathType: Prefix
                         service:
-                          name: languagetool
-                          port: 8010
+                          name: registry-mirrors
+                          port: 5000
         repoURL: https://bjw-s.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0
       destination:
         server: '{{server}}' 
-        namespace: languagetool
+        namespace: registry-mirrors
       syncPolicy:
         automated:
           prune: true
