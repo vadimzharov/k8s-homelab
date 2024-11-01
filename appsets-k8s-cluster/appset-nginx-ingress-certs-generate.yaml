@@ -39,7 +39,7 @@ spec:
                     secretName: wildcard-apps-certificate
                     renewBefore: 240h0m0s
                     dnsNames:
-                    - '{{ wildcard-dns-name }}'
+                    - '{{ wildcarddnsname }}'
                     issuerRef:
                       name: letsencrypt-prod
                       kind: ClusterIssuer
