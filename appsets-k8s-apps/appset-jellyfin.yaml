@@ -95,7 +95,7 @@ spec:
             controllers:
               main:
                 initContainers:
-                  jelarr-restore:
+                  jellyfin-restore:
                     image: 
                       repository: quay.io/vadimzharov/podbackup
                       pullPolicy: IfNotPresent
@@ -106,9 +106,9 @@ spec:
                       - restore
                     envFrom:
                     - secretRef:
-                        name: jelarr-b-r-secret
+                        name: jellyfin-b-r-secret
                     - configMapRef:
-                        name: jelarr-b-r-settings
+                        name: jellyfin-b-r-settings
                 containers:
                   main:
                     image:
