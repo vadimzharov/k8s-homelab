@@ -41,7 +41,7 @@ spec:
                     dnsNames:
                     - '{{ wildcarddnsname }}'
                     issuerRef:
-                      name: letsencrypt-prod
+                      name: cm-config-clusterissuer
                       kind: ClusterIssuer
         repoURL: https://bjw-s.github.io/helm-charts
         chart: app-template
