@@ -68,7 +68,7 @@ spec:
                 type: persistentVolumeClaim
                 existingClaim: jellyfin-arr-d-pvc
                 globalMounts: 
-                  - path: /arr-d/
+                  - path: /arr-d-movies/
             secrets:
               b-r-secret:
                 enabled: true
