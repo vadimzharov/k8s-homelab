@@ -130,7 +130,7 @@ spec:
                     resources:
                       limits:
                         gpu.intel.com/i915: 1
-                  jelarr-backup-daemon:
+                  jellyfin-backup-daemon:
                     image: 
                       repository: quay.io/vadimzharov/podbackup
                       pullPolicy: IfNotPresent
@@ -141,9 +141,9 @@ spec:
                       - backup-daemon
                     envFrom:
                     - secretRef:
-                        name: jelarr-b-r-secret
+                        name: jellyfin-b-r-secret
                     - configMapRef:
-                        name: jelarr-b-r-settings
+                        name: jellyfin-b-r-settings
                     volumeMounts:
                     - name:  config
                       mountPath: /jellyfin-data
