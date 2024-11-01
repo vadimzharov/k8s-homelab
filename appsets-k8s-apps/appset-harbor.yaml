@@ -51,7 +51,7 @@ spec:
           releaseName: postgresql
           values: |
             global:
-              storageClass: "sc-nfs"
+              storageClass: "sc-nfs-default"
               postgresql:
                 auth:
                   postgresPassword: "{{ harborpgpassword }}"
