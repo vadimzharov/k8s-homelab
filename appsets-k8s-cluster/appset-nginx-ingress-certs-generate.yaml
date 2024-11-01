@@ -5,11 +5,19 @@ metadata:
   namespace: argocd
 spec:
   generators:
-  - clusters:
-      selector:
-        matchLabels:
-          nginx: "installed"
-          nginx-certs: "generate"
+  - matrix:
+      generators:
+        - clusters:
+            selector:
+              matchLabels:
+                nginx: "installed"
+                nginx-certs: "generate" 
+        - plugin:
+            configMapRef:
+              name: argocd-secrets-plugin
+            input:
+              parameters:
+                secretName: "k8s-clusters-infra-secrets"  
   template:
     metadata:
       name: '{{name}}-nginx-certs-generate'
