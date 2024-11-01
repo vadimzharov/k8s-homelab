@@ -13,14 +13,6 @@ spec:
       values:
         revision: '{{metadata.annotations.branch-name}}' 
         certs: 'read'
-  - clusters:
-      selector:
-        matchLabels:
-          nginx: "installed"
-          nginx-certs: "generate"
-      values:
-        revision: '{{metadata.annotations.branch-name}}' 
-        certs: 'generate'        
   template:
     metadata:
       name: '{{name}}-nginx-certs'
