@@ -144,9 +144,6 @@ spec:
                         name: jellyfin-b-r-secret
                     - configMapRef:
                         name: jellyfin-b-r-settings
-                    volumeMounts:
-                    - name:  config
-                      mountPath: /jellyfin-data
             rawResources:
               arr-pv:
                 apiVersion: v1
