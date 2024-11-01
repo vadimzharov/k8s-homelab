@@ -64,7 +64,7 @@ spec:
                   http:
                     port: 5000
               k8s-registry:
-                primary: true              
+                primary: false
                 enabled: true
                 controller: k8s-registry
                 ports:
