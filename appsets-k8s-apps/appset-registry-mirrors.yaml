@@ -29,7 +29,7 @@ spec:
           releaseName: docker-mirror
           values: |
             controllers:
-              main:
+              docker:
                 containers:
                   main:
                     image:
@@ -43,15 +43,15 @@ spec:
                     env:
                       REGISTRY_PROXY_REMOTEURL: "https://docker.io"
             service:
-              main:
+              docker:
                 primary: true              
                 enabled: true
-                controller: main
+                controller: docker
                 ports:
                   http:
                     port: 5000
             ingress:
-              main:
+              docker:
                 enabled: true
                 className: nginx-external
                 annotations:
@@ -69,6 +69,7 @@ spec:
         repoURL: https://bjw-s.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0
+        
       destination:
         server: '{{server}}' 
         namespace: registry-mirrors
