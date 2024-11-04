@@ -87,6 +87,9 @@ spec:
             controllers:
               main:
                 type: deployment
+                pod:
+                  labels:
+                    vpn: required                
                 enabled: true
                 initContainers:
                   tubesync-restore:
