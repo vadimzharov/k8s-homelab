@@ -1,0 +1,83 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: metube
+  namespace: argocd
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  metube: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-metube'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: metube
+          values: |      
+            service:
+              main:
+                primary: true
+                enabled: true
+                controller: main                
+                ports:
+                  http:
+                    port: 8081
+            ingress:
+              main:
+                enabled: true
+                className: nginx
+                hosts:
+                  - host: metube.{{ domainname }}
+                    paths:
+                      - path: /
+                        pathType: Prefix
+                        service:
+                          name: metube
+                          port: 8081
+            persistence:
+              downloads:
+                enabled: true
+                type: persistentVolumeClaim
+                size: 1Gi
+                accessMode: ReadWriteMany
+                storageClass: sc-nfs-default
+                globalMounts:
+                  - path: /downloads
+                    readOnly: false
+            controllers:
+              main:
+                type: deployment
+                enabled: true
+                containers:
+                  main:
+                    image:
+                      repository: ghcr.io/alexta69/metube
+                      pullPolicy: IfNotPresent
+                      tag: latest
+                    env:
+                      DEFAULT_THEME: auto
+        repoURL: https://bjw-s.github.io/helm-charts
+        chart: app-template
+        targetRevision: 3.4.0
+      destination:
+        server: '{{server}}' 
+        namespace: metube
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
