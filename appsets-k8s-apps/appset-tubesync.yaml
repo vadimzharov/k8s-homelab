@@ -1,0 +1,138 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: tubesync
+  namespace: argocd
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  tubesync: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-tubesync'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: tubesync
+          values: |      
+            service:
+              main:
+                primary: true
+                enabled: true
+                controller: main                
+                ports:
+                  http:
+                    port: 4848
+            ingress:
+              main:
+                enabled: true
+                className: nginx
+                hosts:
+                  - host: tubesync.{{ domainname }}
+                    paths:
+                      - path: /
+                        pathType: Prefix
+                        service:
+                          name: tubesync
+                          port: 4848
+            persistence:
+              config:
+                enabled: true
+                type: emptyDir
+                globalMounts: 
+                  - path: /config/
+              downloads:
+                enabled: true
+                type: persistentVolumeClaim
+                size: 1Gi
+                accessMode: ReadWriteMany
+                storageClass: sc-nfs-default
+                globalMounts:
+                  - path: /downloads
+                    readOnly: false                  
+            secrets:
+              b-r-secret:
+                enabled: true
+                labels: {}
+                annotations: {}
+                stringData:
+                  S3_ENDPOINT: {{ minioendpoint }}
+                  AWS_KEY: {{ miniokey }}
+                  AWS_SECRET_KEY: {{ miniosecretkey }}
+            configMaps:
+              b-r-settings:
+                enabled: true
+                data:
+                  AWS_BUCKET: "k8s-apps-backup"
+                  S3_BUCKET_FOLDER: "tubesync-config"
+                  S3_FILE_PREFIX: "tubesync-config"
+                  BACKUP_INTERVAL: "1h"
+                  PRUNE_INTERVAL: "48h"
+                  COPIES_TO_KEEP: "35"
+                  FORCE_RESTORE: "true"
+                  DIR_TO_BACKUP: /config/
+                  DIR_TO_RESTORE: /config/
+                  ARCHIVE_TYPE: targz
+            controllers:
+              main:
+                type: deployment
+                enabled: true
+                initContainers:
+                  tubesync-restore:
+                    image: 
+                      repository: quay.io/vadimzharov/podbackup
+                      pullPolicy: IfNotPresent
+                      tag: latest
+                    command:
+                      - podbackup
+                    args:
+                      - restore
+                    envFrom:
+                    - secretRef:
+                        name: tubesync-b-r-secret
+                    - configMapRef:
+                        name: tubesync-b-r-settings
+                containers:
+                  main:
+                    image:
+                      repository: ghcr.io/meeb/tubesync
+                      pullPolicy: IfNotPresent
+                      tag: latest
+                  tubesync-backup-daemon:
+                    image: 
+                      repository: quay.io/vadimzharov/podbackup
+                      pullPolicy: IfNotPresent
+                      tag: latest
+                    command:
+                      - podbackup
+                    args:
+                      - backup-daemon
+                    envFrom:
+                    - secretRef:
+                        name: tubesync-b-r-secret
+                    - configMapRef:
+                        name: tubesync-b-r-settings
+        repoURL: https://bjw-s.github.io/helm-charts
+        chart: app-template
+        targetRevision: 3.4.0
+      destination:
+        server: '{{server}}' 
+        namespace: tubesync
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
