@@ -1,0 +1,78 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: firefox-vpn
+  namespace: argocd
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  firefox-vpn: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-firefox-vpn'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: firefox
+          values: |      
+            service:
+              main:
+                primary: true
+                enabled: true
+                controller: main                
+                ports:
+                  http:
+                    port: 3000
+            ingress:
+              main:
+                enabled: true
+                className: nginx
+                hosts:
+                  - host: firefox-vpn.{{ domainname }}
+                    paths:
+                      - path: /
+                        pathType: Prefix
+                        service:
+                          name: firefox
+                          port: 3000
+            controllers:
+              main:
+                type: deployment
+                enabled: true
+                pod:
+                  labels:
+                    vpn: required                
+                containers:
+                  main:
+                    image:
+                      repository: lscr.io/linuxserver/firefox
+                      pullPolicy: IfNotPresent
+                      tag: latest
+                    env:
+                      CUSTOM_USER: firefox
+                      TITLE: "Firefox browser"
+                      PASSWORD: {{ password }}
+        repoURL: https://bjw-s.github.io/helm-charts
+        chart: app-template
+        targetRevision: 3.4.0
+      destination:
+        server: '{{server}}' 
+        namespace: firefox-vpn
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
