@@ -201,7 +201,7 @@ spec:
               DB_HOSTNAME: immich-m-db
             image:
               #tag: '{{metadata.labels.immich-tag}}'
-              tag: v1.118.2
+              tag: v1.120.1
             immich:
               persistence:
                 library:
