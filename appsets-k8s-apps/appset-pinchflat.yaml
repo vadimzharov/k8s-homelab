@@ -33,7 +33,7 @@ spec:
                 controller: main                
                 ports:
                   http:
-                    port: 4848
+                    port: 8945
             ingress:
               main:
                 enabled: true
@@ -45,7 +45,7 @@ spec:
                         pathType: Prefix
                         service:
                           name: pinchflat
-                          port: 4848
+                          port: 8945
             persistence:
               config:
                 enabled: true
