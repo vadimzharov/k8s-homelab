@@ -1,0 +1,56 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: minio-external
+  namespace: argocd  
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  minio: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-minio'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: minio
+          values: |
+            auth:
+              rootPassword: {{ miniopassword }}
+            defaultBuckets: "my-bucket"
+            ingress:
+              enabled: true
+              ingressClassName: "nginx"
+              hostname: e-minio-console.{{ domainname }}
+            apiIngress:
+              enabled: true
+              ingressClassName: "{{ metadata.labels.minio-ingress }}"
+              hostname: e-minio.{{ domainname }}
+              annotations:
+                nginx.ingress.kubernetes.io/proxy-body-size: "0"                
+            persistence:
+              enabled: false
+        repoURL: https://charts.bitnami.com/bitnami
+        chart: minio
+        targetRevision: 13.4.1
+      destination:
+        server: '{{server}}' 
+        namespace: minio
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
