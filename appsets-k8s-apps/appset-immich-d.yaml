@@ -201,8 +201,7 @@ spec:
               IMMICH_MACHINE_LEARNING_URL: "false"
               DB_HOSTNAME: immich-d-db
             image:
-              #tag: '{{metadata.labels.immich-tag}}'
-              tag: v1.120.1
+              tag: '{{metadata.labels.immich-tag}}'
             immich:
               persistence:
                 library:
