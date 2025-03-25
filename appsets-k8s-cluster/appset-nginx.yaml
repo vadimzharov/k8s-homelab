@@ -37,7 +37,7 @@ spec:
                 default: true
         repoURL: https://kubernetes.github.io/ingress-nginx
         chart: ingress-nginx
-        targetRevision: 4.11.2
+        targetRevision: 4.12.1
       destination:
         server: '{{server}}'
         namespace: ingress-nginx
