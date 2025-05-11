@@ -142,7 +142,7 @@ spec:
                       PGSQL_HOST: "immich-v-postgresql"
                       PGSQL_USER: {{ pgsql_username }}
                       PGSQL_PASSWORD: {{ pgsql_password }}
-            repoURL: https://bjw-s.github.io/helm-charts
+            repoURL: https://bjw-s-labs.github.io/helm-charts
             chart: app-template
             targetRevision: 2.3.0
           destination:
@@ -170,7 +170,7 @@ spec:
                 type: persistentVolumeClaim
                 storageClass: "sc-nfs-default"
                 accessMode: ReadWriteMany
-        repoURL: https://bjw-s.github.io/helm-charts
+        repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 2.4.0      
       - helm:

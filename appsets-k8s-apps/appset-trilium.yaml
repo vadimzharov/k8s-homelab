@@ -115,7 +115,7 @@ spec:
                         name: trilium-b-r-secret
                     - configMapRef:
                         name: trilium-b-r-settings
-        repoURL: https://bjw-s.github.io/helm-charts
+        repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0
       destination:

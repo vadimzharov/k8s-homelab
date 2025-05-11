@@ -89,7 +89,7 @@ spec:
                             name: immich-d-db-pgsql-config
                         - configMapRef:
                             name: immich-d-db-pgsql-config
-            repoURL: https://bjw-s.github.io/helm-charts
+            repoURL: https://bjw-s-labs.github.io/helm-charts
             chart: app-template
             targetRevision: 2.5.0
           destination:
@@ -159,7 +159,7 @@ spec:
                       PGSQL_HOST: "immich-d-postgresql"
                       PGSQL_USER: {{ pgsql_username }}
                       PGSQL_PASSWORD: {{ pgsql_password }}
-            repoURL: https://bjw-s.github.io/helm-charts
+            repoURL: https://bjw-s-labs.github.io/helm-charts
             chart: app-template
             targetRevision: 2.3.0
           destination:
@@ -191,7 +191,7 @@ spec:
                 storageClass: sc-nfs-default
                 accessMode: ReadWriteMany
                 size: 1G
-        repoURL: https://bjw-s.github.io/helm-charts
+        repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 2.5.0      
       - helm:

@@ -182,7 +182,7 @@ spec:
                       requests:
                         storage: 10Gi
                     volumeName: photoprism-storage-pv
-        repoURL: https://bjw-s.github.io/helm-charts
+        repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0
       - helm:
@@ -293,7 +293,7 @@ spec:
                   S3_ENDPOINT: {{ minioendpoint }}
                   AWS_KEY: {{ miniokey }}
                   AWS_SECRET_KEY: {{ miniosecretkey }}            
-        repoURL: https://bjw-s.github.io/helm-charts
+        repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0        
       destination:

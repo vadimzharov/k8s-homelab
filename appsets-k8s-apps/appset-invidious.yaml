@@ -156,7 +156,7 @@ spec:
                       tag: latest
                     env:
                       RUST_LOG: info
-        repoURL: https://bjw-s.github.io/helm-charts
+        repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0
       destination:

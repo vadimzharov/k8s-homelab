@@ -129,7 +129,7 @@ spec:
                   DIR_TO_BACKUP: /config
                   DIR_TO_RESTORE: /config
                   ARCHIVE_TYPE: targz
-        repoURL: https://bjw-s.github.io/helm-charts
+        repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0
       - helm:
@@ -226,7 +226,7 @@ spec:
                   DIR_TO_BACKUP: /config
                   DIR_TO_RESTORE: /config
                   ARCHIVE_TYPE: targz
-        repoURL: https://bjw-s.github.io/helm-charts
+        repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0      
       - helm:
@@ -334,7 +334,7 @@ spec:
                   DIR_TO_BACKUP: /config
                   DIR_TO_RESTORE: /config
                   ARCHIVE_TYPE: targz
-        repoURL: https://bjw-s.github.io/helm-charts
+        repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0
       - helm:
@@ -427,7 +427,7 @@ spec:
                   DIR_TO_BACKUP: /app/config
                   DIR_TO_RESTORE: /app/config
                   ARCHIVE_TYPE: targz
-        repoURL: https://bjw-s.github.io/helm-charts
+        repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0
       destination:

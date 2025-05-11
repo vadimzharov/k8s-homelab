@@ -39,7 +39,7 @@ spec:
                 spec:
                   data:
                     config.yaml: {{ .vpnswitcherconfig | b64enc }}
-        repoURL: https://bjw-s.github.io/helm-charts
+        repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0
       - helm:
@@ -82,7 +82,7 @@ spec:
                 globalMounts:
                   - path: /etc/vpnswitcher/config.yaml
                     subPath: config.yaml
-        repoURL: https://bjw-s.github.io/helm-charts
+        repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0                
       destination:
