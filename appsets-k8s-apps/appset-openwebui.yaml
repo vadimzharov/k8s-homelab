@@ -32,6 +32,7 @@ spec:
               enabled: true
               class: nginx
               host: chat.{{ domainname }}
+              tls: true
             extraEnvVars:
             - name: OPENAI_API_KEY
               value: "{{ openaiapikey }}"
