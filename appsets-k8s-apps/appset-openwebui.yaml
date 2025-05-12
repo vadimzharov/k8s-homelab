@@ -1,0 +1,53 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: openwebui
+  namespace: argocd
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  openwebui: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-openwebui'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: openwebui
+          values: |
+            ollama:              
+              enabled: false
+            ingress:
+              enabled: false
+              class: nginx
+            host: chat.{{ domainname }}
+            extraEnvVars:
+              - name: OPENAI_API_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: k8s-clusters-apps-secrets
+                    key: openaiapikey
+        repoURL: https://helm.openwebui.com/
+        chart: open-webui
+        targetRevision: 6.13.0
+      destination:
+        server: '{{server}}' 
+        namespace: openwebui
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
