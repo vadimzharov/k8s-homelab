@@ -29,7 +29,7 @@ spec:
             ollama:              
               enabled: false
             ingress:
-              enabled: false
+              enabled: true
               class: nginx
             host: chat.{{ domainname }}
             extraEnvVars:
