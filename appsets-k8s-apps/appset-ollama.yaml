@@ -1,0 +1,50 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: ollama
+  namespace: argocd
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  ollama: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-ollama'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: ollama
+          values: |
+            ingress:
+              enabled: true
+              className: "nginx"
+              hosts:
+                - host: ollama.{{ domainname }}
+                  paths:
+                    - path: /
+                      pathType: Prefix
+              tls: []
+        repoURL: https://otwld.github.io/ollama-helm/
+        chart: ollama
+        targetRevision: 1.16.0
+      destination:
+        server: '{{server}}' 
+        namespace: ollama
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
