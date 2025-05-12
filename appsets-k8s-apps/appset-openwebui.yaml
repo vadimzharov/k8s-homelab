@@ -33,11 +33,8 @@ spec:
               class: nginx
             host: chat.{{ domainname }}
             extraEnvVars:
-              - name: OPENAI_API_KEY
-                valueFrom:
-                  secretKeyRef:
-                    name: k8s-clusters-apps-secrets
-                    key: openaiapikey
+            - name: OPENAI_API_KEY
+              value: "{{ openaiapikey }}"
         repoURL: https://helm.openwebui.com/
         chart: open-webui
         targetRevision: 6.13.0
