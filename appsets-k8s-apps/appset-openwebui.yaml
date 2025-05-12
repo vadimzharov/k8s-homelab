@@ -31,7 +31,7 @@ spec:
             ingress:
               enabled: true
               class: nginx
-            host: chat.{{ domainname }}
+              host: chat.{{ domainname }}
             extraEnvVars:
             - name: OPENAI_API_KEY
               value: "{{ openaiapikey }}"
