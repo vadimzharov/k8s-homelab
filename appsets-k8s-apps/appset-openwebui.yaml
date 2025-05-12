@@ -33,6 +33,10 @@ spec:
               class: nginx
               host: chat.{{ domainname }}
               tls: true
+            image:
+              repository: ghcr.io/open-webui/open-webui
+              tag: "0.6.9"
+              pullPolicy: "IfNotPresent"
             extraEnvVars:
             - name: OPENAI_API_KEY
               value: "{{ openaiapikey }}"
