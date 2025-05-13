@@ -35,6 +35,12 @@ spec:
                     - path: /
                       pathType: Prefix
               tls: []
+            resources:
+              requests: {}
+                memory: 1024Mi
+                cpu: 500m
+              limits: 
+                cpu: 3000m
         repoURL: https://otwld.github.io/ollama-helm/
         chart: ollama
         targetRevision: 1.16.0
