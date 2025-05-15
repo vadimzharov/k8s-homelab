@@ -1,0 +1,60 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: authentik
+  namespace: argocd
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  authentik: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-authentik'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: authentik
+          values: |
+            authentik:
+                secret_key: "PleaseGenerateASecureKey"
+                error_reporting:
+                    enabled: false
+                postgresql:
+                    password: "ThisIsNotASecurePassword"
+
+            server:
+                ingress:
+                    ingressClassName: nginx 
+                    enabled: true
+                    hosts:
+                        - auth{{ domainname }}
+            postgresql:
+                enabled: true
+                auth:
+                    password: "ThisIsNotASecurePassword"
+            redis:
+                enabled: true
+        repoURL: https://charts.goauthentik.io
+        chart: authentik
+        targetRevision: 2025.4.0
+      destination:
+        server: '{{server}}' 
+        namespace: authentik
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
