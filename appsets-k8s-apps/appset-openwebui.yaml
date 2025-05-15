@@ -41,9 +41,9 @@ spec:
             - name: OPENAI_API_KEY
               value: "{{ openaiapikey }}"
             - name: OAUTH_CLIENT_ID
-              value: "{{ OAUTH_CLIENT_ID }}"
+              value: "{{ authowebuiclientid }}"
             - name: OAUTH_CLIENT_SECRET
-              value: "{{ OAUTH_CLIENT_SECRET }}"
+              value: "{{ authowebuiclientsecret }}"
             - name: OAUTH_PROVIDER_NAME
               value: "authentik"
             - name: OPENID_PROVIDER_URL
