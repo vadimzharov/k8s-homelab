@@ -49,7 +49,7 @@ spec:
             - name: OPENID_PROVIDER_URL
               value: "https://auth.{{ domainname }}/application/o/your-slug-here/.well-known/openid-configuration."
             - name: OPENID_REDIRECT_URI
-              value: "https://openwebui.{{ domainname }}/oauth/oidc/callback"
+              value: "https://chat.{{ domainname }}/oauth/oidc/callback"
         repoURL: https://helm.openwebui.com/
         chart: open-webui
         targetRevision: 6.13.0
