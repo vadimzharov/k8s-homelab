@@ -36,7 +36,7 @@ spec:
                       pathType: Prefix
               tls: []
             resources:
-              requests: {}
+              requests: 
                 memory: 1024Mi
                 cpu: 500m
               limits: 
