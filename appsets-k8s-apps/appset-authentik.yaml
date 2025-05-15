@@ -38,7 +38,7 @@ spec:
                     ingressClassName: nginx 
                     enabled: true
                     hosts:
-                        - auth{{ domainname }}
+                        - auth.{{ domainname }}
             postgresql:
                 enabled: true
                 primary:
