@@ -47,7 +47,7 @@ spec:
             - name: OAUTH_PROVIDER_NAME
               value: "authentik"
             - name: OPENID_PROVIDER_URL
-              value: "https://auth.{{ domainname }}/application/o/openwebui/.well-known/openid-configuration."
+              value: "https://auth.{{ domainname }}/application/o/openwebui/.well-known/openid-configuration"
             - name: OPENID_REDIRECT_URI
               value: "https://chat.{{ domainname }}/oauth/oidc/callback"
         repoURL: https://helm.openwebui.com/
