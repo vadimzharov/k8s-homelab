@@ -41,6 +41,9 @@ spec:
                         - auth{{ domainname }}
             postgresql:
                 enabled: true
+                primary:
+                  livenessProbe:
+                    initialDelaySeconds: 120
                 auth:
                     password: "{{ authentikpgpassword }}"
             redis:
