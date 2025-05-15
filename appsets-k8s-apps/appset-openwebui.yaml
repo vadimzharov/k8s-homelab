@@ -50,6 +50,8 @@ spec:
               value: "https://auth.{{ domainname }}/application/o/openwebui/.well-known/openid-configuration"
             - name: OPENID_REDIRECT_URI
               value: "https://chat.{{ domainname }}/oauth/oidc/callback"
+            - name: ENABLE_OAUTH_SIGNUP
+              value: "true"
         repoURL: https://helm.openwebui.com/
         chart: open-webui
         targetRevision: 6.13.0
