@@ -27,11 +27,11 @@ spec:
           releaseName: authentik
           values: |
             authentik:
-                secret_key: "PleaseGenerateASecureKey"
+                secret_key: "{{ authentiksecretkey }}"
                 error_reporting:
                     enabled: false
                 postgresql:
-                    password: "ThisIsNotASecurePassword"
+                    password: "{{ authentikpgpassword }}"
 
             server:
                 ingress:
@@ -42,7 +42,7 @@ spec:
             postgresql:
                 enabled: true
                 auth:
-                    password: "ThisIsNotASecurePassword"
+                    password: "{{ authentikpgpassword }}"
             redis:
                 enabled: true
         repoURL: https://charts.goauthentik.io
