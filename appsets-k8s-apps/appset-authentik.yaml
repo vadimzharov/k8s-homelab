@@ -44,8 +44,8 @@ spec:
                 primary:
                   livenessProbe:
                     initialDelaySeconds: 300
-                persistence:
-                  storageClass: synas-csi-delete
+                  persistence:
+                    storageClass: synas-csi-delete
                 auth:
                     password: "{{ authentikpgpassword }}"
             redis:
