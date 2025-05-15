@@ -43,7 +43,7 @@ spec:
                 enabled: true
                 primary:
                   livenessProbe:
-                    initialDelaySeconds: 120
+                    initialDelaySeconds: 300
                 auth:
                     password: "{{ authentikpgpassword }}"
             redis:
