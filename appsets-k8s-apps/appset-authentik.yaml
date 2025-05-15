@@ -42,10 +42,12 @@ spec:
             postgresql:
                 enabled: true
                 primary:
-                  livenessProbe:
-                    initialDelaySeconds: 300
-                  persistence:
-                    storageClass: synas-csi-delete
+                  podSecurityContext:
+                    enabled: true
+                    fsGroup: 1024
+                  containerSecurityContext:
+                    enabled: true
+                    runAsUser: 1024                    
                 auth:
                     password: "{{ authentikpgpassword }}"
             redis:
