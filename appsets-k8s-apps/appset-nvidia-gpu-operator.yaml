@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: nvidia-gpu
+  namespace: argocd  
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  nvidia-gpu: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-nvidia-gpu'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: nvidia-gpu
+        repoURL: https://helm.ngc.nvidia.com/nvidia
+        chart: nvidia-gpu
+        targetRevision: v25.3.0
+      destination:
+        server: '{{server}}' 
+        namespace: nvidia-gpu
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
