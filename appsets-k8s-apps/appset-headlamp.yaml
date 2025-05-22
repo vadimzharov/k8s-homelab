@@ -31,7 +31,9 @@ spec:
               ingressClassName: "nginx"
               hosts:
                 - host: console-{{ name }}.{{ domainname }}
-                  paths: /
+                  paths:
+                  - path: /
+                    type: ImplementationSpecific
         repoURL: https://kubernetes-sigs.github.io/headlamp/
         chart: headlamp
         targetRevision: 0.30.1
