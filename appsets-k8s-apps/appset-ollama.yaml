@@ -43,6 +43,7 @@ spec:
                 nvidia.com/gpu: 1
               limits: 
                 cpu: 3000m
+                nvidia.com/gpu: 1                
         repoURL: https://otwld.github.io/ollama-helm/
         chart: ollama
         targetRevision: 1.16.0
