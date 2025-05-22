@@ -63,7 +63,7 @@ spec:
                       - "*.k8s03.{{ mesh-domain }}"
                       - "*.k8s04.{{ mesh-domain }}"
               config:
-                enabled: true
+                enabled: '{{ metadata.labels.cilium-clustermesh }}'
                 domain: "{{ mesh-domain }}"
                 clusters:
                   - name: {{ mesh-peer-cluster1name }}
