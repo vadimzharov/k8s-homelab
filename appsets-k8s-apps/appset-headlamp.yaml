@@ -1,0 +1,47 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: headlamp
+  namespace: argocd  
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  headlamp: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-headlamp'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: headlamp
+          values: |
+            ingress:
+              enabled: true
+              ingressClassName: "nginx"
+              hosts:
+                - host: console-{{ name }}.{{ domainname }}
+                  paths: /
+        repoURL: https://kubernetes-sigs.github.io/headlamp/
+        chart: headlamp
+        targetRevision: 0.30.1
+      destination:
+        server: '{{server}}' 
+        namespace: headlamp
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
