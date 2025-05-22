@@ -25,6 +25,9 @@ spec:
       sources:
       - helm:
           releaseName: nvidia-gpu
+          values: |
+            driver:
+              enabed: false
         repoURL: https://helm.ngc.nvidia.com/nvidia
         chart: gpu-operator
         targetRevision: v25.3.0
