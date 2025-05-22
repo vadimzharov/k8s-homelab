@@ -27,6 +27,14 @@ spec:
           releaseName: ollama
           values: |
             runtimeClassName: nvidia
+            ollama:
+              gpu:
+                enabled: true
+              models:
+                pull: 
+                  - llama3.2
+                run:
+                  - llama3.2
             ingress:
               enabled: true
               className: "nginx"
