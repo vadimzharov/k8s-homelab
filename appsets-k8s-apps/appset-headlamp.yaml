@@ -26,6 +26,12 @@ spec:
       - helm:
           releaseName: headlamp
           values: |
+            config:
+              oidc:
+                clientID: "kubernetes-api"
+                clientSecret: "{{ kubeapiclientsecret }}"
+                issuerURL: "https://auth.{{ domainname }}/application/o/kubernetes/"
+                scopes: "email,profile"          
             ingress:
               enabled: true
               ingressClassName: "nginx"
