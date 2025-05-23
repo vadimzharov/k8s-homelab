@@ -48,7 +48,7 @@ spec:
                 enabled: true
                 className: nginx
                 hosts: 
-                  - host: librespeed.{{ domainname }}
+                  - host: librespeed-{{ name }}.{{ domainname }}
                     paths:
                       - path: /
                         pathType: Prefix
