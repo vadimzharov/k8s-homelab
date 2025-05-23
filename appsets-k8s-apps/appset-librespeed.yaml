@@ -1,0 +1,70 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: librespeed
+  namespace: argocd  
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  librespeed: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-librespeed'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: librespeed
+          values: |
+            controllers:            
+              main:
+                type: deployment     
+                containers:
+                  main:
+                    image: 
+                      repository: ghcr.io/librespeed/speedtest
+                      pullPolicy: IfNotPresent
+                      tag: latest
+            service:
+              main:
+                primary: true
+                enabled: true
+                controller: main
+                ports:
+                  http:
+                    port: 8080
+            ingress:
+              main:
+                enabled: true
+                className: nginx
+                hosts: 
+                  - host: librespeed.{{ domainname }}
+                    paths:
+                      - path: /
+                        pathType: Prefix
+                        service:
+                          name: librespeed
+                          port: 8080
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 3.4.0
+      destination:
+        server: '{{server}}' 
+        namespace: librespeed
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
