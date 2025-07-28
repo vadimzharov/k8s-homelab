@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: kubevirt-cdi
+  namespace: argocd
+spec:
+  syncPolicy:
+    preserveResourcesOnDeletion: true
+  generators:
+  - clusters:
+      selector:
+        matchLabels:
+          kubevirt-cdi: "installed"
+      values:
+        revision: '{{metadata.annotations.branch-name}}'
+  template:
+    metadata:
+      name: '{{name}}-kubevirt-cdi' 
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - repoURL: https://github.com/vadimzharov/k8s-homelab.git
+        targetRevision: '{{values.revision}}'
+        path: k8s-cluster/kubevirt-cdi/
+      destination:
+        server: '{{server}}'
+        namespace: kubevirt-cdi
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
