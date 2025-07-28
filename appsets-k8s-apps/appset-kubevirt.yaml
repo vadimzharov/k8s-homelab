@@ -4,6 +4,8 @@ metadata:
   name: kubevirt
   namespace: argocd
 spec:
+  syncPolicy:
+    preserveResourcesOnDeletion: true
   generators:
   - clusters:
       selector:
