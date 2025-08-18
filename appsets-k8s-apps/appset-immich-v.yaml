@@ -37,35 +37,61 @@ spec:
         spec:
           sources:
           - helm:
-              releaseName: immich-v
+              releaseName: immich-v-db
               values: |
-                postgresqlSharedPreloadLibraries: "vectors.so"
-                enabled: true
-                image:
-                  registry: ghcr.io
-                  repository: immich-app/postgres
-                  tag: 14-vectorchord0.3.0-pgvectors0.2.0
-                  debug: true
-                global:
-                  storageClass: "sc-nfs-default"
-                  postgresql:
-                    auth:
-                      username: {{ pgsql_username }}
-                      password: {{ pgsql_password }}
-                      postgresPassword: {{ pgsql_password }}
-                      database: {{ pgsql_database }}
-                primary:
-                  nodeSelector:
-                    "kubernetes.io/arch": "amd64"
-                  podSecurityContext:
-                    enabled: true
-                    fsGroup: 1024
-                  containerSecurityContext:
-                    enabled: true
+                defaultPodOptions:
+                  securityContext:
                     runAsUser: 1024
-            repoURL: https://charts.bitnami.com/bitnami
-            chart: postgresql
-            targetRevision: 13.2.24
+                    runAsGroup: 1024              
+                service:
+                  main:
+                    primary: true
+                    enabled: true
+                    controller: main
+                    ports:
+                      http:
+                        port: 5432
+                persistence:
+                  pgdb:
+                    enabled: true
+                    type: persistentVolumeClaim
+                    storageClass: sc-nfs-default
+                    accessMode: ReadWriteMany
+                    size: 1G
+                    globalMounts: 
+                      - path: /var/lib/postgresql/data
+                secrets:
+                  pgsql-config:
+                    enabled: true
+                    labels: {}
+                    annotations: {}
+                    stringData:
+                      POSTGRES_DATABASE: {{ pgsql_database }}
+                      POSTGRES_PASSWORD: {{ pgsql_password }}
+                      POSTGRES_POSTGRES_PASSWORD: {{ pgsql_password }}
+                      POSTGRES_USER: {{ pgsql_username }}
+                configMaps:
+                  pgsql-config:
+                    enabled: true
+                    data:
+                      POSTGRESQL_PORT_NUMBER: "5432"
+                controllers:
+                  main:
+                    type: statefulset
+                    containers:
+                      main:
+                        image:
+                          repository: ghcr.io/immich-app/postgres
+                          pullPolicy: IfNotPresent
+                          tag: 15-vectorchord0.3.0-pgvectors0.2.0
+                        envFrom:
+                        - secretRef:
+                            name: immich-m-db-pgsql-config
+                        - configMapRef:
+                            name: immich-m-db-pgsql-config
+            repoURL: https://bjw-s-labs.github.io/helm-charts
+            chart: app-template
+            targetRevision: 3.4.0
           destination:
             server: '{{server}}'
             namespace: immich-v
