@@ -37,7 +37,7 @@ spec:
         spec:
           sources:
           - helm:
-              releaseName: immich-v-db
+              releaseName: immich-v-postgresql
               values: |
                 defaultPodOptions:
                   securityContext:
