@@ -1,0 +1,74 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: maaspower
+  namespace: argocd
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  maaspower: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-maaspower'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: maaspower
+          values: |      
+            service:
+              main:
+                primary: true
+                enabled: true
+                controller: main                
+                ports:
+                  http:
+                    port: 5000
+            ingress:
+              main:
+                enabled: true
+                className: nginx
+                hosts:
+                  - host: maaspower.{{ domainname }}
+                    paths:
+                      - path: /
+                        pathType: Prefix
+                        service:
+                          name: maaspower
+                          port: 5000
+            persistence:
+              config:
+                enabled: false
+            controllers:
+              main:
+                type: deployment
+                enabled: true
+                containers:
+                  main:
+                    image:
+                      repository: ghcr.io/gilesknap/maaspower
+                      pullPolicy: IfNotPresent
+                      tag: latest
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.2.0
+      destination:
+        server: '{{server}}' 
+        namespace: maaspower
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
