@@ -63,7 +63,6 @@ spec:
                 enabled: true
                 apiVersion: v1
                 kind: Secret
-                nameOverride: config
                 spec:
                   data:
                     config.yaml: {{ .maaspowerconfig | b64enc }}                      
