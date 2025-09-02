@@ -54,10 +54,21 @@ spec:
                 enabled: true
                 containers:
                   main:
+                    args: 
+                    - run 
+                    - /tmp/maaspower/config.yaml
                     image:
                       repository: ghcr.io/gilesknap/maaspower
                       pullPolicy: IfNotPresent
                       tag: latest
+            persistence:
+              maaspowerconfig-config:
+                enabled: true
+                type: secret
+                name: maaspower
+                globalMounts:
+                  - path: /tmp/maaspower/config.yaml
+                    subPath: config.yaml                      
             rawResources:
               maaspowerconfig-config:
                 enabled: true
