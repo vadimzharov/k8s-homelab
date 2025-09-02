@@ -4,6 +4,8 @@ metadata:
   name: maaspower
   namespace: argocd
 spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
   generators:
     - matrix:
         generators:
@@ -19,7 +21,7 @@ spec:
                   secretName: "k8s-clusters-apps-secrets"
   template:
     metadata:
-      name: '{{name}}-maaspower'
+      name: '{{.name}}-maaspower'
     spec:
       project: k8s-homelab-apps
       sources:
@@ -39,7 +41,7 @@ spec:
                 enabled: true
                 className: nginx
                 hosts:
-                  - host: maaspower.{{ domainname }}
+                  - host: maaspower.{{ .domainname }}
                     paths:
                       - path: /
                         pathType: Prefix
@@ -56,11 +58,19 @@ spec:
                       repository: ghcr.io/gilesknap/maaspower
                       pullPolicy: IfNotPresent
                       tag: latest
+            rawResources:
+              maaspowerconfig-config:
+                apiVersion: v1
+                kind: Secret
+                nameOverride: config
+                spec:
+                  data:
+                    config.yaml: {{ .maaspowerconfig | b64enc }}                      
         repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 4.2.0
       destination:
-        server: '{{server}}' 
+        server: '{{.server}}' 
         namespace: maaspower
       syncPolicy:
         automated:
