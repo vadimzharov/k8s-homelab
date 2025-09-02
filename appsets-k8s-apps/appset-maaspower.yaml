@@ -46,9 +46,6 @@ spec:
                         service:
                           name: maaspower
                           port: 5000
-            persistence:
-              config:
-                enabled: false
             controllers:
               main:
                 type: deployment
