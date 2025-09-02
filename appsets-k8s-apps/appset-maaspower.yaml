@@ -60,6 +60,7 @@ spec:
                       tag: latest
             rawResources:
               maaspowerconfig-config:
+                enabled: true
                 apiVersion: v1
                 kind: Secret
                 nameOverride: config
