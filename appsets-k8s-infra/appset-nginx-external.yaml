@@ -37,7 +37,9 @@ spec:
                 name: nginx-external
                 default: false
                 controllerValue: "k8s.io/ingress-nginx-external"
-              ingressClass: nginx-external                
+              ingressClass: nginx-external
+              tcp:
+                6443: "nginx/nginx-ingress-nginx-controller:443"                           
         repoURL: https://kubernetes.github.io/ingress-nginx
         chart: ingress-nginx
         targetRevision: 4.12.1
