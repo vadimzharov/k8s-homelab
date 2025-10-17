@@ -29,22 +29,22 @@ spec:
             persistence:
               enabled: true
             readinessProbe: {}
-              # httpGet:
-              #   path: /
-              #   port: http
-              #   scheme: HTTP
-              # timeoutSeconds: 1
-              # periodSeconds: 20
-              # successThreshold: 1
-              # failureThreshold: 3              
+              httpGet:
+                path: /
+                port: http
+                scheme: HTTP
+              timeoutSeconds: 1
+              periodSeconds: 180
+              successThreshold: 1
+              failureThreshold: 3              
             livenessProbe: {}
-              # exec:
-              #   command:
-              #     - extra/healthcheck                
-              # timeoutSeconds: 1
-              # periodSeconds: 20
-              # successThreshold: 1
-              # failureThreshold: 3                  
+              exec:
+                command:
+                  - extra/healthcheck                
+              timeoutSeconds: 1
+              periodSeconds: 180
+              successThreshold: 1
+              failureThreshold: 3                  
             ingress:
               enabled: true
               className: nginx
