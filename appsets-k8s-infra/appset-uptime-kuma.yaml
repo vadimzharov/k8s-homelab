@@ -57,7 +57,7 @@ spec:
                       pathType: ImplementationSpecific              
         repoURL: https://k3rnelpan1c-dev.github.io/uptime-kuma-helm/
         chart: uptime-kuma
-        targetRevision: 1.3.4
+        targetRevision: 1.5.0
       destination:
         server: '{{server}}' 
         namespace: uptime-kuma
