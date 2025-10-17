@@ -28,7 +28,7 @@ spec:
           values: |
             persistence:
               enabled: true
-            readinessProbe: {}
+            readinessProbe:
               httpGet:
                 path: /
                 port: http
@@ -37,7 +37,7 @@ spec:
               periodSeconds: 180
               successThreshold: 1
               failureThreshold: 3              
-            livenessProbe: {}
+            livenessProbe:
               exec:
                 command:
                   - extra/healthcheck                
