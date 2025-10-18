@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: wireguard-vpn
+  namespace: argocd
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  wireguard-vpn: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-wireguard-vpn'
+    spec:
+      project: k8s-homelab-infra
+      sources:
+        - repoURL: https://github.com/devops-land/wireguard-operator.git
+          targetRevision: v2.7.0
+          path: .
+          directory:
+            include: "release.yaml"
+      destination:
+        server: '{{server}}' 
+        namespace: wireguard-vpn
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
