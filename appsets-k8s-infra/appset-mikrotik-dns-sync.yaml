@@ -34,7 +34,7 @@ spec:
             interval: 5s
             registry: txt
             txtOwnerId: default
-            policy: sync              
+            policy: upsert-only              
             registry: noop
             extraArgs:
               - --ignore-ingress-tls-spec
