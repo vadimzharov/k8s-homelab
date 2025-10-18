@@ -31,7 +31,7 @@ spec:
           values: |
             sources:
               - ingress
-            interval: 5s
+            interval: 30s
             registry: txt
             txtOwnerId: default
             policy: upsert-only              
