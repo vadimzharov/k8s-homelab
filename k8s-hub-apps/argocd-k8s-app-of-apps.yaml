@@ -39,7 +39,7 @@ spec:
         spec:
           project: k8s-homelab-apps
           sources:
-          - repoURL: git@github.com:vadimzharov/k8s-homelab
+          - repoURL: https://github.com/vadimzharov/k8s-homelab.git
             path: "appsets-k8s-apps"
             targetRevision: '{{ values.revision }}'
           destination:
@@ -61,7 +61,7 @@ spec:
     spec:
       project: k8s-homelab-hub
       sources:
-      - repoURL: "git@github.com:vadimzharov/k8s-homelab"
+      - repoURL: "https://github.com/vadimzharov/k8s-homelab.git"
         path: "appsets-k8s-cluster"
         targetRevision: '{{values.revision}}'
       destination:
