@@ -28,3 +28,17 @@ spec:
     remoteRef:
       key: infra/pihole
       property: piholepassword
+  - secretKey: mikrotik_baseurl
+    remoteRef:
+      key: infra/mikrotik
+      property: mikrotik_baseurl
+  - secretKey: mikrotik_username
+    remoteRef:
+      key: infra/mikrotik
+      property: mikrotik_username
+  - secretKey: mikrotik_password
+    remoteRef:
+      key: infra/mikrotik
+      property: mikrotik_password
+      
+

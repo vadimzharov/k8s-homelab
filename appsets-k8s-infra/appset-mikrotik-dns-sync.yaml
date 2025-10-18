@@ -1,0 +1,100 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: mikrotik-dns-sync
+  namespace: argocd
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  pihole-sync: "installed"
+              values:
+                dnspolicy: '{{ metadata.labels.external-dns-policy }}'
+          - plugin:
+              # Specify the configMap where the plugin configuration is located.
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-dns-secrets"
+  template:
+    metadata:
+      name: '{{name}}-mikrotik-dns-sync' 
+    spec:
+      project: k8s-homelab-infra
+      sources:                        
+      - helm:
+          releaseName: 'mikrotik-dns-sync'
+          values: |
+            sources:
+              - ingress
+            interval: 5s
+            sources: ["ingress", "service", "crd"]
+            registry: txt
+            txtOwnerId: default
+            policy: sync              
+            registry: noop
+            extraArgs:
+              - --ignore-ingress-tls-spec
+              - --managed-record-types=A
+              - --managed-record-types=AAAA
+              - --managed-record-types=CNAME
+              - --managed-record-types=TXT
+              - --managed-record-types=MX
+              - --managed-record-types=SRV
+              - --managed-record-types=NS            
+            provider: 
+              name: webhook
+              webhook:
+                image:
+                  repository: ghcr.io/mirceanton/external-dns-provider-mikrotik
+                  tag: latest 
+                  pullPolicy: IfNotPresent
+                env:
+                  - name: LOG_FORMAT
+                    value: json
+                  - name: LOG_LEVEL
+                    value: debug
+
+                  - name: MIKROTIK_DEFAULT_TTL
+                    value: "1800"
+                  - name: MIKROTIK_DEFAULT_COMMENT
+                    value: Managed by ExternalDNS
+
+                  - name: MIKROTIK_BASEURL
+                    value: "{{ mikrotik_baseurl }}"
+                  - name: MIKROTIK_USERNAME
+                    value: "{{ mikrotik_username }}"
+                  - name: MIKROTIK_PASSWORD
+                    value: "{{ mikrotik_password }}"
+                  - name: MIKROTIK_SKIP_TLS_VERIFY
+                    value: "true"
+
+                livenessProbe:
+                  httpGet:
+                    path: /healthz
+                    port: http-webhook
+                  initialDelaySeconds: 10
+                  timeoutSeconds: 5
+                readinessProbe:
+                  httpGet:
+                    path: /readyz
+                    port: http-webhook
+                  initialDelaySeconds: 10
+                  timeoutSeconds: 5            
+        repoURL: https://kubernetes-sigs.github.io/external-dns/
+        chart: external-dns
+        targetRevision: 1.19.0
+      destination:
+        server: '{{server}}'
+        namespace: pihole
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          
