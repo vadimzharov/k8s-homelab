@@ -14,7 +14,7 @@
       project: k8s-homelab-clusters-config
       source:
         path: "k8s-hub-clusters-configuration"
-        repoURL: "git@github.com:vadimzharov/k8s-homelab"
+        repoURL: "https://github.com/vadimzharov/k8s-homelab.git"
         targetRevision: "main"
       syncPolicy:
         syncOptions:

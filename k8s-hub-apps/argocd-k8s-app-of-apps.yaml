@@ -17,7 +17,7 @@ spec:
         spec:
           project: k8s-homelab-hub
           sources:
-          - repoURL: git@github.com:vadimzharov/k8s-homelab
+          - repoURL: https://github.com/vadimzharov/k8s-homelab.git
             path: "appsets-k8s-infra"
             targetRevision: '{{values.revision}}'
           destination:
