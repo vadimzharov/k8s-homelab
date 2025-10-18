@@ -32,7 +32,6 @@ spec:
             sources:
               - ingress
             interval: 5s
-            sources: ["ingress", "service", "crd"]
             registry: txt
             txtOwnerId: default
             policy: sync              
