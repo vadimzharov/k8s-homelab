@@ -37,7 +37,7 @@ spec:
                 kind: CiliumLoadBalancerIPPool
                 spec:
                   spec:
-                    allowFirstLastIPs: no
+                    allowFirstLastIPs: false
                     blocks:
                       - cidr: {{ load-balancer-cidr }}
                     disabled: false
