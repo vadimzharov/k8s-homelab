@@ -10,7 +10,7 @@ spec:
           - clusters:
               selector:
                 matchLabels:
-                  pihole-sync: "installed"
+                  mikrotik-sync: "installed"
               values:
                 dnspolicy: '{{ metadata.labels.external-dns-policy }}'
           - plugin:
