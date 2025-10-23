@@ -28,6 +28,9 @@ spec:
       sources:                        
       - helm:
           releaseName: 'mikrotik-dns-sync'
+          parameters:
+            - name: installCRDs
+              value: "false"          
           values: |
             sources:
               - ingress
