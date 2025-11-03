@@ -36,19 +36,20 @@ spec:
                 apiVersion: cilium.io/v2
                 kind: CiliumBGPClusterConfig
                 spec:
-                  nodeSelector:
-                    matchLabels:
-                      node-role.kubernetes.io/bgp-router: enabled
-                  bgpInstances:
-                  - name: "mikrotik-instance"
-                    localASN: {{ cilium_bgp_local_asn }}
-                    localPort: 179
-                    peers:
-                    - name: "peer-to-router"
-                      peerASN: {{ router_bgp_peer_asn }}
-                      peerAddress: {{ router_bgp_peer_ip }}
-                      peerConfigRef:
-                        name: "cilium-peer"
+                  spec:
+                    nodeSelector:
+                      matchLabels:
+                        node-role.kubernetes.io/bgp-router: enabled
+                    bgpInstances:
+                    - name: "mikrotik-instance"
+                      localASN: {{ cilium_bgp_local_asn }}
+                      localPort: 179
+                      peers:
+                      - name: "peer-to-router"
+                        peerASN: {{ router_bgp_peer_asn }}
+                        peerAddress: {{ router_bgp_peer_ip }}
+                        peerConfigRef:
+                          name: "cilium-peer"
               bgppeerconfig:
                 apiVersion: cilium.io/v2
                 kind: CiliumBGPPeerConfig
