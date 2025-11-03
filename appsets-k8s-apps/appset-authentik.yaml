@@ -54,7 +54,7 @@ spec:
                 enabled: true
         repoURL: https://charts.goauthentik.io
         chart: authentik
-        targetRevision: 2025.4.0
+        targetRevision: 2025.10.0
       destination:
         server: '{{server}}' 
         namespace: authentik
