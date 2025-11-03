@@ -89,7 +89,23 @@ spec:
                   spec:
                     blocks:
                     - cidr: {{ load-balancer-cidr }}
-                    allowFirstLastIPs: "No"            
+                    allowFirstLastIPs: "No"
+              egresspolicy:
+                apiVersion: cilium.io/v2
+                kind: CiliumEgressGatewayPolicy
+                spec:
+                  spec:
+                    selectors:
+                    - podSelector:
+                        matchLabels:
+                          vpn: required
+                    destinationCIDRs:
+                      - 0.0.0.0/0
+                    egressGateway:
+                      egressIP: {{ egressipvpn }}
+                      nodeSelector:
+                        matchLabels:
+                          node-role.kubernetes.io/egress-gw: vpn                      
         repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 4.4.0
