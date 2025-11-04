@@ -110,9 +110,9 @@ spec:
                       - backup-daemon
                     envFrom:
                     - secretRef:
-                        name: pocket-id-b-r-secret
+                        name: pocket-rd
                     - configMapRef:
-                        name: pocket-id-b-r-settings
+                        name: pocket-id
         repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 4.4.0
