@@ -1,0 +1,130 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: pocket-id
+  namespace: argocd
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  pocket-id: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-pocket-id'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: pocket-id
+          values: |      
+            service:
+              main:
+                primary: true
+                enabled: true
+                controller: main                
+                ports:
+                  http:
+                    port: 1411
+            ingress:
+              main:
+                enabled: true
+                className: nginx
+                hosts:
+                  - host: pocket-id.{{ domainname }}
+                    paths:
+                      - path: /
+                        pathType: Prefix
+                        service:
+                          name: main
+            persistence:
+              config:
+                enabled: true
+                type: emptyDir
+                globalMounts: 
+                  - path: /app/data
+            secrets:
+              b-r-secret:
+                enabled: true
+                labels: {}
+                annotations: {}
+                stringData:
+                  AWS_BUCKET: {{ awsbucket }}
+                  AWS_KEY: {{ awskey }}
+                  AWS_SECRET_KEY: {{ awssecretkey }}
+                  ENCRYPT_PASSWORD: {{ encryptpassword }}
+            configMaps:
+              b-r-settings:
+                enabled: true
+                data:
+                  S3_BUCKET_FOLDER: "pocket-id"
+                  S3_FILE_PREFIX: "pocket-id-backup"
+                  DIR_TO_BACKUP: "/app/data"
+                  DIR_TO_RESTORE: "/app/data"
+                  BACKUP_INTERVAL: "12h"
+                  PRUNE_INTERVAL: "48h"
+                  COPIES_TO_KEEP: "35"
+                  FORCE_RESTORE: "False"  
+            controllers:
+              main:
+                type: deployment
+                enabled: true
+                initContainers:
+                  pocket-id-restore:
+                    image: 
+                      repository: quay.io/vadimzharov/podbackup
+                      pullPolicy: IfNotPresent
+                      tag: latest
+                    command:
+                      - podbackup
+                    args:
+                      - restore
+                    envFrom:
+                    - secretRef:
+                        name: pocket-id-b-r-secret
+                    - configMapRef:
+                        name: pocket-id-b-r-settings
+                containers:
+                  main:
+                    image:
+                      repository: ghcr.io/pocket-id/pocket-id
+                      pullPolicy: IfNotPresent
+                      tag: v1
+                    env:
+                      TRUST_PROXY: true
+                      APP_URL: https://pocket-id.{{ domainname }}
+                  pocket-id-backup-daemon:
+                    image: 
+                      repository: quay.io/vadimzharov/podbackup
+                      pullPolicy: IfNotPresent
+                      tag: latest
+                    command:
+                      - podbackup
+                    args:
+                      - backup-daemon
+                    envFrom:
+                    - secretRef:
+                        name: pocket-id-b-r-secret
+                    - configMapRef:
+                        name: pocket-id-b-r-settings
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.4.0
+      destination:
+        server: '{{server}}' 
+        namespace: pocket-id
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
