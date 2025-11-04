@@ -70,7 +70,7 @@ spec:
                   BACKUP_INTERVAL: "12h"
                   PRUNE_INTERVAL: "48h"
                   COPIES_TO_KEEP: "35"
-                  FORCE_RESTORE: "False"  
+                  FORCE_RESTORE: "True"  
             controllers:
               main:
                 type: deployment
