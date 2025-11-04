@@ -87,9 +87,9 @@ spec:
                       - restore
                     envFrom:
                     - secretRef:
-                        name: pocket-id-b-r-secret
+                        name: pocket-id
                     - configMapRef:
-                        name: pocket-id-b-r-settings
+                        name: pocket-id
                 containers:
                   main:
                     image:
@@ -110,7 +110,7 @@ spec:
                       - backup-daemon
                     envFrom:
                     - secretRef:
-                        name: pocket-rd
+                        name: pocket-id
                     - configMapRef:
                         name: pocket-id
         repoURL: https://bjw-s-labs.github.io/helm-charts
