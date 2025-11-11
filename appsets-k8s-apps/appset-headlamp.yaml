@@ -30,8 +30,8 @@ spec:
               oidc:
                 clientID: "kubernetes-api"
                 clientSecret: "{{ kubeapiclientsecret }}"
-                issuerURL: "https://auth.{{ domainname }}/application/o/kubernetes/"
-                scopes: "email,profile"          
+                issuerURL: "https://pocket-id.{{ domainname }}"
+                scopes: "email,profile"
             ingress:
               enabled: true
               ingressClassName: "nginx"
