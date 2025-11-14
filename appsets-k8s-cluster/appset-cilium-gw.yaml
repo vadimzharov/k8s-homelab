@@ -123,7 +123,7 @@ spec:
         path: config/crd/standard
       - repoURL: https://github.com/kubernetes-sigs/gateway-api.git
         targetRevision: 'v1.2.0'
-        path: config/crd/config/crd/experimental/gateway.networking.k8s.io_tlsroutes.yaml
+        path: config/crd/experimental/gateway.networking.k8s.io_tlsroutes.yaml
       destination:
         server: '{{server}}'
         namespace: kube-system
