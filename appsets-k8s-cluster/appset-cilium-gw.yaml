@@ -81,6 +81,8 @@ spec:
               enabled: true
             gatewayAPI:
               enabled: true
+              gatewayClass:
+                create: false
             ipam:
               mode: "cluster-pool"
               operator:
