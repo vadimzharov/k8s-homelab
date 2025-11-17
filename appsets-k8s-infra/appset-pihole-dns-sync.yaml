@@ -74,7 +74,6 @@ spec:
             registry: noop
             provider: pihole
             gatewayNamespace: cilium-system
-            logLevel: debug
             env:
               - name: "EXTERNAL_DNS_PIHOLE_SERVER"
                 value: {{ seconddnsserver }}
