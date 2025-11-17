@@ -105,7 +105,20 @@ spec:
                       egressIP: {{ egressipvpn }}
                       nodeSelector:
                         matchLabels:
-                          node-role.kubernetes.io/egress-gw: vpn                      
+                          node-role.kubernetes.io/egress-gw: vpn
+              gatewayclass:
+                apiVersion: gateway.networking.k8s.io/v1beta1
+                kind: GatewayClass
+                nameOverride: "cilium-lb"
+                spec:
+                  spec:
+                    controllerName: io.cilium/gateway-controller
+                    description: The LoadBalancer type Cilium GatewayClass
+                    parametersRef:
+                      group: cilium.io
+                      kind: CiliumGatewayClassConfig
+                      name: lb-gateway-config
+                      namespace: cilium
         repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 4.4.0
