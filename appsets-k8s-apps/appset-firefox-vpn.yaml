@@ -42,7 +42,7 @@ spec:
                   - name: cilium-gw
                     namespace: cilium-system
                 hostnames:
-                  - firefox-vpn-gateway.{{ domainname }}
+                  - firefox-vpn.{{ domainname }}
                 rules:  
                 - matches:
                   - path:
