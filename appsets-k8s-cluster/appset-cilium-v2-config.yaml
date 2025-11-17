@@ -118,13 +118,22 @@ spec:
                       group: cilium.io
                       kind: CiliumGatewayClassConfig
                       name: lb-gateway-config
-                      namespace: cilium
+                      namespace: cilium-system
+              ciliumgatewayclassconfig:
+                apiVersion: cilium.io/v2alpha1
+                kind: CiliumGatewayClassConfig
+                forceRename: lb-gateway-config
+                spec:
+                  spec:
+                    service:
+                      type: LoadBalancer
+
         repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 4.4.0
       destination:
         server: '{{server}}'
-        namespace: kube-system
+        namespace: cilium-system
       syncPolicy:
         automated:
           prune: true
