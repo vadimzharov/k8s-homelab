@@ -40,7 +40,7 @@ spec:
                 kind: HTTPRoute
                 parentRefs:
                   - name: cilium-gw
-                    namespace: cilium-gw      
+                    namespace: cilium-system
                 hostnames:
                   - firefox-vpn-gateway.{{ domainname }}
                 rules:  
