@@ -127,7 +127,31 @@ spec:
                   spec:
                     service:
                       type: LoadBalancer
-
+              gateway:
+                apiVersion: gateway.networking.k8s.io/v1
+                kind: Gateway
+                forceRename: cilium-gw
+                spec:
+                  spec:
+                    gatewayClassName: cilium-lb
+                    listeners:
+                    - protocol: HTTP
+                      port: 80
+                      name: web-gw
+                      allowedRoutes:
+                        namespaces:
+                          from: All
+                    - protocol: HTTPS
+                      port: 443
+                      tls:
+                        mode: Terminate
+                        certificateRefs:
+                          - kind: Secret
+                            name: wildcard-apps-certificate
+                      name: https-gw
+                      allowedRoutes:
+                        namespaces:
+                          from: All
         repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 4.4.0
