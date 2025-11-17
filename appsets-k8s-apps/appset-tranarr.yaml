@@ -84,7 +84,7 @@ spec:
                     port: 9091
             ingress:
               main:
-                enabled: true
+                enabled: false
                 className: nginx
                 hosts: 
                   - host: tranarr.{{ domainname }}
@@ -94,6 +94,23 @@ spec:
                         service:
                           name: tranarr
                           port: 9091
+            route:
+              main:
+                enabled: true
+                kind: HTTPRoute
+                parentRefs:
+                  - name: cilium-gw
+                    namespace: cilium-system
+                hostnames:
+                  - tranarr.{{ domainname }}
+                rules:  
+                - matches:
+                  - path:
+                      type: PathPrefix
+                      value: /
+                  backendRefs:
+                  - name: tranarr
+                    port: 9091                          
             persistence:
               config:
                 enabled: true
