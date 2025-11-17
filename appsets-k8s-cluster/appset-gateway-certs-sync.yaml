@@ -1,0 +1,56 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: gateway-certificates-sync
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  gateway-certs-sync: "installed"
+                  cilium-v2-config: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "wildcard-apps-certificate"
+                  namespaceName: "ingress-nginx"
+  template:
+    metadata:
+      name: '{{ .name }}-gateway-certs'
+    spec:
+      project: k8s-homelab-cluster
+      sources:
+      - helm:
+          releaseName: wildcard
+          values: |
+            controllers: 
+              main:
+               enabled: false
+            rawResources:
+              wildcard-certs:
+                apiVersion: v1
+                kind: Secret
+                forceRename: wildcard-apps-certificate
+                spec:
+                  data:
+                    tls.crt: {{ .tls_crt | b64enc }}
+                    tls.key: {{ .tls_key | b64enc }}
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.4.0
+      destination:
+        server: '{{ .server }}'
+        namespace: cilium-config
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+
+          
