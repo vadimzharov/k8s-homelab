@@ -47,7 +47,7 @@ spec:
         targetRevision: 4.4.0
       destination:
         server: '{{ .server }}'
-        namespace: cilium-config
+        namespace: cilium-system
       syncPolicy:
         automated:
           prune: true
