@@ -69,6 +69,7 @@ spec:
           values: |
             sources:
               - ingress
+              - gateway-httproute
             policy: "{{ values.dnspolicy }}"
             registry: noop
             provider: pihole
