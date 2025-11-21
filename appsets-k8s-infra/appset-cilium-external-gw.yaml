@@ -1,0 +1,83 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: cilium-external-gw
+  namespace: argocd
+spec:
+  syncPolicy:
+    preserveResourcesOnDeletion: true
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  cilium-external-gw: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "{{ name }}-cni-secrets"
+  template:
+    metadata:
+      name: '{{ name }}-cilium-external-gw' 
+    spec:
+      project: k8s-homelab-cluster
+      sources:
+      - helm:
+          releaseName: cilium-external-gw
+          values: |
+            controllers: 
+              main:
+               enabled: false
+            rawResources:              
+              loadbalancerpool:
+                apiVersion: "cilium.io/v2"
+                kind: CiliumLoadBalancerIPPool
+                spec:
+                  spec:
+                    blocks:
+                    - start: {{ nginxexternalingressip }}
+                      end: {{ nginxexternalingressip }}
+                    serviceSelector:
+                      matchLabels:
+                        gateway-api: external
+              gateway:
+                apiVersion: gateway.networking.k8s.io/v1
+                kind: Gateway
+                forceRename: cilium-gw
+                spec:
+                  spec:
+                    gatewayClassName: cilium-lb
+                    listeners:
+                    - protocol: HTTP
+                      port: 80
+                      name: web-gw
+                      allowedRoutes:
+                        namespaces:
+                          from: All
+                    - protocol: HTTPS
+                      port: 443
+                      tls:
+                        mode: Terminate
+                        certificateRefs:
+                          - kind: Secret
+                            name: wildcard-apps-certificate
+                      name: https-gw
+                      allowedRoutes:
+                        namespaces:
+                          from: All
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.4.0
+      destination:
+        server: '{{server}}'
+        namespace: cilium-system
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          
