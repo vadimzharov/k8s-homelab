@@ -46,7 +46,7 @@ spec:
               gateway:
                 apiVersion: gateway.networking.k8s.io/v1
                 kind: Gateway
-                forceRename: cilium-gw
+                forceRename: cilium-external-gw
                 spec:
                   spec:
                     gatewayClassName: cilium-lb
