@@ -43,18 +43,23 @@ spec:
                 ports:
                   http:
                     port: 8080
-            ingress:
+            route:
               main:
                 enabled: true
-                className: nginx
-                hosts: 
-                  - host: librespeed-{{ name }}.{{ domainname }}
-                    paths:
-                      - path: /
-                        pathType: Prefix
-                        service:
-                          name: librespeed
-                          port: 8080
+                kind: HTTPRoute
+                parentRefs:
+                  - name: cilium-gw
+                    namespace: cilium-system
+                hostnames:
+                  - librespeed-{{ name }}.{{ domainname }}
+                rules:  
+                - matches:
+                  - path:
+                      type: PathPrefix
+                      value: /
+                  backendRefs:
+                  - name: librespeed
+                    port: 8080
         repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0

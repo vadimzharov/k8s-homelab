@@ -73,18 +73,23 @@ spec:
                 ports:
                   http:
                     port: 9696
-            ingress:
+            route:
               main:
                 enabled: true
-                className: nginx
-                hosts: 
-                  - host: prowlarr.{{ domainname }}
-                    paths:
-                      - path: /
-                        pathType: Prefix
-                        service:
-                          name: prowlarr
-                          port: 9696
+                kind: HTTPRoute
+                parentRefs:
+                  - name: cilium-gw
+                    namespace: cilium-system
+                hostnames:
+                  - prowlarr.{{ .domainname }}
+                rules:  
+                - matches:
+                  - path:
+                      type: PathPrefix
+                      value: /
+                  backendRefs:
+                  - name: prowlarr
+                    port: 9696
             persistence:
               config:
                 enabled: true
