@@ -50,6 +50,11 @@ spec:
                 spec:
                   spec:
                     gatewayClassName: cilium-lb
+                    infrastructure:
+                      labels:
+                        gateway-api: external
+                      #annotations:
+                      #  io.cilium/lb-ipam-ips: "10.0.0.42"                     
                     listeners:
                     - protocol: HTTP
                       port: 80
