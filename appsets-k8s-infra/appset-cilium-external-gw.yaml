@@ -31,18 +31,7 @@ spec:
             controllers: 
               main:
                enabled: false
-            rawResources:              
-              loadbalancerpool:
-                apiVersion: "cilium.io/v2"
-                kind: CiliumLoadBalancerIPPool
-                spec:
-                  spec:
-                    blocks:
-                    - start: {{ nginxexternalingressip }}
-                      end: {{ nginxexternalingressip }}
-                    serviceSelector:
-                      matchLabels:
-                        gateway-api: external
+            rawResources:
               gateway:
                 apiVersion: gateway.networking.k8s.io/v1
                 kind: Gateway
@@ -51,10 +40,8 @@ spec:
                   spec:
                     gatewayClassName: cilium-lb
                     infrastructure:
-                      labels:
-                        gateway-api: external
-                      #annotations:
-                      #  io.cilium/lb-ipam-ips: "10.0.0.42"                     
+                      annotations:
+                        io.cilium/lb-ipam-ips: "{{ nginxexternalingressip }}"
                     listeners:
                     - protocol: HTTP
                       port: 80
