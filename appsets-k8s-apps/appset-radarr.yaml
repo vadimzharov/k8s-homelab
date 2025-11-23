@@ -79,7 +79,7 @@ spec:
                   - name: cilium-gw
                     namespace: cilium-system
                 hostnames:
-                  - radarr.{{ .domainname }}
+                  - radarr.{{ domainname }}
                 rules:  
                 - matches:
                   - path:

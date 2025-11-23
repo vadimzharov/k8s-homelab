@@ -79,7 +79,7 @@ spec:
                   - name: cilium-gw
                     namespace: cilium-system
                 hostnames:
-                  - sonarr.{{ .domainname }}
+                  - sonarr.{{ domainname }}
                 rules:  
                 - matches:
                   - path:

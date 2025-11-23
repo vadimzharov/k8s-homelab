@@ -81,7 +81,7 @@ spec:
                   - name: cilium-gw
                     namespace: cilium-system
                 hostnames:
-                  - prowlarr.{{ .domainname }}
+                  - prowlarr.{{ domainname }}
                 rules:  
                 - matches:
                   - path:
