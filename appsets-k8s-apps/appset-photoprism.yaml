@@ -47,27 +47,44 @@ spec:
                 ports:
                   http:
                     port: 2342
-            ingress:
+            route:
               main:
                 enabled: true
-                className: nginx
-                annotations:
-                  nginx.ingress.kubernetes.io/service-upstream: "true"
-                  nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-                  nginx.ingress.kubernetes.io/proxy-body-size: "0"
-                  nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-                  nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-                  nginx.ingress.kubernetes.io/client-body-buffer-size: 1M
-                  nginx.ingress.kubernetes.io/proxy-max-temp-file-size: "0"
-                  nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
-                hosts: 
-                  - host: photos.{{ domainname }}
-                    paths:
-                      - path: /
-                        pathType: Prefix
-                        service:
-                          name: photoprism
-                          port: 2342
+                kind: HTTPRoute
+                parentRefs:
+                  - name: cilium-gw
+                    namespace: cilium-system
+                hostnames:
+                  - photos.{{ domainname }}
+                rules:  
+                - matches:
+                  - path:
+                      type: PathPrefix
+                      value: /
+                  backendRefs:
+                  - name: photoprism
+                    port: 2342                    
+            # ingress:
+            #   main:
+            #     enabled: true
+            #     className: nginx
+            #     annotations:
+            #       nginx.ingress.kubernetes.io/service-upstream: "true"
+            #       nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+            #       nginx.ingress.kubernetes.io/proxy-body-size: "0"
+            #       nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+            #       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+            #       nginx.ingress.kubernetes.io/client-body-buffer-size: 1M
+            #       nginx.ingress.kubernetes.io/proxy-max-temp-file-size: "0"
+            #       nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
+            #     hosts: 
+            #       - host: photos.{{ domainname }}
+            #         paths:
+            #           - path: /
+            #             pathType: Prefix
+            #             service:
+            #               name: photoprism
+            #               port: 2342
             persistence:
               originals:
                 enabled: true
