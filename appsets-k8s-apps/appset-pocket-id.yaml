@@ -34,15 +34,23 @@ spec:
                 ports:
                   http:
                     port: 1411
-            ingress:
+            route:
               main:
                 enabled: true
-                className: nginx
-                hosts:
-                  - host: pocket-id.{{ domainname }}
-                    paths:
-                      - path: /
-                        pathType: Prefix
+                kind: HTTPRoute
+                parentRefs:
+                  - name: cilium-gw
+                    namespace: cilium-system
+                hostnames:
+                  - pocket-id.{{ domainname }}
+                rules:  
+                - matches:
+                  - path:
+                      type: PathPrefix
+                      value: /
+                  backendRefs:
+                  - name: pocket-id
+                    port: 1411
             persistence:
               config:
                 enabled: true
