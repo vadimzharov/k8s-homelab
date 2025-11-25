@@ -34,18 +34,35 @@ spec:
                 ports:
                   http:
                     port: 8123
-            ingress:
+            route:
               main:
                 enabled: true
-                className: nginx
-                hosts:
-                  - host: hass.{{ domainname }}
-                    paths:
-                      - path: /
-                        pathType: Prefix
-                        service:
-                          name: hass
-                          port: 8123
+                kind: HTTPRoute
+                parentRefs:
+                  - name: cilium-gw
+                    namespace: cilium-system
+                hostnames:
+                  - hass.{{ domainname }}
+                rules:  
+                - matches:
+                  - path:
+                      type: PathPrefix
+                      value: /
+                  backendRefs:
+                  - name: hass
+                    port: 8123                    
+            # ingress:
+            #   main:
+            #     enabled: true
+            #     className: nginx
+            #     hosts:
+            #       - host: hass.{{ domainname }}
+            #         paths:
+            #           - path: /
+            #             pathType: Prefix
+            #             service:
+            #               name: hass
+            #               port: 8123
             persistence:
               config:
                 enabled: true
