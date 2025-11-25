@@ -71,18 +71,23 @@ spec:
                 ports:
                   http:
                     port: 7878
-            ingress:
+            route:
               main:
                 enabled: true
-                className: nginx
-                hosts: 
-                  - host: radarr-d.{{ domainname }}
-                    paths:
-                      - path: /
-                        pathType: Prefix
-                        service:
-                          name: radarr-d
-                          port: 7878
+                kind: HTTPRoute
+                parentRefs:
+                  - name: cilium-gw
+                    namespace: cilium-system
+                hostnames:
+                  - radarr-d.{{ domainname }}
+                rules:  
+                - matches:
+                  - path:
+                      type: PathPrefix
+                      value: /
+                  backendRefs:
+                  - name: radarr-d
+                    port: 7878
             persistence:
               config:
                 enabled: true
@@ -179,18 +184,35 @@ spec:
                 ports:
                   http:
                     port: 8989
-            ingress:
+            route:
               main:
                 enabled: true
-                className: nginx
-                hosts: 
-                  - host: sonarr-d.{{ domainname }}
-                    paths:
-                      - path: /
-                        pathType: Prefix
-                        service:
-                          name: sonarr-d
-                          port: 8989
+                kind: HTTPRoute
+                parentRefs:
+                  - name: cilium-gw
+                    namespace: cilium-system
+                hostnames:
+                  - sonarr-d.{{ domainname }}
+                rules:  
+                - matches:
+                  - path:
+                      type: PathPrefix
+                      value: /
+                  backendRefs:
+                  - name: sonarr-d
+                    port: 8989
+            # ingress:
+            #   main:
+            #     enabled: true
+            #     className: nginx
+            #     hosts: 
+            #       - host: sonarr-d.{{ domainname }}
+            #         paths:
+            #           - path: /
+            #             pathType: Prefix
+            #             service:
+            #               name: sonarr-d
+            #               port: 8989
             persistence:
               config:
                 enabled: true
@@ -286,18 +308,35 @@ spec:
                 ports:
                   http:
                     port: 9091
-            ingress:
+            route:
               main:
                 enabled: true
-                className: nginx
-                hosts: 
-                  - host: trans-d.{{ domainname }}
-                    paths:
-                      - path: /
-                        pathType: Prefix
-                        service:
-                          name: trans-d
-                          port: 9091
+                kind: HTTPRoute
+                parentRefs:
+                  - name: cilium-gw
+                    namespace: cilium-system
+                hostnames:
+                  - trans-d.{{ domainname }}
+                rules:  
+                - matches:
+                  - path:
+                      type: PathPrefix
+                      value: /
+                  backendRefs:
+                  - name: trans-d
+                    port: 9091
+            # ingress:
+            #   main:
+            #     enabled: true
+            #     className: nginx
+            #     hosts: 
+            #       - host: trans-d.{{ domainname }}
+            #         paths:
+            #           - path: /
+            #             pathType: Prefix
+            #             service:
+            #               name: trans-d
+            #               port: 9091
             persistence:
               config:
                 enabled: true
@@ -384,18 +423,23 @@ spec:
                 ports:
                   http:
                     port: 5055
-            ingress:
+            route:
               main:
                 enabled: true
-                className: nginx
-                hosts: 
-                  - host: jellyseerr-d.{{ domainname }}
-                    paths:
-                      - path: /
-                        pathType: Prefix
-                        service:
-                          name: jellyseerr-d
-                          port: 5055
+                kind: HTTPRoute
+                parentRefs:
+                  - name: cilium-gw
+                    namespace: cilium-system
+                hostnames:
+                  - jellyseerr-d.{{ domainname }}
+                rules:  
+                - matches:
+                  - path:
+                      type: PathPrefix
+                      value: /
+                  backendRefs:
+                  - name: jellyseerr-d
+                    port: 5055
             persistence:
               config:
                 enabled: true
