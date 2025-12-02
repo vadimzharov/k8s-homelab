@@ -1,0 +1,158 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: immich-mn
+  namespace: argocd
+spec:
+  generators:
+  - matrix:
+      generators:
+        - clusters:
+            selector:
+              matchLabels:
+                immich-mn: "installed"
+                csi-nfs: "installed"
+                cloudnative-pg: "installed"                
+        - plugin:
+            configMapRef:
+              name: argocd-secrets-plugin
+            input:
+              parameters:
+                secretName: "immich-app-secrets"
+  template:
+    metadata:
+      name: '{{name}}-immich-mn'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: immich-db-data
+          values: |
+            controllers: 
+              main:
+               enabled: false
+            rawResources:
+              pgsqlcluster:
+                apiVersion: postgresql.cnpg.io/v1
+                kind: Cluster
+                forceRename: "immich-database"
+                spec:
+                  spec:
+                    instances: 1
+
+                    storage:
+                      size: 1Gi
+
+                    imageName: ghcr.io/tensorchord/cloudnative-vectorchord:16.9-0.4.3
+
+                    postgresql:
+                      shared_preload_libraries:
+                        - "vchord.so"
+
+                    bootstrap:
+                      initdb:
+                        # TODO: Use managed extensions (pg 18)
+                        postInitApplicationSQL:
+                          # Commands based on: https://immich.app/docs/administration/postgres-standalone/#without-superuser-permission
+                          - CREATE EXTENSION vchord CASCADE;
+                          - CREATE EXTENSION earthdistance CASCADE;
+              immich-data:
+                apiVersion: v1
+                kind: PersistentVolumeClaim
+                spec:
+                  spec:
+                    storageClassName: sc-nfs-default
+                    accessModes:
+                      - ReadWriteMany
+                    resources:
+                      requests:
+                        storage: 10Gi
+                    volumeName: immich-data-m
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.4.0
+        #   releaseName: immich-mn
+        #   values: |
+        #     controllers:
+        #       main:
+        #         containers:
+        #           main:
+        #             image:
+        #               tag: '{{metadata.labels.immich-m-tag}}'
+        #             env:
+        #               REDIS_HOSTNAME: '{{ printf "%s-valkey" .Release.Name }}'
+        #               IMMICH_MACHINE_LEARNING_URL: '{{ printf "http://%s-machine-learning:3003" .Release.Name }}'
+
+        #     env:
+        #       IMMICH_MACHINE_LEARNING_URL: "false"
+        #       DB_HOSTNAME: immich-mn-db
+        #     image:
+        #       tag: '{{metadata.labels.immich-tag}}'
+        #     immich:
+        #       persistence:
+        #         library:
+        #           existingClaim: immich-mn-pvc-photos-m
+        #     redis:
+        #       enabled: true
+        #       architecture: standalone
+        #       master:
+        #         persistence:
+        #           enabled: false
+        #       auth:
+        #         enabled: false             
+        #     machine-learning:
+        #       enabled: false
+        #     postgresql:
+        #       enabled: false
+        #       global:
+        #         postgresql:
+        #           auth:
+        #             username: {{ pgsql_username }}
+        #             password: {{ pgsql_password }}
+        #             postgresPassword: {{ pgsql_password }}
+        #             database: {{ pgsql_database }}
+        #     server:
+        #       enabled: true
+        #       service:
+        #         main:
+        #           annotations:
+        #             service.cilium.io/global: "true"
+        #       ingress:
+        #         main:
+        #           enabled: true
+        #           ingressClassName: nginx
+        #           annotations:
+        #             nginx.ingress.kubernetes.io/service-upstream: "true"
+        #             nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+        #             nginx.ingress.kubernetes.io/proxy-body-size: "0"
+        #             nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+        #             nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+        #             nginx.ingress.kubernetes.io/client-body-buffer-size: 1M
+        #             nginx.ingress.kubernetes.io/proxy-max-temp-file-size: "0"
+        #             nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
+        #           hosts:
+        #             - host: immich-mn.{{ domainname }}
+        #               paths:
+        #                 - path: /
+        #                   pathType: Prefix                 
+        #       image:
+        #         repository: ghcr.io/immich-app/immich-server
+        #         pullPolicy: IfNotPresent
+        #     microservices:
+        #       enabled: true
+        #       image:
+        #         repository: ghcr.io/immich-app/immich-server
+        #         pullPolicy: IfNotPresent                
+        # repoURL: https://immich-app.github.io/immich-charts
+        # chart: immich
+        # targetRevision: 0.10.3
+      destination:
+        server: '{{server}}' 
+        namespace: immich-m
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
