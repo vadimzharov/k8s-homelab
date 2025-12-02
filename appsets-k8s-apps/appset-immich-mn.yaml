@@ -50,8 +50,8 @@ spec:
                     postgresql:
                       shared_preload_libraries:
                         - "vchord.so"
-                    postgresUID: 1024
-                    postgresGID: 1024
+                    #postgresUID: 1024
+                    #postgresGID: 1024
                     podSecurityContext:
                       runAsUser: 1024
                       runAsGroup: 1024                   
