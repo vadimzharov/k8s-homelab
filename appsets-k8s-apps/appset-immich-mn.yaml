@@ -41,7 +41,8 @@ spec:
                     instances: 1
 
                     storage:
-                      size: 1Gi
+                      size: 10Gi
+                      storageClass: synas-csi-delete
 
                     imageName: ghcr.io/tensorchord/cloudnative-vectorchord:16.9-0.4.3
                     #imageName: ghcr.io/immich-app/postgres:16-vectorchord0.3.0-pgvectors0.3.0
@@ -49,12 +50,7 @@ spec:
 
                     postgresql:
                       shared_preload_libraries:
-                        - "vchord.so"
-                    #postgresUID: 1024
-                    #postgresGID: 1024
-                    podSecurityContext:
-                      runAsUser: 1024
-                      runAsGroup: 1024                   
+                        - "vchord.so"                
                     bootstrap:
                       initdb:
                         # TODO: Use managed extensions (pg 18)
