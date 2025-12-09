@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: cert-manager-standalone
+  namespace: argocd
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  cert-manager-standalone: "installed"
+  template:
+    metadata:
+      name: '{{ name }}-cert-manager' 
+    spec:
+      project: k8s-homelab-infra
+      sources:
+      - helm:
+          values: |
+            installCRD: true
+          parameters:
+            - name: installCRDs
+              value: "true"
+        repoURL: https://charts.jetstack.io
+        chart: cert-manager
+        targetRevision: v1.19.1
+      destination:
+        server: '{{ server }}'
+        namespace: cert-manager
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          
