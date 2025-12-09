@@ -16,14 +16,15 @@ spec:
       project: k8s-homelab-infra
       sources:
       - helm:
-          values: |
-            installCRD: true
+          #values: |
+          #  crds:
+          #    install: true
           parameters:
-            - name: installCRDs
+            - name: crds.enabled
               value: "true"
         repoURL: https://charts.jetstack.io
         chart: cert-manager
-        targetRevision: v1.19.1
+        targetRevision: v1.19.2
       destination:
         server: '{{ server }}'
         namespace: cert-manager
