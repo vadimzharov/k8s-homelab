@@ -5,12 +5,10 @@ metadata:
   namespace: argocd
 spec:
   generators:
-    - matrix:
-        generators:
-          - clusters:
-              selector:
-                matchLabels:
-                  cert-manager-standalone: "installed"
+    - clusters:
+        selector:
+          matchLabels:
+            cert-manager-standalone: "installed"
   template:
     metadata:
       name: '{{ name }}-cert-manager' 
