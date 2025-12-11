@@ -30,34 +30,7 @@ spec:
         targetRevision: 0.27.0
       - repoURL: https://github.com/cloudnative-pg/plugin-barman-cloud.git
         targetRevision: 'v0.9.0'
-        path: kubernetes/
-      - helm:
-          releaseName: backup-config
-          values: |
-            controllers: 
-              main:
-               enabled: false
-            rawResources:
-              barmanobjectstore:
-                apiVersion: barmancloud.cnpg.io/v1
-                kind: ObjectStore
-                spec:
-                  spec:
-                    configuration:
-                      destinationPath: s3://cloudnative-pg-backups/
-                      endpointURL: http://{{ minioendpoint }}
-                      s3Credentials:
-                        accessKeyId:
-                          name: minio
-                          key: {{ miniokey }}
-                        secretAccessKey:
-                          name: minio
-                          key: {{ miniosecretkey }}
-                      wal:
-                        compression: gzip
-        repoURL: https://bjw-s-labs.github.io/helm-charts
-        chart: app-template
-        targetRevision: 4.4.0        
+        path: kubernetes/    
       destination:
         server: '{{server}}' 
         namespace: cnpg-system
