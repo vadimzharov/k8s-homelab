@@ -21,7 +21,7 @@ spec:
                 secretName: "immich-app-secrets"
   template:
     metadata:
-      name: '{{name}}-immich-m'
+      name: '{{name}}-immich-m-db-init'
     spec:
       project: k8s-homelab-apps
       sources:
