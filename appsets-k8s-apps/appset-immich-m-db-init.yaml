@@ -51,11 +51,11 @@ spec:
                       endpointURL: http://{{ minioendpoint }}
                       s3Credentials:
                         accessKeyId:
-                          name: minio
-                          key: {{ miniokey }}
+                          name:  minio-credentials
+                          key: accesskey
                         secretAccessKey:
-                          name: minio
-                          key: {{ miniosecretkey }}
+                          name: minio-credentials
+                          key: secretkey
                       wal:
                         compression: gzip            
               pgsqlcluster:
