@@ -47,7 +47,7 @@ spec:
         chart: app-template
         targetRevision: 4.4.0
       - helm:
-          releaseName: immich-mn
+          releaseName: immich-m
           values: |
             server:
               controllers:
@@ -90,7 +90,7 @@ spec:
                         type: PathPrefix
                         value: /
                     backendRefs:
-                    - name: immich-mn-server
+                    - name: immich-m-server
                       port: 2283               
             valkey:
               enabled: true
