@@ -1,0 +1,99 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: immich-m
+  namespace: argocd
+spec:
+  generators:
+  - matrix:
+      generators:
+        - clusters:
+            selector:
+              matchLabels:
+                immich-m: "installed"
+                csi-nfs: "installed"
+        - plugin:
+            configMapRef:
+              name: argocd-secrets-plugin
+            input:
+              parameters:
+                secretName: "immich-app-secrets"
+  template:
+    metadata:
+      name: '{{name}}-immich-m-db-init'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: immich-m-data
+          values: |
+            controllers: 
+              main:
+               enabled: false
+            rawResources:
+              immich-data:
+                apiVersion: v1
+                kind: PersistentVolumeClaim
+                forceRename: "immich-m-data"
+                spec:
+                  spec:
+                    storageClassName: sc-nfs-default
+                    accessModes:
+                      - ReadWriteMany
+                    resources:
+                      requests:
+                        storage: 10Gi
+                    volumeName: immich-data-m
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.4.0
+      - helm:
+          releaseName: immich-mn
+          values: |
+            server:
+              controllers:
+                main:
+                  containers:
+                    main:
+                      env:
+                        DB_HOSTNAME:
+                          valueFrom:
+                            secretKeyRef:
+                              name: immich-database-app
+                              key: host
+                        DB_USERNAME:
+                          valueFrom:
+                            secretKeyRef:
+                              name: immich-database-app
+                              key: user
+                        DB_PASSWORD:
+                          valueFrom:
+                            secretKeyRef:
+                              name: immich-database-app
+                              key: password
+                        DB_DATABASE_NAME:
+                          valueFrom:
+                            secretKeyRef:
+                              name: immich-database-app
+                              key: dbname
+
+            valkey:
+              enabled: true
+
+            immich:
+              persistence:
+                library:
+                  existingClaim: immich-m-data
+        repoURL: https://immich-app.github.io/immich-charts
+        chart: immich
+        targetRevision: 0.10.3
+      destination:
+        server: '{{server}}' 
+        namespace: immich-m
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
