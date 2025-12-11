@@ -54,6 +54,10 @@ spec:
                 main:
                   containers:
                     main:
+                    image:
+                      repository: ghcr.io/immich-app/immich-server
+                      pullPolicy: IfNotPresent
+                      tag: v2.3.1
                       env:
                         DB_HOSTNAME:
                           valueFrom:
