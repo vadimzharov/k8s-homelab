@@ -32,6 +32,14 @@ spec:
               main:
                enabled: false
             rawResources:
+              minio-credentials:
+                apiVersion: v1
+                kind: Secret
+                forceRename: "minio-credentials"
+                spec:
+                  stringData:
+                    accesskey: {{ miniokey }}
+                    secretkey: {{ miniosecretkey }}
               backupobjectstore:
                 apiVersion: barmancloud.cnpg.io/v1
                 kind: ObjectStore
