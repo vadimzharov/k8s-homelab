@@ -75,7 +75,23 @@ spec:
                             secretKeyRef:
                               name: immich-database-app
                               key: dbname
-
+              route:
+                main:
+                  enabled: true
+                  kind: HTTPRoute
+                  parentRefs:
+                    - name: cilium-gw
+                      namespace: cilium-system
+                  hostnames:
+                    - immich-m.{{ domainname }}
+                  rules:  
+                  - matches:
+                    - path:
+                        type: PathPrefix
+                        value: /
+                    backendRefs:
+                    - name: immich-mn-server
+                      port: 2283               
             valkey:
               enabled: true
 
