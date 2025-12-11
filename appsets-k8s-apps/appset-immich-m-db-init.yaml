@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: immich-m-db
+  name: immich-m-db-init
   namespace: argocd
 spec:
   generators:
