@@ -60,7 +60,7 @@ spec:
               pgsqlcluster:
                 apiVersion: postgresql.cnpg.io/v1
                 kind: Cluster
-                forceRename: "immich-database"
+                forceRename: "immich-database-restored"
                 spec:
                   spec:
                     instances: 1
