@@ -1,0 +1,101 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: immich-v-db-init
+  namespace: argocd
+spec:
+  generators:
+  - matrix:
+      generators:
+        - clusters:
+            selector:
+              matchLabels:
+                immich-v-db: "init"
+                csi-nfs: "installed"
+                cloudnative-pg: "installed"
+        - plugin:
+            configMapRef:
+              name: argocd-secrets-plugin
+            input:
+              parameters:
+                secretName: "immich-app-secrets"
+  template:
+    metadata:
+      name: '{{name}}-immich-v-db-init'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: immich-db-data
+          values: |
+            controllers: 
+              main:
+               enabled: false
+            rawResources:
+              minio-credentials:
+                apiVersion: v1
+                kind: Secret
+                forceRename: "minio-credentials"
+                spec:
+                  stringData:
+                    accesskey: {{ miniokey }}
+                    secretkey: {{ miniosecretkey }}
+              backupobjectstore:
+                apiVersion: barmancloud.cnpg.io/v1
+                kind: ObjectStore
+                forceRename: "immich-v-db-backup"
+                spec:
+                  spec:
+                    configuration:
+                      destinationPath: s3://cloudnative-pg-backups/immich-v-db/
+                      endpointURL: http://{{ minioendpoint }}
+                      s3Credentials:
+                        accessKeyId:
+                          name:  minio-credentials
+                          key: accesskey
+                        secretAccessKey:
+                          name: minio-credentials
+                          key: secretkey
+                      wal:
+                        compression: gzip            
+              pgsqlcluster:
+                apiVersion: postgresql.cnpg.io/v1
+                kind: Cluster
+                forceRename: "immich-database"
+                spec:
+                  spec:
+                    instances: 1
+
+                    storage:
+                      size: 10Gi
+                      storageClass: synas-csi-delete
+
+                    imageName: ghcr.io/immich-app/postgres:15-vectorchord0.3.0-pgvectors0.2.0
+
+                    postgresql:
+                      shared_preload_libraries:
+                        - "vchord.so"
+                    plugins:
+                    - name: barman-cloud.cloudnative-pg.io
+                      isWALArchiver: true
+                      parameters:
+                        barmanObjectName: immich-v-db-backup
+                    bootstrap:
+                      initdb:
+                        postInitApplicationSQL:
+                          # Commands based on: https://immich.app/docs/administration/postgres-standalone/#without-superuser-permission
+                          - CREATE EXTENSION vchord CASCADE;
+                          - CREATE EXTENSION earthdistance CASCADE;
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.4.0
+      destination:
+        server: '{{server}}' 
+        namespace: immich-v
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
