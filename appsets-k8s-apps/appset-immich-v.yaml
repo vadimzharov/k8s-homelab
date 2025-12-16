@@ -33,7 +33,7 @@ spec:
                 secretName: "immich-app-secrets"
       template:
         metadata: 
-          name: '{{name}}-immich-v-db' 
+          name: '{{name}}-immich-v-db-old' 
         spec:
           sources:
           - helm:
