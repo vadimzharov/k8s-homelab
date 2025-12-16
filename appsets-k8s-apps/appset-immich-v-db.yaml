@@ -83,7 +83,10 @@ spec:
                     storage:
                       size: 5Gi
                       storageClass: synas-csi-delete
-
+                    
+                    postgresGID: 999
+                    postgresUID: 999
+                    
                     bootstrap:
                       recovery:
                         source: origin
