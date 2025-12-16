@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: immich-v-db-init
+  name: immich-v-db
   namespace: argocd
 spec:
   generators:
@@ -10,8 +10,7 @@ spec:
         - clusters:
             selector:
               matchLabels:
-                immich-v-db: "init"
-                csi-nfs: "installed"
+                immich-v-db: "installed"
                 cloudnative-pg: "installed"
         - plugin:
             configMapRef:
@@ -21,7 +20,7 @@ spec:
                 secretName: "immich-app-secrets"
   template:
     metadata:
-      name: '{{name}}-immich-v-db-init'
+      name: '{{name}}-immich-v-db'
     spec:
       project: k8s-homelab-apps
       sources:
@@ -57,18 +56,45 @@ spec:
                           name: minio-credentials
                           key: secretkey
                       wal:
-                        compression: gzip            
+                        compression: gzip
+              scheduledbackup:
+                apiVersion: postgresql.cnpg.io/v1
+                kind: ScheduledBackup
+                forceRename: immich-db-backup
+                spec:
+                  spec:
+                    schedule: "0 0 * * * *" 
+                    backupOwnerReference: self
+                    cluster:
+                      name: immich-database-restored
+                    method: plugin
+                    pluginConfiguration:
+                      name: barman-cloud.cloudnative-pg.io                        
               pgsqlcluster:
                 apiVersion: postgresql.cnpg.io/v1
                 kind: Cluster
-                forceRename: "immich-database"
+                forceRename: "immich-database-restored"
+                annotations:
+                  cnpg.io/skipEmptyWalArchiveCheck: "enabled"
                 spec:
                   spec:
                     instances: 1
 
                     storage:
-                      size: 10Gi
+                      size: 5Gi
                       storageClass: synas-csi-delete
+
+                    bootstrap:
+                      recovery:
+                        source: origin
+
+                    externalClusters:
+                      - name: origin
+                        plugin:
+                          name: barman-cloud.cloudnative-pg.io
+                          parameters:
+                            barmanObjectName: immich-v-db-backup
+                            serverName: immich-database
 
                     imageName: ghcr.io/immich-app/postgres:15-vectorchord0.3.0-pgvectors0.2.0
 
@@ -81,12 +107,7 @@ spec:
                       isWALArchiver: true
                       parameters:
                         barmanObjectName: immich-v-db-backup
-                    bootstrap:
-                      initdb:
-                        postInitApplicationSQL:
-                          # Commands based on: https://immich.app/docs/administration/postgres-standalone/#without-superuser-permission
-                          - CREATE EXTENSION vchord CASCADE;
-                          - CREATE EXTENSION earthdistance CASCADE;
+
         repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 4.4.0
