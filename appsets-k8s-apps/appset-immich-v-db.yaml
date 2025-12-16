@@ -97,7 +97,7 @@ spec:
                           name: barman-cloud.cloudnative-pg.io
                           parameters:
                             barmanObjectName: immich-v-db-backup
-                            serverName: immich-database
+                            serverName: immich-database-restored
 
                     imageName: ghcr.io/immich-app/postgres:15-vectorchord0.3.0-pgvectors0.2.0
 
