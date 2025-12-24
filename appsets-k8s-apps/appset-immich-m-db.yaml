@@ -45,6 +45,7 @@ spec:
                 forceRename: "immich-m-db-backup"
                 spec:
                   spec:
+                    retentionPolicy: "5d"
                     configuration:
                       destinationPath: s3://cloudnative-pg-backups/immich-m-db/
                       endpointURL: http://{{ minioendpoint }}
