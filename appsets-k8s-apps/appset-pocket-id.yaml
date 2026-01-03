@@ -103,7 +103,7 @@ spec:
                     image:
                       repository: ghcr.io/pocket-id/pocket-id
                       pullPolicy: IfNotPresent
-                      tag: v1
+                      tag: v2
                     env:
                       TRUST_PROXY: true
                       APP_URL: https://pocket-id.{{ domainname }}
