@@ -106,6 +106,7 @@ spec:
                       tag: v2
                     env:
                       TRUST_PROXY: true
+                      ENCRYPTION_KEY: {{ encryptpassword }}
                       APP_URL: https://pocket-id.{{ domainname }}
                   pocket-id-backup-daemon:
                     image: 
