@@ -59,6 +59,13 @@ spec:
             controllers: 
               main:
                enabled: false
+            secrets:
+              harbor-db-credentials:
+                enabled: true
+                stringData:
+                  username: {{ harborpgusername }}
+                  password: {{ harborpgpassword }}
+                type: kubernetes.io/basic-auth
             rawResources:
               minio-credentials:
                 apiVersion: v1
