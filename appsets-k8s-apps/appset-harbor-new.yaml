@@ -36,6 +36,12 @@ spec:
                 className: '{{ metadata.labels.harbor-ingress }}'
             externalURL: https://harbor.{{ domainname }}:5000
             logLevel: info
+            #persistence:
+            #  enabled: true
+            #  resourcePolicy: "keep"
+            #  persistentVolumeClaim:
+            #    registry:
+            #      existingClaim: ""
             database:
               type: external
               external:
@@ -62,6 +68,14 @@ spec:
                   stringData:
                     accesskey: {{ miniokey }}
                     secretkey: {{ miniosecretkey }}
+              harbor-db-creds:
+                apiVersion: v1
+                kind: Secret
+                forceRename: "harbor-db-user"
+                spec:
+                  stringData:
+                    username: {{ harborpgusername }}
+                    password: {{ harborpgpassword }}
               backupobjectstore:
                 apiVersion: barmancloud.cnpg.io/v1
                 kind: ObjectStore
@@ -111,6 +125,8 @@ spec:
                     bootstrap:
                       recovery:
                         source: origin
+                        secret:
+                          name: harbor-db-user
 
                     externalClusters:
                       - name: origin
