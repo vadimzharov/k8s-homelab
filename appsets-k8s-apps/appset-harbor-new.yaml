@@ -47,9 +47,9 @@ spec:
               external:
                 host: "harbor-database-restored-rw"
                 port: "5432"
-                username: "harbor"
+                username: "postgres"
                 password: "{{ harborpgpassword }}"
-                coreDatabase: "registry"                
+                coreDatabase: "app"                
         repoURL: https://helm.goharbor.io
         chart: harbor
         targetRevision: 1.14.1
