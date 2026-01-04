@@ -1,0 +1,140 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: harbor-new
+  namespace: argocd
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  harbor-new: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"  
+  template:
+    metadata:
+      name: '{{name}}-harbor-new'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: harbor
+          values: |
+            expose:
+              tls:
+                enabled: true
+                certSource: none
+              ingress:
+                hosts:
+                  core: harbor.{{ domainname }}
+                className: '{{ metadata.labels.harbor-ingress }}'
+            externalURL: https://harbor.{{ domainname }}:5000
+            logLevel: info
+            database:
+              type: external
+              external:
+                host: "harbor-database-restored-rw"
+                port: "5432"
+                username: "{{ harborpgusername }}"
+                password: "{{ harborpgpassword }}"
+                coreDatabase: "registry"                
+        repoURL: https://helm.goharbor.io
+        chart: harbor
+        targetRevision: 1.14.1
+      - helm:
+          releaseName: harbor-db-data
+          values: |
+            controllers: 
+              main:
+               enabled: false
+            rawResources:
+              minio-credentials:
+                apiVersion: v1
+                kind: Secret
+                forceRename: "minio-credentials"
+                spec:
+                  stringData:
+                    accesskey: {{ miniokey }}
+                    secretkey: {{ miniosecretkey }}
+              backupobjectstore:
+                apiVersion: barmancloud.cnpg.io/v1
+                kind: ObjectStore
+                forceRename: "harbor-registry-db-backup"
+                spec:
+                  spec:
+                    retentionPolicy: "5d"
+                    configuration:
+                      destinationPath: s3://cloudnative-pg-backups/harbor-registry-db/
+                      endpointURL: http://{{ minioendpoint }}
+                      s3Credentials:
+                        accessKeyId:
+                          name:  minio-credentials
+                          key: accesskey
+                        secretAccessKey:
+                          name: minio-credentials
+                          key: secretkey
+                      wal:
+                        compression: gzip
+              scheduledbackup:
+                apiVersion: postgresql.cnpg.io/v1
+                kind: ScheduledBackup
+                forceRename: harbor-db-backup
+                spec:
+                  spec:
+                    schedule: "0 0 * * * *" 
+                    backupOwnerReference: self
+                    cluster:
+                      name: harbor-database-restored
+                    method: plugin
+                    pluginConfiguration:
+                      name: barman-cloud.cloudnative-pg.io                        
+              pgsqlcluster:
+                apiVersion: postgresql.cnpg.io/v1
+                kind: Cluster
+                forceRename: "harbor-database-restored"
+                annotations:
+                  cnpg.io/skipEmptyWalArchiveCheck: "enabled"
+                spec:
+                  spec:
+                    instances: 1
+
+                    storage:
+                      size: 2Gi
+                      storageClass: synas-csi-delete
+
+                    bootstrap:
+                      recovery:
+                        source: origin
+
+                    externalClusters:
+                      - name: origin
+                        plugin:
+                          name: barman-cloud.cloudnative-pg.io
+                          parameters:
+                            barmanObjectName: harbor-registry-db-backup
+                            serverName: harbor-database-restored
+                    imageName: ghcr.io/cloudnative-pg/postgresql:16.2-3
+                    plugins:
+                    - name: barman-cloud.cloudnative-pg.io
+                      isWALArchiver: true
+                      parameters:
+                        barmanObjectName: harbor-registry-db-backup
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.4.0
+      destination:
+        server: '{{server}}' 
+        namespace: harbor
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
