@@ -34,7 +34,7 @@ spec:
                 # References to the parent gateways
                 parentRefs: 
                   - name: '{{ metadata.labels.harbor-route-gw }}'
-                    namespace: cilium-external-gw
+                    namespace: cilium-system
                     sectionName: https-gw
                     group: gateway.networking.k8s.io
                     kind: Gateway
