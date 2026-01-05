@@ -34,7 +34,6 @@ spec:
               - gateway-httproute              
             policy: "{{ values.dnspolicy }}"
             registry: noop
-            logLevel: debug
             provider: pihole
             env:
               - name: "EXTERNAL_DNS_PIHOLE_SERVER"
@@ -63,7 +62,7 @@ spec:
                 value: "{{ piholepassword }}"
         repoURL: https://kubernetes-sigs.github.io/external-dns/
         chart: external-dns
-        targetRevision: 1.19.0
+        targetRevision: 1.20.0
       - helm:
           releaseName: 'second-dns-sync'
           parameters:
@@ -84,7 +83,7 @@ spec:
                 value: "{{ piholepassword }}"
         repoURL: https://kubernetes-sigs.github.io/external-dns/
         chart: external-dns
-        targetRevision: 1.19.0
+        targetRevision: 1.20.0
       destination:
         server: '{{server}}'
         namespace: pihole
