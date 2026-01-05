@@ -34,6 +34,7 @@ spec:
               - gateway-httproute              
             policy: "{{ values.dnspolicy }}"
             registry: noop
+            logLevel: debug
             provider: pihole
             env:
               - name: "EXTERNAL_DNS_PIHOLE_SERVER"
