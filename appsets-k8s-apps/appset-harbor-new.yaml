@@ -27,6 +27,19 @@ spec:
           releaseName: harbor
           values: |
             expose:
+              #type: route
+              #route:
+                # labels: {}
+                # annotations: {}
+                # # References to the parent gateways
+                # parentRefs: 
+                #   - name: '{{ metadata.labels.harbor-route-gw }}'
+                #     namespace: cilium-external-gw
+                #     sectionName: https-gw
+                #     group: gateway.networking.k8s.io
+                #     kind: Gateway
+                # hosts: 
+                #   - harbor.{{ domainname }}
               tls:
                 enabled: true
                 certSource: none
