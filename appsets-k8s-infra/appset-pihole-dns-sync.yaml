@@ -42,7 +42,7 @@ spec:
                 value: "{{ piholepassword }}"
         repoURL: https://kubernetes-sigs.github.io/external-dns/
         chart: external-dns
-        targetRevision: 1.19.0
+        targetRevision: 1.20.0
       - helm:
           releaseName: 'first-dns-sync'
           parameters:
