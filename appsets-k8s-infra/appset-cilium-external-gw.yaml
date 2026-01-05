@@ -60,6 +60,17 @@ spec:
                       allowedRoutes:
                         namespaces:
                           from: All
+                    - protocol: HTTPS
+                      port: 5000
+                      tls:
+                        mode: Terminate
+                        certificateRefs:
+                          - kind: Secret
+                            name: wildcard-apps-certificate
+                      name: https-gw-5k
+                      allowedRoutes:
+                        namespaces:
+                          from: All                          
         repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 4.4.0
