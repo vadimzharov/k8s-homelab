@@ -65,7 +65,7 @@ spec:
                 coreDatabase: "app"                
         repoURL: https://helm.goharbor.io
         chart: harbor
-        targetRevision: 1.15.2
+        targetRevision: 1.16.1
       - helm:
           releaseName: harbor-db-data
           values: |
