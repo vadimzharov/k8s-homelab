@@ -33,7 +33,7 @@ spec:
                 issuerURL: "https://pocket-id.{{ domainname }}"
                 scopes: "email,profile"
             ingress:
-              enabled: true
+              enabled: false
               ingressClassName: "nginx"
               hosts:
                 - host: console-{{ name }}.{{ domainname }}
@@ -52,7 +52,7 @@ spec:
                     - name: cilium-gw
                       namespace: cilium-system
                   hostnames:
-                    - console-gw{{ name }}.{{ domainname }}
+                    - console-{{ name }}.{{ domainname }}
                   rules:
                     - backendRefs:
                         - group: ''
