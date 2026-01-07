@@ -63,7 +63,7 @@ spec:
                           weight: 1
                       matches:
                         - path:
-                            type: ImplementationSpecific
+                            type: PathPrefix
                             value: /
         repoURL: https://kubernetes-sigs.github.io/headlamp/
         chart: headlamp
