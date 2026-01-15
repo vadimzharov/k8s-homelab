@@ -82,7 +82,7 @@ spec:
                     instances: 1
 
                     storage:
-                      size: 5Gi
+                      size: 10Gi
                       storageClass: synas-csi-delete
                     
                     postgresGID: 999
