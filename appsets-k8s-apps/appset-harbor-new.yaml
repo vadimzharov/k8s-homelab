@@ -109,7 +109,7 @@ spec:
                   spec:
                     retentionPolicy: "5d"
                     configuration:
-                      destinationPath: s3://cloudnative-pg-backups/harbor-registry-db/
+                      destinationPath: s3://cloudnative-pg-backups/harbor-registry-db
                       endpointURL: http://{{ minioendpoint }}
                       s3Credentials:
                         accessKeyId:
