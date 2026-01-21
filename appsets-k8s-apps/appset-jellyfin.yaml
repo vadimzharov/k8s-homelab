@@ -61,6 +61,7 @@ spec:
               gpu-card:
                 enabled: true
                 type: hostPath
+                hostPath: /dev/dri/renderD128
                 globalMounts: 
                   - path: /dev/dri/renderD128
               arr:
