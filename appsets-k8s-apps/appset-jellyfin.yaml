@@ -58,6 +58,11 @@ spec:
                 type: emptyDir
                 globalMounts: 
                   - path: /jellyfin-data
+              gpu-card:
+                enabled: true
+                type: hostPath
+                globalMounts: 
+                  - path: /dev/dri/renderD128
               arr:
                 enabled: true
                 type: persistentVolumeClaim
