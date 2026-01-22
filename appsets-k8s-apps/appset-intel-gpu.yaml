@@ -19,10 +19,10 @@ spec:
       project: k8s-homelab-apps
       sources:
       - repoURL: https://github.com/intel/intel-device-plugins-for-kubernetes.git
-        targetRevision: release-0.29
+        targetRevision: release-0.34
         path: deployments/nfd/overlays/node-feature-rules
       - repoURL: https://github.com/intel/intel-device-plugins-for-kubernetes.git
-        targetRevision: release-0.29
+        targetRevision: release-0.34
         path: deployments/gpu_plugin/overlays/nfd_labeled_nodes
       destination:
         server: '{{server}}'
