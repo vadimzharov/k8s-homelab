@@ -96,9 +96,7 @@ spec:
             cgroup:
               autoMount:
                 enabled: false
-              hostRoot: /sys/fs/cgroup                    
-            externalWorkloads:
-              enabled: true
+              hostRoot: /sys/fs/cgroup
             hubble:
               metrics:
                 enabled: 
@@ -112,6 +110,10 @@ spec:
                 enabled: true
               ui:
                 enabled: true
+                ingress:
+                  enabled: true
+                  hosts:
+                    - hubble-ui.{{ name }}.apps.{{ mesh-domain }}                
               tls:
                 auto:
                   enabled: true 
