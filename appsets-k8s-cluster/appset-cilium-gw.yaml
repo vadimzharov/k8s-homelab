@@ -113,7 +113,7 @@ spec:
                 ingress:
                   enabled: true
                   hosts:
-                    - hubble-ui.{{ name }}.apps.{{ mesh-domain }}                
+                    - hubble-ui-{{ name }}.apps.{{ mesh-domain }}                
               tls:
                 auto:
                   enabled: true 
