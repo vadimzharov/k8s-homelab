@@ -108,6 +108,10 @@ spec:
                 enabled: true
               ui:
                 enabled: true
+                ingress:
+                  enabled: true
+                  hosts:
+                    - hubble-ui.{{ name }}.apps.{{ mesh-domain }}
               tls:
                 auto:
                   enabled: true 
