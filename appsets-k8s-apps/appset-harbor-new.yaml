@@ -65,7 +65,7 @@ spec:
               external:
                 host: "harbor-database-restored-rw"
                 port: "5432"
-                username: "harbor"
+                username: "{{ harborpgusername }}"
                 password: "{{ harborpgpassword }}"
                 coreDatabase: "app"                
         repoURL: https://helm.goharbor.io
