@@ -31,6 +31,7 @@ spec:
               route:
                 labels: 
                   k8s-dashboard-group: Devops-tools
+                  k8s-dashboard-appname: Harbor
                 annotations: {}
                 # References to the parent gateways
                 parentRefs: 
