@@ -39,7 +39,7 @@ spec:
                 enabled: true
                 kind: HTTPRoute
                 labels:
-                  k8s-dashboard-group: tools                
+                  k8s-dashboard-group: Tools                
                 parentRefs:
                   - name: cilium-gw
                     namespace: cilium-system

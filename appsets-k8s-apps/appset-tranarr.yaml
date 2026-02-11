@@ -99,7 +99,7 @@ spec:
                 enabled: true
                 kind: HTTPRoute
                 labels:
-                  k8s-dashboard-group: media                
+                  k8s-dashboard-group: Media                
                 parentRefs:
                   - name: cilium-gw
                     namespace: cilium-system

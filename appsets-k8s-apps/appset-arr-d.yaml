@@ -75,7 +75,7 @@ spec:
               main:
                 enabled: true
                 labels:
-                  k8s-dashboard-group: media
+                  k8s-dashboard-group: Media
                   k8s-dashboard-appname: Radarr-D
                 kind: HTTPRoute
                 parentRefs:
@@ -192,7 +192,7 @@ spec:
                 enabled: true
                 kind: HTTPRoute
                 labels:
-                  k8s-dashboard-group: media
+                  k8s-dashboard-group: Media
                   k8s-dashboard-appname: Sonarr-D
                 parentRefs:
                   - name: cilium-gw
@@ -319,7 +319,7 @@ spec:
                 enabled: true
                 kind: HTTPRoute
                 labels:
-                  k8s-dashboard-group: media
+                  k8s-dashboard-group: Media
                   k8s-dashboard-appname: Transmission-D                  
                 parentRefs:
                   - name: cilium-gw
@@ -437,7 +437,7 @@ spec:
                 enabled: true
                 kind: HTTPRoute
                 labels:
-                  k8s-dashboard-group: media
+                  k8s-dashboard-group: Media
                   k8s-dashboard-appname: Jellyseerr-D
                 parentRefs:
                   - name: cilium-gw

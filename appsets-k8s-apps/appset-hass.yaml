@@ -39,7 +39,7 @@ spec:
                 enabled: true
                 kind: HTTPRoute
                 labels:
-                  k8s-dashboard-group: smart-home
+                  k8s-dashboard-group: Smart-home
                 parentRefs:
                   - name: cilium-gw
                     namespace: cilium-system

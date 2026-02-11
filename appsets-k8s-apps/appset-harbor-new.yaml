@@ -30,7 +30,7 @@ spec:
               type: route
               route:
                 labels: 
-                  k8s-dashboard-group: devops-tools
+                  k8s-dashboard-group: Devops-tools
                 annotations: {}
                 # References to the parent gateways
                 parentRefs: 

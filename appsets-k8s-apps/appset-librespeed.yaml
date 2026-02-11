@@ -48,7 +48,7 @@ spec:
                 enabled: true
                 kind: HTTPRoute
                 labels:
-                  k8s-dashboard-group: network-tools                   
+                  k8s-dashboard-group: Network-tools                   
                 parentRefs:
                   - name: cilium-gw
                     namespace: cilium-system

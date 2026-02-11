@@ -48,7 +48,7 @@ spec:
                   name: headlamp-route
                   namespace: headlamp
                   labels:
-                    k8s-dashboard-group: dashboards
+                    k8s-dashboard-group: Dashboards
                 spec:
                   parentRefs:
                     - name: cilium-gw

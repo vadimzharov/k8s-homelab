@@ -37,7 +37,7 @@ spec:
               main:
                 enabled: true
                 labels:
-                  k8s-dashboard-group: media
+                  k8s-dashboard-group: Media
                 className: nginx
                 hosts:
                   - host: jellyfin.{{ domainname }}
