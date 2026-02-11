@@ -52,7 +52,8 @@ spec:
                 enabled: true
                 kind: HTTPRoute
                 labels:
-                  k8s-dashboard-group: Photos                
+                  k8s-dashboard-group: Photos
+                  k8s-dashboard-appname: Photoprism
                 parentRefs:
                   - name: cilium-gw
                     namespace: cilium-system

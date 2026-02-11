@@ -39,7 +39,8 @@ spec:
                 enabled: true
                 kind: HTTPRoute
                 labels:
-                  k8s-dashboard-group: Tools                
+                  k8s-dashboard-group: Tools
+                  k8s-dashboard-appname: Pocket-ID
                 parentRefs:
                   - name: cilium-gw
                     namespace: cilium-system

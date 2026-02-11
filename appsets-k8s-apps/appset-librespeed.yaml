@@ -48,7 +48,8 @@ spec:
                 enabled: true
                 kind: HTTPRoute
                 labels:
-                  k8s-dashboard-group: Network-tools                   
+                  k8s-dashboard-group: Network-tools
+                  k8s-dashboard-appname: Librespeed
                 parentRefs:
                   - name: cilium-gw
                     namespace: cilium-system

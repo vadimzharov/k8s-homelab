@@ -39,7 +39,8 @@ spec:
                 enabled: true
                 kind: HTTPRoute
                 labels:
-                  k8s-dashboard-group: Remote-work                
+                  k8s-dashboard-group: Remote-work
+                  k8s-dashboard-appname: Trilium
                 parentRefs:
                   - name: cilium-gw
                     namespace: cilium-system

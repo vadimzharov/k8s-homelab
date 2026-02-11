@@ -41,9 +41,29 @@ spec:
                 ports:
                   port-ws:
                     port: 3012
-            ingress:
+            route:
               main:
                 enabled: true
+                labels:
+                  k8s-dashboard-group: Tools
+                  k8s-dashboard-appname: Vaultwarden
+                kind: HTTPRoute
+                parentRefs:
+                  - name: cilium-gw
+                    namespace: cilium-system
+                hostnames:
+                  - vwint.{{ domainname }}
+                rules:  
+                - matches:
+                  - path:
+                      type: PathPrefix
+                      value: /
+                  backendRefs:
+                  - name: vaultwarden
+                    port: 80
+            ingress:
+              main:
+                enabled: false
                 className: nginx
                 hosts:
                   - host: vwint.{{ domainname }}
