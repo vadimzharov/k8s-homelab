@@ -67,7 +67,8 @@ spec:
                 enabled: true
                 kind: HTTPRoute
                 labels:
-                  k8s-dashboard-group: Tools                
+                  k8s-dashboard-group: Tools
+                  k8s-dashboard-appname: VPN-switcher
                 parentRefs:
                   - name: cilium-gw
                     namespace: cilium-system
