@@ -30,7 +30,9 @@ spec:
               enabled: true
               ingressClassName: nginx
               annotations:
-                nginx.ingress.kubernetes.io/force-ssl-redirect: "true"   
+                nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+              labels:
+                k8s-dashboard-group: tools   
               hosts:
                 - pihole-{{ name }}.{{ domainname }}
             serviceWeb:

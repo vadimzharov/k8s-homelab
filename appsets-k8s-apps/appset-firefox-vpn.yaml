@@ -24,7 +24,7 @@ spec:
       project: k8s-homelab-apps
       sources:
       - helm:
-          releaseName: firefox
+          releaseName: firefox-vpn
           values: |      
             service:
               main:

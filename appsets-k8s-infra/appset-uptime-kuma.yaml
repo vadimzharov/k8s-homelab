@@ -49,7 +49,9 @@ spec:
               enabled: true
               className: nginx
               annotations:
-                nginx.ingress.kubernetes.io/force-ssl-redirect: "true"   
+                nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+              labels:
+                k8s-dashboard-group: tools                     
               hosts:
                 - host: uptime-kuma.{{ domainname }}
                   paths:
