@@ -74,6 +74,8 @@ spec:
             route:
               main:
                 enabled: true
+                labels:
+                  k8s-dashboard-group: media
                 kind: HTTPRoute
                 parentRefs:
                   - name: cilium-gw
@@ -188,6 +190,8 @@ spec:
               main:
                 enabled: true
                 kind: HTTPRoute
+                labels:
+                  k8s-dashboard-group: media
                 parentRefs:
                   - name: cilium-gw
                     namespace: cilium-system
@@ -312,6 +316,8 @@ spec:
               main:
                 enabled: true
                 kind: HTTPRoute
+                labels:
+                  k8s-dashboard-group: media
                 parentRefs:
                   - name: cilium-gw
                     namespace: cilium-system
@@ -427,6 +433,8 @@ spec:
               main:
                 enabled: true
                 kind: HTTPRoute
+                labels:
+                  k8s-dashboard-group: media
                 parentRefs:
                   - name: cilium-gw
                     namespace: cilium-system
