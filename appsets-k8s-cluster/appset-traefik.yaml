@@ -1,0 +1,50 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: traefik
+  namespace: argocd
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  traefik: "installed"
+          - plugin:
+              # Specify the configMap where the plugin configuration is located.
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "{{ name }}-network-secrets"
+  template:
+    metadata:
+      name: '{{name}}-traefik'
+    spec:
+      project: k8s-homelab-cluster
+      sources:
+      - helm:
+          releaseName: traefik      
+          values: |
+            controller:
+              extraArgs:
+                default-ssl-certificate: "ingress-traefik/wildcard-apps-certificate"
+              service:
+                enabled: true
+                loadBalancerIP: {{ traefikingressip }}
+              ingressClassResource:
+                default: true
+        repoURL: https://kubernetes.github.io/ingress-traefik
+        chart: traefik
+        targetRevision: 4.12.1
+      destination:
+        server: '{{server}}'
+        namespace: ingress-traefik
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          
