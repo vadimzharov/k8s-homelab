@@ -40,6 +40,7 @@ spec:
                 kind: HTTPRoute
                 labels:
                   k8s-dashboard-group: remote-work
+                  k8s-dashboard-appname: Firefox-V
                 parentRefs:
                   - name: cilium-gw
                     namespace: cilium-system

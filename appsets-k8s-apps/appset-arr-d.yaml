@@ -76,6 +76,7 @@ spec:
                 enabled: true
                 labels:
                   k8s-dashboard-group: media
+                  k8s-dashboard-name: Radarr-D
                 kind: HTTPRoute
                 parentRefs:
                   - name: cilium-gw
@@ -192,6 +193,7 @@ spec:
                 kind: HTTPRoute
                 labels:
                   k8s-dashboard-group: media
+                  k8s-dashboard-name: Sonarr-D
                 parentRefs:
                   - name: cilium-gw
                     namespace: cilium-system
@@ -318,6 +320,7 @@ spec:
                 kind: HTTPRoute
                 labels:
                   k8s-dashboard-group: media
+                  k8s-dashboard-name: Transmission-D                  
                 parentRefs:
                   - name: cilium-gw
                     namespace: cilium-system
@@ -435,6 +438,7 @@ spec:
                 kind: HTTPRoute
                 labels:
                   k8s-dashboard-group: media
+                  k8s-dashboard-name: Jellyseerr-D
                 parentRefs:
                   - name: cilium-gw
                     namespace: cilium-system
