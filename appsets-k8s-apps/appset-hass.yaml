@@ -40,6 +40,7 @@ spec:
                 kind: HTTPRoute
                 labels:
                   k8s-dashboard-group: Smart-home
+                  k8s-dashboard-appname: HomeAssistant                  
                 parentRefs:
                   - name: cilium-gw
                     namespace: cilium-system
