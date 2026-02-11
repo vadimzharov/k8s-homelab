@@ -56,6 +56,8 @@ spec:
               enabled: true
               className: "nginx"
               annotations: {}
+              labels:
+                k8s-dashboard-group: photos              
               hosts:
                 - host: invidious.{{ domainname }}
                   paths:

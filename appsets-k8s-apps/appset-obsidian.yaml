@@ -38,6 +38,8 @@ spec:
               main:
                 enabled: true
                 kind: HTTPRoute
+                labels:
+                  k8s-dashboard-group: remote-work                
                 parentRefs:
                   - name: cilium-gw
                     namespace: cilium-system

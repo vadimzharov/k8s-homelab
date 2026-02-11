@@ -36,6 +36,8 @@ spec:
             ingress:
               main:
                 enabled: true
+                labels:
+                  k8s-dashboard-group: media
                 className: nginx
                 hosts:
                   - host: jellyfin.{{ domainname }}

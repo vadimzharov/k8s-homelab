@@ -29,7 +29,8 @@ spec:
             expose:
               type: route
               route:
-                labels: {}
+                labels: 
+                  k8s-dashboard-group: devops-tools
                 annotations: {}
                 # References to the parent gateways
                 parentRefs: 
