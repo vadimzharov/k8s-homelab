@@ -112,6 +112,8 @@ spec:
                 enabled: true
                 ingress:
                   enabled: true
+                  labels:
+                    k8s-dashboard-group: Network-tools
                   hosts:
                     - hubble-ui-{{ name }}.apps.{{ mesh-domain }}                
               tls:
