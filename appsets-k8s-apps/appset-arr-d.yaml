@@ -474,14 +474,9 @@ spec:
         repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0   
-        kustomize:
-          patches:
-            - target:
-                kind: HTTPRoute
-              patch: |
-                - op: add
-                  path: /metadata/labels/k8s-dashboard-group
-                  value: media
+      - repoUrl: https://github.com/vadimzharov/k8s-homelab.git
+        targetRevision: main
+        path: argocd-resource-labels/label-media
       destination:
         server: '{{server}}' 
         namespace: arr-d
