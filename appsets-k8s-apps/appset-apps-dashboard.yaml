@@ -1,0 +1,61 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: k8s-apps-dashboard
+  namespace: argocd
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  k8s-apps-dashboard: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"  
+  template:
+    metadata:
+      name: '{{name}}-k8s-apps-dashboard'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: k8s-apps-dashboard
+          values: |
+            deploymentNamespace: k8s-apps-dashboard
+            image:
+              repository: quay.io/vadimzharov/homelab-k8s-dashboard
+              pullPolicy: Always
+              tag: "v0.0.4"
+            ingress:
+              enabled: true
+              pathType: Prefix
+              paths:
+                - /
+              class: nginx
+              annotations: {}
+              hosts:
+                - host: my.{{ domainname }}
+                  paths:
+                    - /
+            routeRefreshInterval: "1m"
+            ui:
+              header: "My Homelab Dashboard"
+              subheader: "Applications deployed across all my Kubernetes clusters"                    
+        repoURL: oci://ghcr.io/vadimzharov/homelab-k8s-dashboard/homelab-k8s-dashboard:0.1.1
+        targetRevision: 0.1.1
+        path: .
+      destination:
+        server: '{{server}}' 
+        namespace: k8s-apps-dashboard
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
