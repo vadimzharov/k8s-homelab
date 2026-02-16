@@ -52,7 +52,7 @@ spec:
                       type: PathPrefix
                       value: /
                   backendRefs:
-                  - name: firefox
+                  - name: firefox-vpn
                     port: 3000
             controllers:
               main:
