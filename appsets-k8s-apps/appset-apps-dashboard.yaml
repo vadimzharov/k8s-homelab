@@ -42,6 +42,8 @@ spec:
                 - host: my.{{ domainname }}
                   paths:
                     - /
+              labels:
+                k8s-dashboard-group: Dashboards                    
             routeRefreshInterval: "1m"
             ui:
               header: "My Homelab Dashboard"
