@@ -38,6 +38,7 @@ spec:
               parentRefs:
                 - name: cilium-gw
                   namespace: cilium-system
+                  sectionName: https-gw
             #extraEnvVars:
             #- name: OPENAI_API_KEY
             #  value: "{{ openaiapikey }}"
