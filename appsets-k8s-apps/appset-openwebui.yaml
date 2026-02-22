@@ -28,33 +28,34 @@ spec:
           values: |
             ollama:              
               enabled: false
-            ingress:
+            persistence:
+              enabled: false
+              storageClass: ""
+            route:
               enabled: true
-              class: nginx
-              host: chat.{{ domainname }}
-              tls: true
-            image:
-              repository: ghcr.io/open-webui/open-webui
-              tag: "0.6.9"
-              pullPolicy: "IfNotPresent"
-            extraEnvVars:
-            - name: OPENAI_API_KEY
-              value: "{{ openaiapikey }}"
-            - name: OAUTH_CLIENT_ID
-              value: "{{ authowebuiclientid }}"
-            - name: OAUTH_CLIENT_SECRET
-              value: "{{ authowebuiclientsecret }}"
-            - name: OAUTH_PROVIDER_NAME
-              value: "authentik"
-            - name: OPENID_PROVIDER_URL
-              value: "https://auth.{{ domainname }}/application/o/openwebui/.well-known/openid-configuration"
-            - name: OPENID_REDIRECT_URI
-              value: "https://chat.{{ domainname }}/oauth/oidc/callback"
-            - name: ENABLE_OAUTH_SIGNUP
-              value: "true"
+              hostnames: 
+                - chat.{{ domainname }}
+              parentRefs:
+                - name: cilium-gw
+                  namespace: cilium-system
+            #extraEnvVars:
+            #- name: OPENAI_API_KEY
+            #  value: "{{ openaiapikey }}"
+            #- name: OAUTH_CLIENT_ID
+            #  value: "{{ authowebuiclientid }}"
+            #- name: OAUTH_CLIENT_SECRET
+            #  value: "{{ authowebuiclientsecret }}"
+            #- name: OAUTH_PROVIDER_NAME
+            #  value: "authentik"
+            #- name: OPENID_PROVIDER_URL
+            #  value: "https://auth.{{ domainname }}/application/o/openwebui/.well-known/openid-configuration"
+            #- name: OPENID_REDIRECT_URI
+            #  value: "https://chat.{{ domainname }}/oauth/oidc/callback"
+            #- name: ENABLE_OAUTH_SIGNUP
+            #  value: "true"
         repoURL: https://helm.openwebui.com/
         chart: open-webui
-        targetRevision: 6.13.0
+        targetRevision: 12.3.0
       destination:
         server: '{{server}}' 
         namespace: openwebui
