@@ -106,7 +106,7 @@ spec:
                     image:
                       repository: ghcr.io/pocket-id/pocket-id
                       pullPolicy: IfNotPresent
-                      tag: v2
+                      tag: v2.3
                     env:
                       TRUST_PROXY: true
                       ENCRYPTION_KEY: {{ encryptpassword }}
