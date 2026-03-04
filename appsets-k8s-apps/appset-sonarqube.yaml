@@ -26,6 +26,8 @@ spec:
       - helm:
           releaseName: sonarqube
           values: |
+            community:
+              enabled: true
             monitoringPasscode: "define_the_monitoring_passcode"
             httproute:
               enabled: true
