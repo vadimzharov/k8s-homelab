@@ -26,6 +26,7 @@ spec:
       - helm:
           releaseName: sonarqube
           values: |
+            monitoringPasscode: "define_the_monitoring_passcode"
             httproute:
               enabled: true
               gateway: cilium-gw
