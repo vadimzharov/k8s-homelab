@@ -37,7 +37,7 @@ spec:
                   k8s-dashboard-group: Tools
                   k8s-dashboard-appname: SonarQube
               hostnames:
-                - sq.{{ domainname }}
+                - sonarqube.{{ domainname }}
         repoURL: https://SonarSource.github.io/helm-chart-sonarqube
         chart: sonarqube
         targetRevision: 2026.1.0
