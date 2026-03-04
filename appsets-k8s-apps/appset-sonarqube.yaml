@@ -30,7 +30,8 @@ spec:
               enabled: true
             monitoringPasscode: "define_the_monitoring_passcode"
             persistence:
-              enabled: true            
+              enabled: true
+              storageClass: synas-csi-retain
             httproute:
               enabled: true
               gateway: cilium-gw
