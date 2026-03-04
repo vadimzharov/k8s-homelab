@@ -1,0 +1,50 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: sonarqube
+  namespace: argocd
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  sonarqube: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-sonarqube'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: sonarqube
+          values: |
+            httproute:
+              enabled: true
+              gateway: cilium-gw
+              gatewayNamespace: cilium-system
+              labels:
+                  k8s-dashboard-group: Tools
+                  k8s-dashboard-appname: SonarQube
+              hostnames:
+                - sonarqube.{{ domainname }}
+        repoURL: https://SonarSource.github.io/helm-chart-sonarqube
+        chart: sonarqube
+        targetRevision: 2026.1.0
+      destination:
+        server: '{{server}}' 
+        namespace: sonarqube
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
