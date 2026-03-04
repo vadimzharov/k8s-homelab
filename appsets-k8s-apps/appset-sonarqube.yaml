@@ -29,6 +29,8 @@ spec:
             community:
               enabled: true
             monitoringPasscode: "define_the_monitoring_passcode"
+            persistence:
+              enabled: true            
             httproute:
               enabled: true
               gateway: cilium-gw
