@@ -28,7 +28,7 @@ spec:
       - repoURL: https://github.com/truenas/truenas-csi.git
         targetRevision: 'v1.0.1'
         path: deploy/
-        include: 'truenas-csi-driver.yaml'
+        #include: 'truenas-csi-driver.yaml'
       - helm:
           releaseName: csi-config
           values: |
