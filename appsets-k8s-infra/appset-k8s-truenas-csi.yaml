@@ -68,6 +68,7 @@ spec:
                     volblocksize: "16K"
                     # iSCSI logical block size: 512, 1024, 2048, 4096
                     iscsi.blocksize: "4096"
+                    iscsi.networks: "{{truenas-networks}}"
                   reclaimPolicy: Delete
                   volumeBindingMode: Immediate
                   allowVolumeExpansion: true
