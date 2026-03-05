@@ -209,10 +209,10 @@ spec:
                                 mountPath: /host
                                 mountPropagation: Bidirectional
                               - name: host-lib
-                                mountPath: /usr/lib
+                                mountPath: /lib
                                 readOnly: true
                               - name: host-lib64
-                                mountPath: /usr/lib64
+                                mountPath: /lib64
                                 readOnly: true
                             livenessProbe:
                               httpGet:
