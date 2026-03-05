@@ -126,6 +126,15 @@ spec:
                             hostPath:
                               path: /
                               type: Directory
+                          - name: host-bin
+                            hostPath:
+                              path: /usr/bin
+                          - name: host-lib
+                            hostPath:
+                              path: /usr/lib
+                          - name: host-lib64
+                            hostPath:
+                              path: /usr/lib64                              
                         containers:
                           - name: csi-node
                             image: ghcr.io/truenas/truenas-csi:latest
@@ -202,6 +211,15 @@ spec:
                               - name: host-root
                                 mountPath: /host
                                 mountPropagation: Bidirectional
+                              - name: host-bin
+                                mountPath: /usr/bin
+                                readOnly: true
+                              - name: host-lib
+                                mountPath: /usr/lib
+                                readOnly: true
+                              - name: host-lib64
+                                mountPath: /usr/lib64
+                                readOnly: true
                             livenessProbe:
                               httpGet:
                                 path: /healthz
