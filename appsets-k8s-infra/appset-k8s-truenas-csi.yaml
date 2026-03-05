@@ -128,10 +128,10 @@ spec:
                               type: Directory
                           - name: host-lib
                             hostPath:
-                              path: /usr/lib
+                              path: /lib
                           - name: host-lib64
                             hostPath:
-                              path: /usr/lib64                              
+                              path: /lib64                              
                         containers:
                           - name: csi-node
                             image: ghcr.io/truenas/truenas-csi:latest
@@ -235,7 +235,7 @@ spec:
                                       /usr/sbin/iscsiadm.orig 2>/dev/null; printf
                                       '#!/bin/sh\nnsenter --mount=/host/proc/1/ns/mnt --
                                       /usr/sbin/iscsiadm "$@"\n' > /usr/sbin/iscsiadm && chmod +x
-                                      /usr/sbin/iscsiadm && cp /host/usr/bin/lsblk /usr/bin/lsblk
+                                      /usr/sbin/iscsiadm
                             terminationMessagePath: /dev/termination-log
                             terminationMessagePolicy: File
                             imagePullPolicy: IfNotPresent
