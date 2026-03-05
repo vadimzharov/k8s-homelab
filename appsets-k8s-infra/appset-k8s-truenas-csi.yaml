@@ -1,0 +1,69 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: truenas-csi
+  namespace: argocd
+spec:
+  syncPolicy:
+    preserveResourcesOnDeletion: true
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  truenas-csi: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-infra-secrets"
+  template:
+    metadata:
+      name: '{{name}}-truenas-csi' 
+    spec:
+      project: k8s-homelab-infra
+      sources:
+      - repoURL: https://github.com/truenas/truenas-csi.git
+        targetRevision: 'v1.0.1'
+        path: deploy/
+        include: 'truenas-csi-driver.yaml'
+      - helm:
+          releaseName: csi-config
+          values: |
+            controllers: 
+              main:
+               enabled: false
+            rawResources:
+              truenas-api-creds:
+                apiVersion: v1
+                kind: Secret
+                forceRename: "truenas-api-credentials"                
+                spec:
+                  stringData:
+                    api-key: "{{truenas-api-key}}"
+              truenas-csi-config:
+                apiVersion: v1
+                kind: ConfigMap
+                forceRename: "truenas-csi-config"
+                spec:
+                  data:
+                    truenasURL: "wss://{{truenas-ip}}/api/current"
+                    truenasInsecure: "true"
+                    defaultPool: "tank"
+                    nfsServer: "{{truenas-ip}}"
+                    iscsiPortal: "{{truenas-ip}}:3260"
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.4.0          
+      destination:
+        server: '{{server}}'
+        namespace: truenas-csi
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          
