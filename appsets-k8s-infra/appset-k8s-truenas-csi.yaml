@@ -54,6 +54,23 @@ spec:
                     defaultPool: "main-pool"
                     nfsServer: "{{truenas-ip}}"
                     iscsiPortal: "{{truenas-ip}}:3260"
+              truenas-csi-storage-class:
+                apiVersion: storage.k8s.io/v1
+                kind: StorageClass
+                forceRename: "truenas-iscsi"
+                spec:
+                  provisioner: csi.truenas.io
+                  parameters:
+                    protocol: "iscsi"
+                    # ZFS compression
+                    compression: "LZ4"
+                    # ZVOL block size: 512, 1K, 2K, 4K, 8K, 16K, 32K, 64K, 128K
+                    volblocksize: "16K"
+                    # iSCSI logical block size: 512, 1024, 2048, 4096
+                    iscsi.blocksize: "4096"
+                  reclaimPolicy: Delete
+                  volumeBindingMode: Immediate
+                  allowVolumeExpansion: true
         repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 4.4.0          
