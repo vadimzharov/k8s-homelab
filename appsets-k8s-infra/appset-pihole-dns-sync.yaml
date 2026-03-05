@@ -31,7 +31,8 @@ spec:
           values: |
             sources:
               - ingress
-              - gateway-httproute              
+              - gateway-httproute
+              - crd
             policy: "{{ values.dnspolicy }}"
             registry: noop
             provider: pihole
@@ -51,7 +52,8 @@ spec:
           values: |
             sources:
               - ingress
-              - gateway-httproute              
+              - gateway-httproute
+              - crd              
             policy: "{{ values.dnspolicy }}"
             registry: noop
             provider: pihole
@@ -72,6 +74,7 @@ spec:
             sources:
               - ingress
               - gateway-httproute
+              - crd              
             policy: "{{ values.dnspolicy }}"
             registry: noop
             provider: pihole
