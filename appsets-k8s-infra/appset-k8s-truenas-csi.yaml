@@ -128,7 +128,7 @@ spec:
                               type: Directory                           
                         containers:
                           - name: csi-node
-                            image: ghcr.io/truenas/truenas-csi:latest
+                            image: quay.io/vadimzharov/tools:truenas-csi-latest
                             args:
                               - '--endpoint=$(CSI_ENDPOINT)'
                               - '--node-id=$(NODE_ID)'
