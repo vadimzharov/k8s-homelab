@@ -51,7 +51,7 @@ spec:
                   data:
                     truenasURL: "wss://{{truenas-ip}}/api/current"
                     truenasInsecure: "true"
-                    defaultPool: "tank"
+                    defaultPool: "main-pool"
                     nfsServer: "{{truenas-ip}}"
                     iscsiPortal: "{{truenas-ip}}:3260"
         repoURL: https://bjw-s-labs.github.io/helm-charts
