@@ -1,0 +1,84 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: democratic-csi
+  namespace: argocd
+spec:
+  syncPolicy:
+    preserveResourcesOnDeletion: true
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  democratic-csi: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-infra-secrets"
+  template:
+    metadata:
+      name: '{{name}}-democratic-csi' 
+    spec:
+      project: k8s-homelab-infra
+      sources:
+      - helm:
+          releaseName: democtratic-csi
+          values: |
+
+            csiDriver:
+              # should be globally unique for a given cluster
+              name: "org.democratic-csi.iscsi"
+            storageClasses:
+              - name: freenas-iscsi-csi
+                defaultClass: false
+                reclaimPolicy: Delete
+                volumeBindingMode: Immediate
+                allowVolumeExpansion: true
+                parameters:
+                  fsType: ext4
+                mountOptions: []              
+            driver:
+              config:
+                driver: freenas-iscsi
+                instance_id:
+                httpConnection:
+                  protocol: http
+                  host: "{{truenas-ip}}"
+                  port: 80
+                  apiKey: "{{truenas-api-key}}"
+                  allowInsecure: true
+                    zfs:
+                      datasetParentName: main-pool/k8s
+                      detachedSnapshotsDatasetParentName: main-pool/k8s-snaps
+                      datasetEnableQuotas: true
+                      datasetEnableReservation: false
+                      datasetPermissionsMode: "0770"
+                      datasetPermissionsUser: 0
+                      datasetPermissionsGroup: 0
+                    iscsi:
+                      targetPortal: "{{truenas-ip}}:3260"
+                      interface:
+                      namePrefix: csi-
+                      nameSuffix: "-cluster"
+                      targetGroups:
+                        - targetGroupPortalGroup: 1
+                          targetGroupInitiatorGroup: 1
+                          targetGroupAuthType: None  
+
+        repoURL: https://democratic-csi.github.io/charts/
+        chart: democratic-csi
+        targetRevision: 0.15.1
+      destination:
+        server: '{{server}}'
+        namespace: democratic-csi
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          
