@@ -48,6 +48,7 @@ spec:
                     kind: Gateway
             postgresql:
               enabled: true
+              primary:
                 persistence:
                   storageClass: "truenas-iscsi"
                   size: 16Gi
