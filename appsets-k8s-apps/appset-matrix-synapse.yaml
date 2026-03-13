@@ -1,0 +1,61 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: matrix-synapse
+  namespace: argocd
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  matrix-synapse: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-matrix-synapse'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: matrix-synapse
+          values: |
+            serverName: '{{ domainname }}'
+            publicServerName: 'matrix.{{ domainname }}'
+            config:
+              ## The publicly accessible URL for the Synapse instance, will default to
+              ## https://<publicServerName>.
+              ##
+              publicBaseurl: 'https://matrix.{{ domainname }}'
+            ingress:
+              enabled: false
+            labels:
+              k8s-dashboard-group: Remote-work
+              k8s-dashboard-appname: Matrix-synapse
+            gateway:
+              enabled: true
+            parentRefs:
+                  - name: cilium-gw
+                    namespace: cilium-system
+                    sectionName: https-gw
+                    group: gateway.networking.k8s.io
+                    kind: Gateway              
+        repoURL: https://ananace.gitlab.io/charts
+        chart: matrix-synapse
+        targetRevision: 3.12.23
+      destination:
+        server: '{{server}}' 
+        namespace: matrix-synapse
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
