@@ -28,9 +28,7 @@ spec:
       - helm:
           releaseName: democtratic-csi
           values: |
-
             csiDriver:
-              # should be globally unique for a given cluster
               name: "org.democratic-csi.iscsi"
             storageClasses:
               - name: freenas-iscsi-csi
@@ -40,7 +38,7 @@ spec:
                 allowVolumeExpansion: true
                 parameters:
                   fsType: ext4
-                mountOptions: []              
+                mountOptions: []
             driver:
               config:
                 driver: freenas-iscsi
@@ -51,23 +49,23 @@ spec:
                   port: 80
                   apiKey: "{{truenas-api-key}}"
                   allowInsecure: true
-                    zfs:
-                      datasetParentName: main-pool/k8s
-                      detachedSnapshotsDatasetParentName: main-pool/k8s-snaps
-                      datasetEnableQuotas: true
-                      datasetEnableReservation: false
-                      datasetPermissionsMode: "0770"
-                      datasetPermissionsUser: 0
-                      datasetPermissionsGroup: 0
-                    iscsi:
-                      targetPortal: "{{truenas-ip}}:3260"
-                      interface:
-                      namePrefix: csi-
-                      nameSuffix: "-cluster"
-                      targetGroups:
-                        - targetGroupPortalGroup: 1
-                          targetGroupInitiatorGroup: 1
-                          targetGroupAuthType: None  
+                zfs:
+                  datasetParentName: main-pool/k8s
+                  detachedSnapshotsDatasetParentName: main-pool/k8s-snaps
+                  datasetEnableQuotas: true
+                  datasetEnableReservation: false
+                  datasetPermissionsMode: "0770"
+                  datasetPermissionsUser: 0
+                  datasetPermissionsGroup: 0
+                iscsi:
+                  targetPortal: "{{truenas-ip}}:3260"
+                  interface:
+                  namePrefix: csi-
+                  nameSuffix: "-cluster"
+                  targetGroups:
+                    - targetGroupPortalGroup: 1
+                      targetGroupInitiatorGroup: 1
+                      targetGroupAuthType: None  
 
         repoURL: https://democratic-csi.github.io/charts/
         chart: democratic-csi
