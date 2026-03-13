@@ -40,12 +40,18 @@ spec:
               k8s-dashboard-appname: Matrix-synapse
             gateway:
               enabled: true
-            parentRefs:
+              parentRefs:
                   - name: cilium-gw
                     namespace: cilium-system
                     sectionName: https-gw
                     group: gateway.networking.k8s.io
-                    kind: Gateway              
+                    kind: Gateway
+            postgresql:
+              enabled: true
+                persistence:
+                  storageClass: "truenas-iscsi"
+                  size: 16Gi
+
         repoURL: https://ananace.gitlab.io/charts
         chart: matrix-synapse
         targetRevision: 3.12.23
