@@ -28,6 +28,7 @@ spec:
           values: |
             serverName: '{{ domainname }}'
             publicServerName: 'matrix.{{ domainname }}'
+            argoCD: true
             config:
               ## The publicly accessible URL for the Synapse instance, will default to
               ## https://<publicServerName>.
