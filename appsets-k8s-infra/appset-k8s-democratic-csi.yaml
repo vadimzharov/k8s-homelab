@@ -44,7 +44,7 @@ spec:
                 driver: freenas-iscsi
                 instance_id:
                 httpConnection:
-                  protocol: http
+                  protocol: https
                   host: "{{truenas-ip}}"
                   port: 80
                   apiKey: "{{truenas-api-key}}"
