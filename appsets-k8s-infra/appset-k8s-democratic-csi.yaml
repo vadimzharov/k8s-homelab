@@ -49,6 +49,7 @@ spec:
                   port: 80
                   apiKey: "{{truenas-api-key}}"
                   allowInsecure: true
+                  apiVersion: 2
                 zfs:
                   datasetParentName: main-pool/k8s
                   detachedSnapshotsDatasetParentName: main-pool/k8s-snaps
