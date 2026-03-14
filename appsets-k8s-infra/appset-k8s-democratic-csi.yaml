@@ -46,7 +46,7 @@ spec:
                 httpConnection:
                   protocol: https
                   host: "{{truenas-ip}}"
-                  port: 80
+                  port: 443
                   apiKey: "{{truenas-api-key}}"
                   allowInsecure: true
                   apiVersion: 2
