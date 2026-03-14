@@ -48,6 +48,7 @@ spec:
                   host: "{{truenas-ip}}"
                   port: 443
                   apiKey: "{{truenas-api-key}}"
+                  username: truenas_admin
                   allowInsecure: true
                   apiVersion: 2
                 zfs:
