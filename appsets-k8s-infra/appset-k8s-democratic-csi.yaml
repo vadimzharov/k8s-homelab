@@ -41,7 +41,7 @@ spec:
                 mountOptions: []
             driver:
               config:
-                driver: freenas-iscsi
+                driver: freenas-api-iscsi
                 instance_id:
                 httpConnection:
                   protocol: https
@@ -50,7 +50,7 @@ spec:
                   apiKey: "{{truenas-api-key}}"
                   username: truenas_admin
                   allowInsecure: true
-                  apiVersion: 2
+                  apiVersion: 2           
                 zfs:
                   datasetParentName: main-pool/k8s
                   detachedSnapshotsDatasetParentName: main-pool/k8s-snaps
