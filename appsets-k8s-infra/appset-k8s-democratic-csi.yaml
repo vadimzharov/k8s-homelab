@@ -66,7 +66,7 @@ spec:
                   nameSuffix: "-cluster"
                   targetGroups:
                     - targetGroupPortalGroup: 1
-                      targetGroupInitiatorGroup: 1
+                      targetGroupInitiatorGroup: 6
                       targetGroupAuthType: None  
 
         repoURL: https://democratic-csi.github.io/charts/
