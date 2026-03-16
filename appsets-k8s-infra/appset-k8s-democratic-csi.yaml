@@ -52,8 +52,8 @@ spec:
                   allowInsecure: true
                   apiVersion: 2           
                 zfs:
-                  datasetParentName: main-pool/k8s
-                  detachedSnapshotsDatasetParentName: main-pool/k8s-snaps
+                  datasetParentName: main-pool/"{{name}}"
+                  detachedSnapshotsDatasetParentName: main-pool/"{{name}}-snaps"
                   datasetEnableQuotas: true
                   datasetEnableReservation: false
                   datasetPermissionsMode: "0770"
