@@ -1,0 +1,98 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: rook-ceph-s3-cluster
+  namespace: argocd
+spec:
+  syncPolicy:
+    preserveResourcesOnDeletion: true
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  rook-ceph-operator: "installed"
+                  rook-ceph-s3: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-infra-secrets"
+  template:
+    metadata:
+      name: '{{name}}-rook-ceph-s3' 
+    spec:
+      project: k8s-homelab-infra
+      sources:
+      - helm:
+          releaseName: rook-ceph
+          values: |
+            operatorNamespace: rook-ceph
+
+            cephClusterSpec:
+              mon:
+                count: 3
+                allowMultiplePerNode: true
+                volumeClaimTemplate:
+                  spec:
+                    storageClassName: freenas-iscsi-csi
+                    resources:
+                      requests:
+                        storage: 10Gi
+
+              storage:
+                storageClassDeviceSets:
+                  - name: set1
+                    count: 3 
+                    portable: false
+                    encrypted: false
+                    volumeClaimTemplates:
+                      - metadata:
+                          name: data
+                        spec:
+                          storageClassName: freenas-iscsi-csi
+                          volumeMode: Block
+                          accessModes:
+                            - ReadWriteOnce
+                          resources:
+                            requests:
+                              storage: 100Gi
+
+            # S3 only config
+            cephBlockPools: []
+            cephFileSystems: []
+
+            cephObjectStores:
+              - name: ceph-objectstore
+                spec:
+                  metadataPool:
+                    replicated:
+                      size: 3
+                  dataPool:
+                    replicated:
+                      size: 3
+                  preservePoolsOnDelete: true
+                  gateway:
+                    port: 80
+                    instances: 1
+                storageClass:
+                  enabled: true   
+                  name: ceph-bucket
+                  reclaimPolicy: Delete
+                  parameters:
+                    region: us-east-1
+        repoURL: https://charts.rook.io/release
+        chart: rook-ceph-cluster
+        targetRevision: v1.19.3
+      destination:
+        server: '{{server}}'
+        namespace: rook-ceph
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          
