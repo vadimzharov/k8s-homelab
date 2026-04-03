@@ -1,0 +1,52 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: rook-ceph-operator
+  namespace: argocd
+spec:
+  syncPolicy:
+    preserveResourcesOnDeletion: true
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  rook-ceph-operator: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-infra-secrets"
+  template:
+    metadata:
+      name: '{{name}}-rook-ceph' 
+    spec:
+      project: k8s-homelab-infra
+      sources:
+      - helm:
+          releaseName: rook-ceph
+          values: |
+            # Rook Ceph Operator Helm Chart values to enable S3 only
+            csi:
+              rookUseCsiOperator: false
+              # -- Enable Ceph CSI RBD driver
+              enableRbdDriver: false
+              # -- Enable Ceph CSI CephFS driver
+              enableCephfsDriver: false
+              # -- Disable the CSI driver.
+              disableCsiDriver: "true"
+        repoURL: https://charts.rook.io/release
+        chart: rook-release
+        targetRevision: v1.19.3
+      destination:
+        server: '{{server}}'
+        namespace: rook-ceph
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          
