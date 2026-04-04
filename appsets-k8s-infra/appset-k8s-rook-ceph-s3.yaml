@@ -19,7 +19,7 @@ spec:
                 name: argocd-secrets-plugin
               input:
                 parameters:
-                  secretName: "k8s-clusters-infra-secrets"
+                  secretName: "k8s-clusters-apps-secrets"
   template:
     metadata:
       name: '{{name}}-rook-ceph-s3' 
@@ -112,6 +112,38 @@ spec:
         repoURL: https://charts.rook.io/release
         chart: rook-ceph-cluster
         targetRevision: v1.19.3
+      - helm:
+          releaseName: s3-httproute
+          values: |
+            controllers: 
+              main:
+               enabled: false
+            rawResources:
+              s3httproute:
+                apiVersion: gateway.networking.k8s.io/v1beta1
+                kind: HTTPRoute
+                forceRename: "s3-httproute"                
+                spec:
+                  hostnames:
+                    - rook-s3.{{domainname}}
+                  parentRefs:
+                    - group: gateway.networking.k8s.io
+                      kind: Gateway
+                      name: '{{ metadata.labels.rook-ceph-s3 }}'
+                      namespace: cilium-system
+                      sectionName: https-gw
+                    - group: gateway.networking.k8s.io
+                      kind: Gateway
+                      name: '{{ metadata.labels.rook-ceph-s3 }}'
+                      namespace: cilium-system
+                      sectionName: https-gw-5k
+                  rules:
+                    - backendRefs:
+                        - name: rook-ceph-rgw-ceph-objectstore
+                          port: 80                      
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.4.0        
       destination:
         server: '{{server}}'
         namespace: rook-ceph
