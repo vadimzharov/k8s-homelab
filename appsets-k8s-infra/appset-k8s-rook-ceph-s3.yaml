@@ -130,12 +130,12 @@ spec:
                     parentRefs:
                       - group: gateway.networking.k8s.io
                         kind: Gateway
-                        name: '{{ metadata.labels.rook-ceph-s3 }}'
+                        name: '{{ metadata.labels.rook-ceph-s3-route-gw }}'
                         namespace: cilium-system
                         sectionName: https-gw
                       - group: gateway.networking.k8s.io
                         kind: Gateway
-                        name: '{{ metadata.labels.rook-ceph-s3 }}'
+                        name: '{{ metadata.labels.rook-ceph-s3-route-gw }}'
                         namespace: cilium-system
                         sectionName: https-gw-5k
                     rules:
