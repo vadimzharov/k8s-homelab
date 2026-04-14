@@ -53,12 +53,16 @@ spec:
               requirePairing: false
               provider: openrouter
               model: google/gemma-4-31b-it:free
+              channels:
+                telegram:
+                  enabled: true
             secret:
               apiKey: "{{openrouter-api-key}}"
+            channelSecrets:
+              create: true
+              telegramBotToken: "{{tg-bot01-api-key}}"
             persistence:
-              size: 10Gi
-            
-
+              size: 10Gi          
         repoURL: https://niklasfrick.github.io/zeroclaw-helm
         chart: zeroclaw
         targetRevision: 0.2.1
