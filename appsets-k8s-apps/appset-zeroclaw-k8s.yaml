@@ -26,9 +26,6 @@ spec:
       - helm:
           releaseName: zeroclaw-k8s
           values: |
-            labels:
-              k8s-dashboard-group: AI-Tools
-              k8s-dashboard-appname: ZeroClaw-k8s
             image:
               repository: ghcr.io/zeroclaw-labs/zeroclaw
               pullPolicy: IfNotPresent
