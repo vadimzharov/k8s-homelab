@@ -1,0 +1,74 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: zeroclaw-k8s
+  namespace: argocd
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  zeroclaw-k8s: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-zeroclaw-k8s'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: zeroclaw-k8s
+          values: |
+            labels:
+              k8s-dashboard-group: AI-Tools
+              k8s-dashboard-appname: ZeroClaw-k8s
+            image:
+              repository: ghcr.io/zeroclaw-labs/zeroclaw
+              pullPolicy: IfNotPresent
+              tag: "latest"
+            httpRoute:
+              enabled: true
+              annotations: {}
+              hostnames: 
+                - zeroclaw-{{name}}.{{ domainname }}
+              parentRefs:
+                - name: cilium-gw
+                  namespace: cilium-system
+                  sectionName: https-gw              
+              rules:
+                - matches:
+                    - path:
+                        type: PathPrefix
+                        value: /
+                  filters: []              
+            config:
+              mode: daemon
+              requirePairing: false
+              provider: openrouter
+              model: google/gemma-4-31b-it:free
+            secret:
+              apiKey: "{{openrouter-api-key}}"
+            persistence:
+              size: 10Gi
+            
+
+        repoURL: https://niklasfrick.github.io/zeroclaw-helm
+        chart: zeroclaw
+        targetRevision: 0.2.1
+      destination:
+        server: '{{server}}' 
+        namespace: zeroclaw-k8s
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
