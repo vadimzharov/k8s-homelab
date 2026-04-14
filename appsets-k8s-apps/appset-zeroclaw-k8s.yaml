@@ -59,7 +59,8 @@ spec:
               create: true
               telegramBotToken: "{{tg-bot01-api-key}}"
             persistence:
-              size: 10Gi          
+              size: 10Gi   
+              storageClass: synas-csi-retain       
         repoURL: https://niklasfrick.github.io/zeroclaw-helm
         chart: zeroclaw
         targetRevision: 0.2.1
