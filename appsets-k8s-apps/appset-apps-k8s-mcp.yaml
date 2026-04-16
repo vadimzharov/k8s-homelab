@@ -1,0 +1,44 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: k8s-apps-k8s-mcp
+  namespace: argocd
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  k8s-apps-k8s-mcp: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"  
+  template:
+    metadata:
+      name: '{{name}}-k8s-apps-k8s-mcp'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: k8s-apps-k8s-mcp
+          values: |
+          ingress:
+            enabled: true
+            host: "{{name}}-mcp.{{ domainname }}"
+        repoURL: oci://ghcr.io/containers/charts/kubernetes-mcp-server
+        targetRevision: 0.1.0
+        path: .
+      destination:
+        server: '{{server}}' 
+        namespace: k8s-apps-k8s-mcp
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
