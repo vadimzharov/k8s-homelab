@@ -26,9 +26,9 @@ spec:
       - helm:
           releaseName: k8s-apps-k8s-mcp
           values: |
-          ingress:
-            enabled: true
-            host: "{{name}}-mcp.{{ domainname }}"
+            ingress:
+              enabled: true
+              host: "{{name}}-mcp.{{ domainname }}"
         repoURL: oci://ghcr.io/containers/charts/kubernetes-mcp-server
         targetRevision: 0.1.0
         path: .
