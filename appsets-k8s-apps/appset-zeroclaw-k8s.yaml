@@ -48,13 +48,13 @@ spec:
             config:
               mode: daemon
               requirePairing: false
-              provider: openrouter
-              model: openrouter/auto
+              provider: openai
+              model: gpt-5-mini
               channels:
                 telegram:
                   enabled: true
             secret:
-              apiKey: "{{openrouter-api-key}}"
+              apiKey: "{{openai-api-key}}"
             channelSecrets:
               create: true
               telegramBotToken: "{{tg-bot01-api-key}}"
