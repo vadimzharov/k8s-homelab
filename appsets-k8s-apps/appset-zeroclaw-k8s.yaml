@@ -49,7 +49,7 @@ spec:
               mode: daemon
               requirePairing: false
               provider: openrouter
-              #model: google/gemma-4-31b-it:free
+              model: openrouter/auto
               channels:
                 telegram:
                   enabled: true
