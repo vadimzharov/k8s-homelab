@@ -31,9 +31,6 @@ spec:
       - helm:
           releaseName: kagent
           values: |
-            labels:
-              k8s-dashboard-group: AI-tools
-              k8s-dashboard-appname: KAgent
             providers:
               default: openAI
               openAI:
