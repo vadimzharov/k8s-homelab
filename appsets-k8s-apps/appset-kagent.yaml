@@ -40,6 +40,7 @@ spec:
               postgres:
                 bundled:
                   enabled: true
+                  storage: 5Gi
                   storageClassName: synas-csi-retain
         repoURL: oci://ghcr.io/kagent-dev/kagent/helm/kagent
         targetRevision: 0.8.6
