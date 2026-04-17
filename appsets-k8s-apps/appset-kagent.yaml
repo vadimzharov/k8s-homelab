@@ -1,0 +1,59 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: kagent
+  namespace: argocd
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  kagent: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"  
+  template:
+    metadata:
+      name: '{{name}}-kagent'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: kagent-crd
+        repoURL: oci://ghcr.io/kagent-dev/kagent/helm/kagent-crds
+        targetRevision: 0.8.6
+        path: .
+      - helm:
+          releaseName: kagent
+          values: |
+            labels:
+              k8s-dashboard-group: AI-tools
+              k8s-dashboard-appname: KAgent
+            providers:
+              default: openAI
+              openAI:
+                model: gpt-5-mini
+                apiKey: "{{openai-api-key}}"
+            database:
+              postgres:
+                bundled:
+                  enabled: true
+                  storageClassName: synas-csi-retain
+        repoURL: oci://ghcr.io/kagent-dev/kagent/helm/kagent
+        targetRevision: 0.8.6
+        path: .
+      destination:
+        server: '{{server}}' 
+        namespace: kagent
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
