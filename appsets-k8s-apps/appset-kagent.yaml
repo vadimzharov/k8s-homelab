@@ -25,6 +25,9 @@ spec:
       sources:
       - helm:
           releaseName: kagent-crd
+          parameters:
+            - name: crds.enabled
+              value: "true"          
         repoURL: oci://ghcr.io/kagent-dev/kagent/helm/kagent-crds
         targetRevision: 0.8.6
         path: .
