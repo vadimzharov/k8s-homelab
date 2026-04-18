@@ -48,6 +48,40 @@ spec:
         repoURL: oci://ghcr.io/kagent-dev/kagent/helm/kagent
         targetRevision: 0.8.6
         path: .
+      - helm:
+          releaseName: kagent-httproute
+          values: |
+            controllers: 
+              main:
+               enabled: false
+            rawResources:
+              kagent-httproute:
+                apiVersion: gateway.networking.k8s.io/v1beta1
+                kind: HTTPRoute
+                spec:
+                  spec:
+                    parentRefs:
+                      - name: cilium-gw
+                        namespace: cilium-system
+                        group: gateway.networking.k8s.io
+                        kind: Gateway                        
+                    hostnames:
+                      - kagent-{{name}}.{{ domainname }}
+                    rules:  
+                      - backendRefs:
+                          - group: ''
+                            kind: Service
+                            name: k8s-agent
+                            namespace: kagent
+                            port: 8080
+                            weight: 1
+                        matches:
+                          - path:
+                              type: PathPrefix
+                              value: /
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.4.0        
       destination:
         server: '{{server}}' 
         namespace: kagent
