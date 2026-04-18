@@ -71,7 +71,7 @@ spec:
                       - backendRefs:
                           - group: ''
                             kind: Service
-                            name: k8s-agent
+                            name: kagent-ui
                             namespace: kagent
                             port: 8080
                             weight: 1
