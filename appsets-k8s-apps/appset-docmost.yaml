@@ -1,0 +1,138 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: docmost
+  namespace: argocd
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  docmost: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"  
+  template:
+    metadata:
+      name: '{{name}}-docmost'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: docmost-db-data
+          values: |
+            controllers: 
+              main:
+               enabled: false
+            secrets:
+              docmost-db-credentials:
+                enabled: true
+                stringData:
+                  username: {{ docmostpgusername }}
+                  password: {{ docmostpgpassword }}
+                type: kubernetes.io/basic-auth
+            rawResources:
+              minio-credentials:
+                apiVersion: v1
+                kind: Secret
+                forceRename: "minio-credentials"
+                spec:
+                  stringData:
+                    accesskey: {{ miniokey }}
+                    secretkey: {{ miniosecretkey }}
+              docmost-db-creds:
+                apiVersion: v1
+                kind: Secret
+                forceRename: "docmost-db-user"
+                spec:
+                  stringData:
+                    username: {{ docmostpgusername }}
+                    password: {{ docmostpgpassword }}
+              backupobjectstore:
+                apiVersion: barmancloud.cnpg.io/v1
+                kind: ObjectStore
+                forceRename: "docmost-registry-db-backup"
+                spec:
+                  spec:
+                    retentionPolicy: "5d"
+                    configuration:
+                      destinationPath: s3://cloudnative-pg-backups/docmost-registry-db
+                      endpointURL: http://{{ minioendpoint }}
+                      s3Credentials:
+                        accessKeyId:
+                          name:  minio-credentials
+                          key: accesskey
+                        secretAccessKey:
+                          name: minio-credentials
+                          key: secretkey
+                      wal:
+                        compression: gzip
+              scheduledbackup:
+                apiVersion: postgresql.cnpg.io/v1
+                kind: ScheduledBackup
+                forceRename: docmost-db-backup
+                spec:
+                  spec:
+                    schedule: "0 0 * * * *" 
+                    backupOwnerReference: self
+                    cluster:
+                      name: docmost-database-restored
+                    method: plugin
+                    pluginConfiguration:
+                      name: barman-cloud.cloudnative-pg.io                        
+              pgsqlcluster:
+                apiVersion: postgresql.cnpg.io/v1
+                kind: Cluster
+                # This name is only for DB creation. After the DB is created and backup is verified, rename to docmost-database-restored to avoid accidental deletion of the database in case of app deletion or sync failure. This is because the cluster resource has a finalizer that will block deletion until the cluster is deleted, but if the cluster is deleted, the database will be deleted as well.
+                forceRename: "docmost-database"
+                # Uncomment after DB creation and backup is verified
+                #forceRename: "docmost-database-restored"
+                #annotations:
+                #  cnpg.io/skipEmptyWalArchiveCheck: "enabled"
+                spec:
+                  spec:
+                    instances: 1
+
+                    storage:
+                      size: 10Gi
+                      storageClass: synas-csi-delete
+                    # Uncomment the following lines after DB creation and backup is verified
+                    #bootstrap:
+                    #  recovery:
+                    #    source: origin
+                    #    owner: docmost
+                    #    secret:
+                    #      name: docmost-db-user
+
+                    # Uncomment the following lines after DB creation and backup is verified.
+                    #externalClusters:
+                    #  - name: origin
+                    #    plugin:
+                    #      name: barman-cloud.cloudnative-pg.io
+                    #      parameters:
+                    #        barmanObjectName: docmost-registry-db-backup
+                    #        serverName: docmost-database-restored
+                    imageName: ghcr.io/cloudnative-pg/postgresql:16.2-3
+                    plugins:
+                    - name: barman-cloud.cloudnative-pg.io
+                      isWALArchiver: true
+                      parameters:
+                        barmanObjectName: docmost-registry-db-backup
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.4.0
+      destination:
+        server: '{{server}}' 
+        namespace: docmost
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
