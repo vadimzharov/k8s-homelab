@@ -29,7 +29,7 @@ spec:
           releaseName: velero    
           values: |
             configuration:
-              provider: aws
+              
               #defaultVolumesToFsBackup: true
 
               backupStorageLocation:
