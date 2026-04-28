@@ -1,0 +1,75 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: velero
+  namespace: argocd
+spec:
+  syncPolicy:
+    preserveResourcesOnDeletion: true
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  velero: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-infra-secrets"
+  template:
+    metadata:
+      name: '{{name}}-velero' 
+    spec:
+      project: k8s-homelab-infra
+      sources:
+      - helm:
+          releaseName: velero    
+          values: |
+            configuration:
+              provider: aws
+              #defaultVolumesToFsBackup: true
+
+              backupStorageLocation:
+                - name: local-minio
+                  provider: aws
+                  bucket: velero-backups
+                  default: true
+                  config:
+                    region: minio
+                    s3ForcePathStyle: true
+                    s3Url: {{ minioendpoint }}
+
+            credentials:
+              useSecret: true
+              name: velero-credentials
+              secretContents:
+                cloud: |
+                  [default]
+                  aws_access_key_id={{ miniokey }}
+                  aws_secret_access_key={{ miniosecretkey }}
+
+            initContainers:
+              - name: velero-plugin-for-aws
+                image: velero/velero-plugin-for-aws:v1.13.1
+                volumeMounts:
+                  - mountPath: /target
+                    name: plugins
+
+            deployNodeAgent: false
+            snapshotsEnabled: false          
+        repoURL: https://vmware-tanzu.github.io/helm-charts
+        chart: velero
+        targetRevision: 12.0.1
+      destination:
+        server: '{{server}}'
+        namespace: velero
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          
