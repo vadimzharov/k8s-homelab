@@ -40,7 +40,7 @@ spec:
                   config:
                     region: minio
                     s3ForcePathStyle: true
-                    s3Url: {{ minioendpoint }}
+                    s3Url: http://{{ minioendpoint }}
 
             credentials:
               useSecret: true
