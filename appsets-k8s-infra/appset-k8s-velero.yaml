@@ -58,7 +58,7 @@ spec:
                   - mountPath: /target
                     name: plugins
 
-            deployNodeAgent: false
+            deployNodeAgent: true
             snapshotsEnabled: false          
         repoURL: https://vmware-tanzu.github.io/helm-charts
         chart: velero
