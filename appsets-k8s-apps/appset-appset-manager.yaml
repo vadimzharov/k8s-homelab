@@ -1,0 +1,58 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: appset-manager
+  namespace: argocd
+  annotations:
+    appset-dashboard-appname: "ArgoCD ApplicationSet Manager"
+    appset-dashboard-groupname: "K8S tools"
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  appset-manager: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-appset-manager'
+    spec:
+      project: k8s-homelab-infra
+      sources:
+        - helm:
+            releaseName: appset-manager
+            values: |
+              argocdNamespace: argocd
+              httpRoute:
+                enabled: true
+                labels:
+                  k8s-dashboard-group: Dashboards
+                  k8s-dashboard-appname: Appset-Manager
+                parentRefs:
+                  - name: cilium-gw
+                    namespace: cilium-system
+                hostnames:
+                  - "appsets.{{ domainname }}"
+              config:
+                auth:
+                  username: admin
+                  password: "{{ appset_manager_password }}"
+          repoURL: oci://ghcr.io/vadimzharov/charts/appset-manager
+          targetRevision: 0.0.4
+          path: .
+      destination:
+        server: '{{server}}'
+        namespace: argocd
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=false
