@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: kubevirt
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Kubevirt"
+    appset-dashboard-groupname: "K8S tools"
 spec:
   syncPolicy:
     preserveResourcesOnDeletion: true

@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: nfd
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Node Feature Discovery"
+    appset-dashboard-groupname: "K8S tools"
 spec:
   generators:
   - clusters:

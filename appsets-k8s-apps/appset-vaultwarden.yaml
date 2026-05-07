@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: vaultwarden
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Vaultwarden (password manager)"
+    appset-dashboard-groupname: "Cloud tools"
 spec:
   generators:
     - matrix:

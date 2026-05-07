@@ -2,7 +2,10 @@ apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
   name: librespeed
-  namespace: argocd  
+  namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Librespeed"
+    appset-dashboard-groupname: "Network tools"  
 spec:
   generators:
     - matrix:

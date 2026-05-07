@@ -2,7 +2,10 @@ apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
   name: cloudnative-pg
-  namespace: argocd  
+  namespace: argocd
+  annotations:
+    appset-dashboard-appname: "CloudNativePG operator"
+    appset-dashboard-groupname: "K8S tools"  
 spec:
   generators:
     - matrix:

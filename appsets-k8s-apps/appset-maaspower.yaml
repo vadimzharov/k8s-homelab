@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: maaspower
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "MaaS Power WebHook"
+    appset-dashboard-groupname: "K8S tools"
 spec:
   goTemplate: true
   goTemplateOptions: ["missingkey=error"]

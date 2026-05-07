@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: vpn-switcher
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "VPN switcher"
+    appset-dashboard-groupname: "K8S tools"
 spec:
   goTemplate: true
   goTemplateOptions: ["missingkey=error"]

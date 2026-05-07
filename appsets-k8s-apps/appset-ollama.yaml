@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: ollama
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Ollama"
+    appset-dashboard-groupname: "AI tools"
 spec:
   generators:
     - matrix:

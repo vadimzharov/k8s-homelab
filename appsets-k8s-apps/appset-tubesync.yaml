@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: tubesync
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "TubeSync (youtube sync)"
+    appset-dashboard-groupname: "Media"
 spec:
   generators:
     - matrix:

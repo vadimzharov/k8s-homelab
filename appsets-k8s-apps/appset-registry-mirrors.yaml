@@ -5,6 +5,8 @@ metadata:
   namespace: argocd
   annotations:
     avp.kubernetes.io/path: "k8secrets/ingresses"
+    appset-dashboard-appname: "Registry mirrors"
+    appset-dashboard-groupname: "K8S tools"
 spec:
   generators:
     - matrix:

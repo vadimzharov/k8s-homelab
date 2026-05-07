@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: openwebui
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "OpenWebUI"
+    appset-dashboard-groupname: "AI tools"
 spec:
   generators:
     - matrix:

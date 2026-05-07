@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: obsidian
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Obsidian"
+    appset-dashboard-groupname: "Cloud tools"
 spec:
   generators:
     - matrix:

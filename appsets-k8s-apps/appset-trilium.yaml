@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: trilium
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Trilium"
+    appset-dashboard-groupname: "Cloud tools"
 spec:
   generators:
     - matrix:

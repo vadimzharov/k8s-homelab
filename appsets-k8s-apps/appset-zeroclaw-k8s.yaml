@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: zeroclaw-k8s
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "ZeroClaw (AI assistant)"
+    appset-dashboard-groupname: "AI tools"
 spec:
   generators:
     - matrix:

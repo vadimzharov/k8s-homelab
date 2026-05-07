@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: viewtube
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "ViewTube (youtube self-hosted)"
+    appset-dashboard-groupname: "Media"
 spec:
   generators:
     - matrix:

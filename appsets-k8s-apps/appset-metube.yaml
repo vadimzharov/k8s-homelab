@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: metube
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "MeTube"
+    appset-dashboard-groupname: "Media"
 spec:
   generators:
     - matrix:

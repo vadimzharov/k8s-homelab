@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: keycloak
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Keycloak"
+    appset-dashboard-groupname: "K8S tools"
 spec:
   generators:
     - matrix:

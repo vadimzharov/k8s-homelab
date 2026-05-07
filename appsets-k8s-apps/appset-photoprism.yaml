@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: photoprism
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "PhotoPrism (old photos)"
+    appset-dashboard-groupname: "Photos"
 spec:
   generators:
   - matrix:

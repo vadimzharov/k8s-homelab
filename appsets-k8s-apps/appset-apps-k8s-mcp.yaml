@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: k8s-apps-k8s-mcp
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "K8S MCP server"
+    appset-dashboard-groupname: "AI tools"
 spec:
   generators:
     - matrix:

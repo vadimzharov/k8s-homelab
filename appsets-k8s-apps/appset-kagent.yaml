@@ -5,7 +5,7 @@ metadata:
   namespace: argocd
   annotations:
     appset-dashboard-appname: "KAgent - AI for K8S"
-    appset-dashboard-groupname: "K8S tools"  
+    appset-dashboard-groupname: "AI tools"  
 spec:
   generators:
     - matrix:

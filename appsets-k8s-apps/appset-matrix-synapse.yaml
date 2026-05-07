@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: matrix-synapse
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Matrix Synapse"
+    appset-dashboard-groupname: "Remote work"
 spec:
   generators:
     - matrix:

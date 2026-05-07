@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: pocket-id
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Pocket-ID (Auth)"
+    appset-dashboard-groupname: "K8S tools"
 spec:
   generators:
     - matrix:

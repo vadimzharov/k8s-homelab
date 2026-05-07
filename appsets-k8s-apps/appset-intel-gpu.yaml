@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: gpu-plugin
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Intel GPU plugin"
+    appset-dashboard-groupname: "K8S tools"
 spec:
   generators:
   - clusters:
