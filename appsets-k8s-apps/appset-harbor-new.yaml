@@ -3,6 +3,8 @@ kind: ApplicationSet
 metadata:
   name: harbor-new
   namespace: argocd
+  labels:
+    appset-dashboard-appname: "Harbor registry"    
 spec:
   generators:
     - matrix:
