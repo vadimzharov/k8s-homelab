@@ -30,16 +30,10 @@ spec:
             releaseName: appset-manager
             values: |
               argocdNamespace: argocd
-              httpRoute:
+              ingress:
                 enabled: true
-                labels:
-                  k8s-dashboard-group: Dashboards
-                  k8s-dashboard-appname: Appset-Manager
-                parentRefs:
-                  - name: cilium-gw
-                    namespace: cilium-system
-                hostnames:
-                  - "appsets.{{ domainname }}"
+                className: nginx
+                host: appsets.{{ domainname }}
               config:
                 auth:
                   username: admin
