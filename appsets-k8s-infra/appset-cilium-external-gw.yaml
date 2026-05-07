@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: cilium-external-gw
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Cilium external gateway configuration"
+    appset-dashboard-groupname: "K8S Ingress controllers"
 spec:
   syncPolicy:
     preserveResourcesOnDeletion: true

@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: truenas-csi
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "TrueNAS CSI driver"
+    appset-dashboard-groupname: "K8S Storage"
 spec:
   syncPolicy:
     preserveResourcesOnDeletion: true

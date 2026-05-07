@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: mikrotik-dns-sync
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Mikrotik DNS Sync"
+    appset-dashboard-groupname: "K8S DNS tools"    
 spec:
   generators:
     - matrix:

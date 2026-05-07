@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: nginx-external
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Nginx External"
+    appset-dashboard-groupname: "K8S Ingress controllers"    
 spec:
   generators:
     - matrix:

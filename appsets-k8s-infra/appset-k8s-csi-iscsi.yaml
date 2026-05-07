@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: k8s-csi-iscsi
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Synology iSCSI CSI driver"
+    appset-dashboard-groupname: "K8S Storage"
 spec:
   syncPolicy:
     preserveResourcesOnDeletion: true

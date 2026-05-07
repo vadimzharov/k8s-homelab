@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: uptime-kuma
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Uptime Kuma"
+    appset-dashboard-groupname: "K8S monitoring tools"    
 spec:
   generators:
     - matrix:

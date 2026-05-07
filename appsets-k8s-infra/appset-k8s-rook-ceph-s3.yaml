@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: rook-ceph-s3-cluster
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Rook Ceph S3 cluster"
+    appset-dashboard-groupname: "K8S storage"  
 spec:
   syncPolicy:
     preserveResourcesOnDeletion: true

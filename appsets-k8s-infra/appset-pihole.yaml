@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: pihole
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Pi-hole"
+    appset-dashboard-groupname: "K8S DNS tools"    
 spec:
   generators:
     - matrix:

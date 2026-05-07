@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: nginx-external-certs
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Nginx External Certificates"
+    appset-dashboard-groupname: "K8S Ingress controllers"    
 spec:
   goTemplate: true
   goTemplateOptions: ["missingkey=error"]

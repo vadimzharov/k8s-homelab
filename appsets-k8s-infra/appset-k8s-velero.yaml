@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: velero
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Velero"
+    appset-dashboard-groupname: "K8S backup tools"    
 spec:
   syncPolicy:
     preserveResourcesOnDeletion: true
