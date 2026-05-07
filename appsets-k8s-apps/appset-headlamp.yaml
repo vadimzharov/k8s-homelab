@@ -2,7 +2,9 @@ apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
   name: headlamp
-  namespace: argocd  
+  namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Headlamp Kubernetes dashboard"    
 spec:
   generators:
     - matrix:

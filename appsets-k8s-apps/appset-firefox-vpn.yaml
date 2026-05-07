@@ -3,7 +3,7 @@ kind: ApplicationSet
 metadata:
   name: firefox-vpn
   namespace: argocd
-  labels:
+  annotations:
     appset-dashboard-appname: "Firefox browser via VPN"  
 spec:
   generators:

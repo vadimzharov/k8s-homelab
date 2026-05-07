@@ -3,7 +3,7 @@ kind: ApplicationSet
 metadata:
   name: k8s-apps-dashboard
   namespace: argocd
-  labels:
+  annotations:
     appset-dashboard-appname: "K8S Application Dashboard"
 spec:
   generators:

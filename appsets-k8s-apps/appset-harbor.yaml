@@ -3,7 +3,7 @@ kind: ApplicationSet
 metadata:
   name: harbor
   namespace: argocd
-  labels:
+  annotations:
     appset-dashboard-appname: "Harbor registry (deprecated)"    
 spec:
   generators:

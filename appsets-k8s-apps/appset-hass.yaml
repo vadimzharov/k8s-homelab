@@ -3,7 +3,7 @@ kind: ApplicationSet
 metadata:
   name: hass
   namespace: argocd
-  labels:
+  annotations:
     appset-dashboard-appname: "Home Assistant"
 spec:
   generators:

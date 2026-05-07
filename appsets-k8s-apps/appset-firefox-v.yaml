@@ -3,7 +3,7 @@ kind: ApplicationSet
 metadata:
   name: firefox-v
   namespace: argocd
-  labels:
+  annotations:
     appset-dashboard-appname: "Firefox browser"  
 spec:
   generators:
