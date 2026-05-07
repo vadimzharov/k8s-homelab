@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: tranarr
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Trannsmission torrent client"
+    appset-dashboard-groupname: "Media"
 spec:
   generators:
     - matrix:

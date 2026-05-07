@@ -4,7 +4,8 @@ metadata:
   name: headlamp
   namespace: argocd
   annotations:
-    appset-dashboard-appname: "Headlamp Kubernetes dashboard"    
+    appset-dashboard-appname: "Headlamp Kubernetes dashboard"
+    appset-dashboard-groupname: "K8S tools"
 spec:
   generators:
     - matrix:

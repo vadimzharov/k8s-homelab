@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: radarr
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Radarr media server"
+    appset-dashboard-groupname: "Media"
 spec:
   generators:
     - matrix:

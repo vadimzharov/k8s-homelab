@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: sonarr
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Sonarr media server"
+    appset-dashboard-groupname: "Media"
 spec:
   generators:
     - matrix:

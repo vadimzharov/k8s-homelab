@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: arr-d
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Arr-stack for D"
+    appset-dashboard-groupname: "Media"
 spec:
   generators:
     - matrix:

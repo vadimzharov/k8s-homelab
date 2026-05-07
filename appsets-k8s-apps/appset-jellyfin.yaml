@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: jellyfin
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Jellyfin media server"
+    appset-dashboard-groupname: "Media"
 spec:
   generators:
     - matrix:

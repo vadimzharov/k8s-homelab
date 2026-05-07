@@ -4,7 +4,8 @@ metadata:
   name: k8s-apps-dashboard
   namespace: argocd
   annotations:
-    appset-dashboard-appname: "K8S Application Dashboard"
+    appset-dashboard-appname: "Applications Dashboard"
+    appset-dashboard-groupname: "Dashboards"
 spec:
   generators:
     - matrix:

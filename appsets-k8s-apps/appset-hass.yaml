@@ -5,6 +5,7 @@ metadata:
   namespace: argocd
   annotations:
     appset-dashboard-appname: "Home Assistant"
+    appset-dashboard-groupname: "Home automation"
 spec:
   generators:
     - matrix:

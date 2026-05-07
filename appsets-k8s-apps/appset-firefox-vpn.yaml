@@ -4,7 +4,8 @@ metadata:
   name: firefox-vpn
   namespace: argocd
   annotations:
-    appset-dashboard-appname: "Firefox browser via VPN"  
+    appset-dashboard-appname: "Firefox browser via VPN"
+    appset-dashboard-groupname: "Remote access"  
 spec:
   generators:
     - matrix:

@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: prowlarr
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Prowlarr media server"
+    appset-dashboard-groupname: "Media"  
 spec:
   generators:
     - matrix:

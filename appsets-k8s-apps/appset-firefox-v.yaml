@@ -4,7 +4,8 @@ metadata:
   name: firefox-v
   namespace: argocd
   annotations:
-    appset-dashboard-appname: "Firefox browser"  
+    appset-dashboard-appname: "Firefox browser"
+    appset-dashboard-groupname: "Remote access"  
 spec:
   generators:
     - matrix:
