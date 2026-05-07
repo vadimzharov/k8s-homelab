@@ -5,7 +5,9 @@ metadata:
   namespace: argocd
   annotations:
     appset-dashboard-appname: "Librespeed"
-    appset-dashboard-groupname: "Network tools"  
+    appset-dashboard-groupname: "Network tools"
+  labels:
+    appset-dashboard-multicluster: "true"
 spec:
   generators:
     - matrix:
