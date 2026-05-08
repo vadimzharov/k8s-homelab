@@ -39,7 +39,7 @@ spec:
                   username: admin
                   password: "{{ password }}"
           repoURL: oci://ghcr.io/vadimzharov/charts/appset-manager
-          targetRevision: 0.0.4
+          targetRevision: 0.0.5
           path: .
       destination:
         server: '{{server}}'
