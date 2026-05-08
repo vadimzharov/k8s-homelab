@@ -81,8 +81,8 @@ spec:
                   PDBACKUP_BACKUP_INTERVAL: "1h"
                   PDBACKUP_RETENTION_KEEP_LATEST: "10"
                   PDBACKUP_FORCE_RESTORE: "false"
-                  PDBACKUP_SOURCE_DIR: /config/
-                  PDBACKUP_TARGET_DIR: /config/
+                  PDBACKUP_SOURCE_DIR: /config
+                  PDBACKUP_TARGET_DIR: /config
                   PDBACKUP_KOPIA_PASSWORD: {{ encryptpassword }}
                   PDBACKUP_HOSTNAME: firefox-v-config
             controllers:
