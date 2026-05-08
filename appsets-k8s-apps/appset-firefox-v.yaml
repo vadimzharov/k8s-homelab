@@ -69,24 +69,22 @@ spec:
                 labels: {}
                 annotations: {}
                 stringData:
-                  S3_ENDPOINT: {{ minioendpoint }}
-                  AWS_KEY: {{ miniokey }}
-                  AWS_SECRET_KEY: {{ miniosecretkey }}
+                  PDBACKUP_S3_ENDPOINT: {{ minioendpoint }}
+                  PDBACKUP_S3_ACCESS_KEY: {{ miniokey }}
+                  PDBACKUP_S3_SECRET_KEY: {{ miniosecretkey }}
             configMaps:
               b-r-settings:
                 enabled: true
                 data:
-                  AWS_BUCKET: "k8s-apps-backup"
-                  S3_BUCKET_FOLDER: "firefox-v-config"
-                  S3_FILE_PREFIX: "firefox-v-config"
-                  SKIP_PATH: "/config/.mozilla/firefox/fawoh5h3.default-release/lock"
-                  BACKUP_INTERVAL: "1h"
-                  PRUNE_INTERVAL: "48h"
-                  COPIES_TO_KEEP: "35"
-                  FORCE_RESTORE: "true"
-                  DIR_TO_BACKUP: /config/
-                  DIR_TO_RESTORE: /config/
-                  ARCHIVE_TYPE: targz
+                  PDBACKUP_S3_BUCKET: "k8s-apps-pdbackup"
+                  PDBACKUP_S3_PREFIX: "firefox-v-config"
+                  PDBACKUP_BACKUP_INTERVAL: "1h"
+                  PDBACKUP_RETENTION_KEEP_LATEST: "10"
+                  PDBACKUP_FORCE_RESTORE: "false"
+                  PDBACKUP_SOURCE_DIR: /config/
+                  PDBACKUP_TARGET_DIR: /config/
+                  PDBACKUP_KOPIA_PASSWORD: {{ encryptpassword }}
+                  PDBACKUP_HOSTNAME: firefox-v-config
             controllers:
               main:
                 type: deployment
@@ -94,11 +92,9 @@ spec:
                 initContainers:
                   firefox-restore:
                     image: 
-                      repository: quay.io/vadimzharov/podbackup
+                      repository: ghcr.io/vadimzharov/pdbackup
                       pullPolicy: IfNotPresent
                       tag: latest
-                    command:
-                      - podbackup
                     args:
                       - restore
                     envFrom:
@@ -118,13 +114,13 @@ spec:
                       PASSWORD: {{ password }}
                   firefox-backup-daemon:
                     image: 
-                      repository: quay.io/vadimzharov/podbackup
+                      repository: ghcr.io/vadimzharov/pdbackup
                       pullPolicy: IfNotPresent
                       tag: latest
                     command:
                       - podbackup
                     args:
-                      - backup-daemon
+                      - daemon
                     envFrom:
                     - secretRef:
                         name: firefox-b-r-secret
