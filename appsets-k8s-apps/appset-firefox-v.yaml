@@ -117,8 +117,6 @@ spec:
                       repository: ghcr.io/vadimzharov/pdbackup
                       pullPolicy: IfNotPresent
                       tag: latest
-                    command:
-                      - podbackup
                     args:
                       - daemon
                     envFrom:
