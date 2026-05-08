@@ -5,7 +5,9 @@ metadata:
   namespace: argocd
   annotations:
     appset-dashboard-appname: "NVIDIA GPU Operator"
-    appset-dashboard-groupname: "K8S tools"  
+    appset-dashboard-groupname: "K8S tools"
+  labels:
+    appset-dashboard-multicluster: "true"        
 spec:
   generators:
     - matrix:

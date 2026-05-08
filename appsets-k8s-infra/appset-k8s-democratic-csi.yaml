@@ -5,7 +5,9 @@ metadata:
   namespace: argocd
   annotations:
     appset-dashboard-appname: "Democratic CSI"
-    appset-dashboard-groupname: "K8S Storage"  
+    appset-dashboard-groupname: "K8S Storage"
+  labels:
+    appset-dashboard-locked: "true"          
 spec:
   syncPolicy:
     preserveResourcesOnDeletion: true

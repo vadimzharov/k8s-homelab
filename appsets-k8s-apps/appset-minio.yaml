@@ -2,7 +2,10 @@ apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
   name: minio-external
-  namespace: argocd  
+  namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Minio (old and deprecated)"
+    appset-dashboard-groupname: "K8S tools"    
 spec:
   generators:
     - matrix:

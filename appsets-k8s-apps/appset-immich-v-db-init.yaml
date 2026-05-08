@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: immich-v-db-init
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Immich-V - init DB (do not deploy)"
+    appset-dashboard-groupname: "Photos"  
 spec:
   generators:
   - matrix:

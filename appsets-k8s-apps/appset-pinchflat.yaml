@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: pinchflat
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Pinchflat (Youtube self-hosted)"
+    appset-dashboard-groupname: "Media"  
 spec:
   generators:
     - matrix:

@@ -5,7 +5,9 @@ metadata:
   namespace: argocd
   annotations:
     appset-dashboard-appname: "Pi-hole"
-    appset-dashboard-groupname: "K8S DNS tools"    
+    appset-dashboard-groupname: "K8S DNS tools"
+  labels:
+    appset-dashboard-multicluster: "true"    
 spec:
   generators:
     - matrix:

@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: spectro-harbor
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Harbor registry (Spectro/Deprecated)"
+    appset-dashboard-groupname: "K8S apps"
 spec:
   generators:
     - matrix:

@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: sonarqube
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "SonarQube"
+    appset-dashboard-groupname: "K8S tools"
 spec:
   generators:
     - matrix:

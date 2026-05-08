@@ -6,8 +6,6 @@ metadata:
   annotations:
     appset-dashboard-appname: "K8S MCP server"
     appset-dashboard-groupname: "AI tools"
-  labels:
-    appset-dashboard-locked: "true"    
 spec:
   generators:
     - matrix:

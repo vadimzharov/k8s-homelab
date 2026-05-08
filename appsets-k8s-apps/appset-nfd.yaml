@@ -6,6 +6,8 @@ metadata:
   annotations:
     appset-dashboard-appname: "Node Feature Discovery"
     appset-dashboard-groupname: "K8S tools"
+  labels:
+    appset-dashboard-multicluster: "true"      
 spec:
   generators:
   - clusters:

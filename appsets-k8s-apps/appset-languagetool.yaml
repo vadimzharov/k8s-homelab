@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: languagetool
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "LanguageTool"
+    appset-dashboard-groupname: "Cloud tools"  
 spec:
   generators:
     - matrix:

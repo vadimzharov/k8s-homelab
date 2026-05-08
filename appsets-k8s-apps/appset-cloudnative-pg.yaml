@@ -5,7 +5,10 @@ metadata:
   namespace: argocd
   annotations:
     appset-dashboard-appname: "CloudNativePG operator"
-    appset-dashboard-groupname: "K8S tools"  
+    appset-dashboard-groupname: "K8S tools"
+  labels:
+    appset-dashboard-locked: "true"
+    appset-dashboard-multicluster: "true"    
 spec:
   generators:
     - matrix:
