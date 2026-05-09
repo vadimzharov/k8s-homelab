@@ -32,7 +32,7 @@ spec:
             oauth:
               clientId: "{{ tailscaleclientid }}"
               clientSecret: "{{ tailscaleclientsecret }}"
-        repoURL: https://k3rnelpan1c-dev.github.io/tailscale-helm/
+        repoURL: https://pkgs.tailscale.com/helmcharts
         chart: tailscale-operator
         targetRevision: 1.96.5
       destination:
