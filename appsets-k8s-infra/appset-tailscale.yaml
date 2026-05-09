@@ -32,6 +32,8 @@ spec:
             oauth:
               clientId: "{{ tailscaleclientid }}"
               clientSecret: "{{ tailscaleclientsecret }}"
+            operatorConfig:
+              hostname: 'tailscale-{{ name }}'
         repoURL: https://pkgs.tailscale.com/helmcharts
         chart: tailscale-operator
         targetRevision: 1.96.5
