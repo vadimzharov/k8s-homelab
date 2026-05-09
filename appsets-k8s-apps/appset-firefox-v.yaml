@@ -94,7 +94,7 @@ spec:
                     image: 
                       repository: ghcr.io/vadimzharov/pdbackup
                       pullPolicy: IfNotPresent
-                      tag: latest
+                      tag: 0.0.2
                     args:
                       - restore
                     envFrom:
@@ -116,7 +116,7 @@ spec:
                     image: 
                       repository: ghcr.io/vadimzharov/pdbackup
                       pullPolicy: IfNotPresent
-                      tag: latest
+                      tag: 0.0.2
                     args:
                       - daemon
                     envFrom:
