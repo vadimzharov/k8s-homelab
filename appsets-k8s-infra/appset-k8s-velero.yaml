@@ -5,7 +5,9 @@ metadata:
   namespace: argocd
   annotations:
     appset-dashboard-appname: "Velero"
-    appset-dashboard-groupname: "K8S backup tools"    
+    appset-dashboard-groupname: "K8S backup tools"
+  labels:
+    appset-dashboard-multicluster: "true"        
 spec:
   syncPolicy:
     preserveResourcesOnDeletion: true
