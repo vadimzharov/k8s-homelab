@@ -1,0 +1,47 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: tailscale
+  namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Tailscale Operator"
+    appset-dashboard-groupname: "K8S tools"
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  tailscale: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-tailscale'
+    spec:
+      project: k8s-homelab-infra
+      sources:      
+      - helm:
+          releaseName: 'tailscale-{{ name }}'
+          values: |
+            oauth:
+              clientId: "{{ tailscaleclientid }}"
+              clientSecret: "{{ tailscaleclientsecret }}"
+        repoURL: https://k3rnelpan1c-dev.github.io/tailscale-helm/
+        chart: tailscale-operator
+        targetRevision: 1.96.5
+      destination:
+        server: '{{server}}' 
+        namespace: tailscale
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
