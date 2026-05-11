@@ -4,7 +4,7 @@ metadata:
   name: cert-manager
   namespace: argocd
   annotations:
-    appset-dashboard-appname: "Cert Manager"
+    appset-dashboard-appname: "Cert Manager (for Hub cluster)"
     appset-dashboard-groupname: "K8S Infra"
 spec:
   goTemplate: true

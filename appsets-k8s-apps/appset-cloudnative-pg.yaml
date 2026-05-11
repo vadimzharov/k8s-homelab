@@ -17,6 +17,7 @@ spec:
               selector:
                 matchLabels:
                   cloudnative-pg: "installed"
+                  cert-manager-standalone: "installed"
           - plugin:
               configMapRef:
                 name: argocd-secrets-plugin

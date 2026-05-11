@@ -4,8 +4,10 @@ metadata:
   name: cert-manager-standalone
   namespace: argocd
   annotations:
-    appset-dashboard-appname: "Cert Manager (Standalone)"
-    appset-dashboard-groupname: "K8S Infra"  
+    appset-dashboard-appname: "Cert Manager (Generic)"
+    appset-dashboard-groupname: "K8S Infra"
+  labels:
+    appset-dashboard-locked: "true"    
 spec:
   generators:
     - clusters:
