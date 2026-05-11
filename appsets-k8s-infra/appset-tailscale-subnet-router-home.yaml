@@ -1,0 +1,60 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: tailscale-subnet-router-home
+  namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Tailscale Subnet Router (Home)"
+    appset-dashboard-groupname: "K8S tools"
+  labels:
+    appset-dashboard-multicluster: "true"
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  tailscale-subnet-router-home: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-infra-secrets"
+  template:
+    metadata:
+      name: '{{name}}-tailscale-subnet-router-home'
+    spec:
+      project: k8s-homelab-infra
+      sources:      
+      - helm:
+          releaseName: tailscale-subnet-router-home-{{ name}}
+          values: |
+            controllers: 
+              main:
+               enabled: false
+            rawResources:
+              tailscale-connector:
+                apiVersion: tailscale.com/v1alpha1
+                kind: Connector              
+                spec:
+                  spec:
+                    exitNode: true
+                    hostnamePrefix: {{ name }}-home-networks
+                    replicas: 1
+                    subnetRouter:
+                      advertiseRoutes: {{ tailscalehomeroutes }}
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.4.0   
+      destination:
+        server: '{{server}}' 
+        namespace: tailscale-subnet-router-home
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
