@@ -68,10 +68,10 @@ spec:
                   targetPortal: "{{truenas-ip}}:3260"
                   interface:
                   namePrefix: csi-
-                  nameSuffix: "-cluster"
+                  nameSuffix: "-{{name}}"
                   targetGroups:
                     - targetGroupPortalGroup: 1
-                      targetGroupInitiatorGroup: 6
+                      targetGroupInitiatorGroup: {{truenas-tginitiatorgroup}}
                       targetGroupAuthType: None  
 
         repoURL: https://democratic-csi.github.io/charts/
