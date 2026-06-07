@@ -71,7 +71,7 @@ spec:
                   nameSuffix: "-{{name}}"
                   targetGroups:
                     - targetGroupPortalGroup: 1
-                      targetGroupInitiatorGroup: {{truenas-tginitiatorgroup}}
+                      targetGroupInitiatorGroup: "{{truenas-tginitiatorgroup}}"
                       targetGroupAuthType: None  
 
         repoURL: https://democratic-csi.github.io/charts/
