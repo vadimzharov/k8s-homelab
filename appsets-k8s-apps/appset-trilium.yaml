@@ -97,7 +97,7 @@ spec:
               pdbackup-settings:
                 enabled: true
                 data:
-                  PDBACKUP_S3_PREFIX: "trilium-backup"
+                  PDBACKUP_S3_PREFIX: "trilium-pdbackup"
                   PDBACKUP_SOURCE_DIR: "/home/node/trilium-data"
                   PDBACKUP_TARGET_DIR: "/home/node/trilium-data"
                   PDBACKUP_BACKUP_INTERVAL: "1h"
@@ -133,18 +133,30 @@ spec:
                       TRILIUM_PORT: "8080"
                   trilium-backup-daemon:
                     image: 
-                      repository: quay.io/vadimzharov/podbackup
+                      repository: ghcr.io/vadimzharov/pdbackup
                       pullPolicy: IfNotPresent
-                      tag: latest
-                    command:
-                      - podbackup
+                      tag: 0.0.3
                     args:
-                      - backup-daemon
+                      - daemon
                     envFrom:
                     - secretRef:
-                        name: trilium-b-r-secret
+                        name: trilium-pdbackup-secret
                     - configMapRef:
-                        name: trilium-b-r-settings
+                        name: trilium-pdbackup-settings
+                  # trilium-backup-daemon:
+                  #   image: 
+                  #     repository: quay.io/vadimzharov/podbackup
+                  #     pullPolicy: IfNotPresent
+                  #     tag: latest
+                  #   command:
+                  #     - podbackup
+                  #   args:
+                  #     - backup-daemon
+                  #   envFrom:
+                  #   - secretRef:
+                  #       name: trilium-b-r-secret
+                  #   - configMapRef:
+                  #       name: trilium-b-r-settings
         repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0
