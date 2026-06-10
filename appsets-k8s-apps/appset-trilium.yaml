@@ -103,7 +103,7 @@ spec:
                   PDBACKUP_BACKUP_INTERVAL: "1h"
                   PDBACKUP_HOSTNAME: "trilium"
                   PDBACKUP_RETENTION_KEEP_LATEST: "35"
-                  PDBACKUP_FORCE_RESTORE: "False"                        
+                  PDBACKUP_FORCE_RESTORE: "true"                        
             controllers:
               main:
                 type: deployment
@@ -111,18 +111,30 @@ spec:
                 initContainers:
                   trilium-restore:
                     image: 
-                      repository: quay.io/vadimzharov/podbackup
+                      repository: ghcr.io/vadimzharov/pdbackup
                       pullPolicy: IfNotPresent
-                      tag: latest
-                    command:
-                      - podbackup
+                      tag: 0.0.3
                     args:
                       - restore
                     envFrom:
                     - secretRef:
-                        name: trilium-b-r-secret
+                        name: trilium-pdbackup-secret
                     - configMapRef:
-                        name: trilium-b-r-settings
+                        name: trilium-pdbackup-settings             
+                  # trilium-restore:
+                  #   image: 
+                  #     repository: quay.io/vadimzharov/podbackup
+                  #     pullPolicy: IfNotPresent
+                  #     tag: latest
+                  #   command:
+                  #     - podbackup
+                  #   args:
+                  #     - restore
+                  #   envFrom:
+                  #   - secretRef:
+                  #       name: trilium-b-r-secret
+                  #   - configMapRef:
+                  #       name: trilium-b-r-settings
                 containers:
                   main:
                     image:
