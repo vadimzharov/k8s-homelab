@@ -123,18 +123,16 @@ spec:
                 initContainers:
                   hass-restore:
                     image: 
-                      repository: quay.io/vadimzharov/podbackup
+                      repository: ghcr.io/vadimzharov/pdbackup
                       pullPolicy: IfNotPresent
-                      tag: latest
-                    command:
-                      - podbackup
+                      tag: 0.0.3
                     args:
                       - restore
                     envFrom:
                     - secretRef:
-                        name: hass-b-r-secret
+                        name: hass-pdbackup-secret
                     - configMapRef:
-                        name: hass-b-r-settings
+                        name: hass-pdbackup-settings
                 containers:
                   main:
                     image:
