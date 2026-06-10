@@ -85,6 +85,15 @@ spec:
                   AWS_KEY: {{ awskey }}
                   AWS_SECRET_KEY: {{ awssecretkey }}
                   ENCRYPT_PASSWORD: {{ encryptpassword }}
+              pdbackup-secret:
+                enabled: true
+                labels: {}
+                annotations: {}
+                stringData:
+                  PDBACKUP_S3_BUCKET: {{ awsbucket }}
+                  PDBACKUP_S3_ACCESS_KEY: {{ awskey }}
+                  PDBACKUP_S3_SECRET_KEY: {{ awssecretkey }}
+                  PDBACKUP_KOPIA_PASSWORD: {{ encryptpassword }}                      
             configMaps:
               b-r-settings:
                 enabled: true
@@ -96,7 +105,17 @@ spec:
                   BACKUP_INTERVAL: "24h"
                   PRUNE_INTERVAL: "48h"
                   COPIES_TO_KEEP: "35"
-                  FORCE_RESTORE: "True"  
+                  FORCE_RESTORE: "True"
+              pdbackup-settings:
+                enabled: true
+                data:
+                  PDBACKUP_S3_PREFIX: "hass-pbbackup"
+                  PDBACKUP_SOURCE_DIR: "/config"
+                  PDBACKUP_TARGET_DIR: "/config"  
+                  PDBACKUP_BACKUP_INTERVAL: "24h"
+                  PDBACKUP_HOSTNAME: "hass"
+                  PDBACKUP_RETENTION_KEEP_LATEST: "35"
+                  PDBACKUP_FORCE_RESTORE: "true"
             controllers:
               main:
                 type: deployment
@@ -126,18 +145,16 @@ spec:
                       TZ: UTC
                   hass-backup-daemon:
                     image: 
-                      repository: quay.io/vadimzharov/podbackup
+                      repository: ghcr.io/vadimzharov/pdbackup
                       pullPolicy: IfNotPresent
-                      tag: latest
-                    command:
-                      - podbackup
+                      tag: 0.0.3
                     args:
-                      - backup-daemon
+                      - daemon
                     envFrom:
                     - secretRef:
-                        name: hass-b-r-secret
+                        name: hass-pdbackup-secret
                     - configMapRef:
-                        name: hass-b-r-settings
+                        name: hass-pdbackup-settings
         repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0
