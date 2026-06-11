@@ -36,18 +36,16 @@ spec:
                 initContainers:
                   sonarr-restore-config:
                     image: 
-                      repository: quay.io/vadimzharov/podbackup
+                      repository: ghcr.io/vadimzharov/pdbackup
                       pullPolicy: IfNotPresent
-                      tag: latest
-                    command:
-                      - podbackup
+                      tag: 0.0.3
                     args: 
                       - restore
                     envFrom:
-                    - configMapRef:
-                        name: sonarr-b-r-settings
                     - secretRef:
-                        name: sonarr-b-r-creds                
+                       name: sonarr-pdbackup-secret
+                    - configMapRef:
+                       name: sonarr-pdbackup-settings            
                 containers:
                   main:
                     image: 
