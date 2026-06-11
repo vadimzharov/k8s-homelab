@@ -42,10 +42,10 @@ spec:
                     args: 
                       - restore
                     envFrom:
-                    - configMapRef:
-                        name: radarr-b-r-settings
                     - secretRef:
-                        name: radarr-b-r-creds                
+                       name: radarr-pdbackup-secret
+                    - configMapRef:
+                       name: radarr-pdbackup-settings             
                 containers:
                   main:
                     image: 
