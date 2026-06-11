@@ -142,18 +142,22 @@ spec:
                 initContainers:
                   jellyfin-restore:
                     image: 
-                      repository: quay.io/vadimzharov/podbackup
+                      repository: ghcr.io/vadimzharov/pdbackup
                       pullPolicy: IfNotPresent
-                      tag: latest
-                    command:
-                      - podbackup
+                      tag: 0.0.3
+                    #command:
+                    #  - podbackup
                     args:
                       - restore
                     envFrom:
                     - secretRef:
-                        name: jellyfin-b-r-secret
+                       name: jellyfin-pdbackup-secret
                     - configMapRef:
-                        name: jellyfin-b-r-settings
+                       name: jellyfin-pdbackup-settings                    
+                    # - secretRef:
+                    #     name: jellyfin-b-r-secret
+                    # - configMapRef:
+                    #     name: jellyfin-b-r-settings
                 containers:
                   main:
                     image:
