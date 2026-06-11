@@ -56,16 +56,16 @@ spec:
                       tag: latest
                   sonarr-backup-config-daemon:
                     image: 
-                      repository: quay.io/vadimzharov/podbackup
+                      repository: ghcr.io/vadimzharov/pdbackup
                       pullPolicy: IfNotPresent
-                      tag: latest
-                    command: ["podbackup"]
-                    args: ["backup-daemon"]
+                      tag: 0.0.3
+                    args:
+                      - daemon
                     envFrom:
-                    - configMapRef:
-                        name: sonarr-b-r-settings
                     - secretRef:
-                        name: sonarr-b-r-creds
+                       name: sonarr-pdbackup-secret
+                    - configMapRef:
+                       name: sonarr-pdbackup-settings    
             service:
               main:
                 primary: true
@@ -116,6 +116,17 @@ spec:
                   - path: /tranarr
                     readOnly: false                    
             configMaps:
+              pdbackup-settings:
+                enabled: true
+                data:
+                  PDBACKUP_S3_BUCKET: "k8s-apps-pdbackup"                
+                  PDBACKUP_S3_PREFIX: "sonarr-pbbackup"
+                  PDBACKUP_SOURCE_DIR: "/config"
+                  PDBACKUP_TARGET_DIR: "/config"  
+                  PDBACKUP_BACKUP_INTERVAL: "1h"
+                  PDBACKUP_HOSTNAME: "sonarr"
+                  PDBACKUP_RETENTION_KEEP_LATEST: "10"
+                  PDBACKUP_FORCE_RESTORE: "true"                
               b-r-settings:
                 enabled: true
                 data:
@@ -130,6 +141,15 @@ spec:
                   DIR_TO_RESTORE: /config
                   ARCHIVE_TYPE: targz
             secrets:
+              pdbackup-secret:
+                enabled: true
+                labels: {}
+                annotations: {}
+                stringData:
+                  PDBACKUP_S3_ENDPOINT: "http://{{ minioendpoint }}"
+                  PDBACKUP_S3_ACCESS_KEY: {{ miniokey }}
+                  PDBACKUP_S3_SECRET_KEY: {{ miniosecretkey }}
+                  PDBACKUP_KOPIA_PASSWORD: {{ encryptpassword }}            
               b-r-creds:
                 enabled: true
                 labels: {}
