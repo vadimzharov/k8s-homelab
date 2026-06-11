@@ -57,7 +57,7 @@ spec:
                       image:
                         repository: ghcr.io/immich-app/immich-server
                         pullPolicy: IfNotPresent
-                        tag: v2.6.0
+                        tag: v2.6.3
                       env:
                         DB_HOSTNAME:
                           valueFrom:
