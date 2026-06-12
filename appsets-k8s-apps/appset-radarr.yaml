@@ -57,7 +57,6 @@ spec:
                       repository: ghcr.io/vadimzharov/pdbackup
                       pullPolicy: IfNotPresent
                       tag: 0.0.3
-                    #command: ["podbackup"]
                     args:
                       - daemon
                     envFrom:
@@ -65,10 +64,6 @@ spec:
                        name: radarr-pdbackup-secret
                     - configMapRef:
                        name: radarr-pdbackup-settings                    
-                    # - configMapRef:
-                    #     name: radarr-b-r-settings
-                    # - secretRef:
-                    #     name: radarr-b-r-creds
             service:
               main:
                 primary: true
@@ -129,20 +124,7 @@ spec:
                   PDBACKUP_BACKUP_INTERVAL: "1h"
                   PDBACKUP_HOSTNAME: "radarr"
                   PDBACKUP_RETENTION_KEEP_LATEST: "10"
-                  PDBACKUP_FORCE_RESTORE: "true"            
-              b-r-settings:
-                enabled: true
-                data:
-                  AWS_BUCKET: "arr-bkp"
-                  S3_BUCKET_FOLDER: "radarr-config"
-                  S3_FILE_PREFIX: "radarr-config"
-                  BACKUP_INTERVAL: "1h"
-                  PRUNE_INTERVAL: "48h"
-                  COPIES_TO_KEEP: "35"
-                  FORCE_RESTORE: "true"
-                  DIR_TO_BACKUP: /config
-                  DIR_TO_RESTORE: /config
-                  ARCHIVE_TYPE: targz
+                  PDBACKUP_FORCE_RESTORE: "true"
             secrets:
               pdbackup-secret:
                 enabled: true
@@ -153,14 +135,6 @@ spec:
                   PDBACKUP_S3_ACCESS_KEY: {{ miniokey }}
                   PDBACKUP_S3_SECRET_KEY: {{ miniosecretkey }}
                   PDBACKUP_KOPIA_PASSWORD: {{ encryptpassword }}
-              b-r-creds:
-                enabled: true
-                labels: {}
-                annotations: {}
-                stringData:
-                  S3_ENDPOINT: {{ minioendpoint }}
-                  AWS_KEY: {{ miniokey }}
-                  AWS_SECRET_KEY: {{ miniosecretkey }}
             rawResources:
               tranarr-pv:
                 apiVersion: v1
