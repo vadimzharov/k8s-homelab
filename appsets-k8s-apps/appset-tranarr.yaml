@@ -39,18 +39,16 @@ spec:
                 initContainers:
                   tranarr-restore-config:
                     image: 
-                      repository: quay.io/vadimzharov/podbackup
+                      repository: ghcr.io/vadimzharov/pdbackup
                       pullPolicy: IfNotPresent
-                      tag: latest
-                    command:
-                      - podbackup
+                      tag: 0.0.3
                     args: 
                       - restore
                     envFrom:
                     - configMapRef:
-                        name: tranarr-b-r-settings
+                        name: tranarr-pdbackup-settings  
                     - secretRef:
-                        name: tranarr-b-r-creds                
+                        name: tranarr-pdbackup-secret            
                 containers:
                   main:
                     image: 
