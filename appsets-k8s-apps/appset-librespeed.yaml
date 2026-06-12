@@ -38,7 +38,7 @@ spec:
                   main:
                     image: 
                       repository: ghcr.io/librespeed/speedtest
-                      pullPolicy: IfNotPresent
+                      pullPolicy: Always
                       tag: latest
             service:
               main:
