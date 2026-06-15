@@ -72,7 +72,7 @@ spec:
                   #- name: {{ mesh-peer-cluster2name }}
                   #  address: {{ mesh-peer-cluster2address }}
                   #  port:  {{ mesh-peer-cluster2port }}                    
-              useAPIServer: true
+              useAPIServer: false
             ipv4:
               enabled: true
             nodePort:
