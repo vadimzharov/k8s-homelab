@@ -113,7 +113,8 @@ spec:
                 ingress:
                   enabled: true
                   labels:
-                    k8s-dashboard-group: Network-tools
+                    k8s-dashboard-group: Dashboards
+                    k8s-dashboard-app: Cilium Hubble UI
                   hosts:
                     - hubble-ui-{{ name }}.apps.{{ mesh-domain }}                
               tls:
