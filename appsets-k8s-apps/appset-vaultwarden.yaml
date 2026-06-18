@@ -47,7 +47,7 @@ spec:
             route:
               main:
                 enabled: true
-                labels:
+                annotations:
                   k8s-dashboard-group: Tools
                   k8s-dashboard-appname: Vaultwarden
                 kind: HTTPRoute
