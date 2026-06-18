@@ -6,6 +6,8 @@ metadata:
   annotations:
     appset-dashboard-appname: "Applications Dashboard"
     appset-dashboard-groupname: "Dashboards"
+    k8s-dashboard-group: "Dashboards"
+    k8s-dashboard-appname: "My applications"    
 spec:
   generators:
     - matrix:

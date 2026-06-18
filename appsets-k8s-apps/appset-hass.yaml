@@ -6,6 +6,8 @@ metadata:
   annotations:
     appset-dashboard-appname: "Home Assistant"
     appset-dashboard-groupname: "Home automation"
+    k8s-dashboard-group: "Home automation"
+    k8s-dashboard-appname: "Home Assistant"    
 spec:
   generators:
     - matrix:

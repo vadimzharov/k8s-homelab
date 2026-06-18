@@ -6,6 +6,7 @@ metadata:
   annotations:
     appset-dashboard-appname: "Headlamp Kubernetes dashboard"
     appset-dashboard-groupname: "K8S tools"
+        
   labels:
     appset-dashboard-multicluster: "true"
 spec:
@@ -52,9 +53,9 @@ spec:
                 metadata:
                   name: headlamp-route
                   namespace: headlamp
-                  labels:
+                  annotations:
                     k8s-dashboard-group: Dashboards
-                    k8s-dashboard-appname: K8S-cluster-{{ name }}
+                    k8s-dashboard-appname: "{{name}} - Headlamp Kubernetes dashboard"
                 spec:
                   parentRefs:
                     - name: cilium-gw

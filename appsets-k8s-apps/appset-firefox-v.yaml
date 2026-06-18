@@ -5,7 +5,9 @@ metadata:
   namespace: argocd
   annotations:
     appset-dashboard-appname: "Firefox browser"
-    appset-dashboard-groupname: "Remote access"  
+    appset-dashboard-groupname: "Remote access"
+    k8s-dashboard-group: "Remote work"
+    k8s-dashboard-appname: "Firefox browser"      
 spec:
   generators:
     - matrix:
