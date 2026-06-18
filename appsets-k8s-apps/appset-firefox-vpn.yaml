@@ -43,9 +43,9 @@ spec:
               main:
                 enabled: true
                 kind: HTTPRoute
-                labels:
-                  k8s-dashboard-group: Remote-work
-                  k8s-dashboard-appname: Firefox-VPN                  
+                annotations:
+                  k8s-dashboard-group: Remote work
+                  k8s-dashboard-appname: Firefox browser via VPN
                 parentRefs:
                   - name: cilium-gw
                     namespace: cilium-system

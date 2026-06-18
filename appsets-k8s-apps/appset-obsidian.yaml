@@ -41,8 +41,9 @@ spec:
               main:
                 enabled: true
                 kind: HTTPRoute
-                labels:
-                  k8s-dashboard-group: Remote-work                
+                annotations:
+                  k8s-dashboard-group: Remote work
+                  k8s-dashboard-appname: Obsidian
                 parentRefs:
                   - name: cilium-gw
                     namespace: cilium-system

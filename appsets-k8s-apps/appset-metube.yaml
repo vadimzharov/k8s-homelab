@@ -41,7 +41,7 @@ spec:
               main:
                 enabled: true
                 kind: HTTPRoute
-                labels:
+                annotations:
                   k8s-dashboard-group: Media
                   k8s-dashboard-appname: MeTube
                 parentRefs:
