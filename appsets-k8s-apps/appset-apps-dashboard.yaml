@@ -35,20 +35,20 @@ spec:
             image:
               repository: quay.io/vadimzharov/homelab-k8s-dashboard
               pullPolicy: Always
-              tag: "v0.0.4"
+              tag: "v0.1.2"
             ingress:
               enabled: true
               pathType: Prefix
               paths:
                 - /
               class: nginx
-              annotations: {}
               hosts:
                 - host: my.{{ domainname }}
                   paths:
                     - /
-              labels:
-                k8s-dashboard-group: Dashboards                    
+              annotations:
+                k8s-dashboard-group: Dashboards
+                k8s-dashboard-appname: My applications
             routeRefreshInterval: "1m"
             ui:
               header: "My Homelab Dashboard"
