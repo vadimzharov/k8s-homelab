@@ -86,9 +86,9 @@ spec:
                 main:
                   enabled: true
                   kind: HTTPRoute
-                  labels:
+                  annotations:
                     k8s-dashboard-group: Photos
-                    k8s-dashboard-appname: Immich-V
+                    k8s-dashboard-appname: Immich (v)
                   parentRefs:
                     - name: cilium-gw
                       namespace: cilium-system

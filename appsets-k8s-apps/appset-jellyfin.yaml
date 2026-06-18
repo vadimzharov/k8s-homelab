@@ -39,7 +39,7 @@ spec:
             ingress:
               main:
                 enabled: true
-                labels:
+                annotations:
                   k8s-dashboard-group: Media
                   k8s-dashboard-appname: Jellyfin
                 className: nginx

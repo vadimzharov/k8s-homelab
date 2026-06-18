@@ -63,6 +63,9 @@ spec:
               kagent-httproute:
                 apiVersion: gateway.networking.k8s.io/v1beta1
                 kind: HTTPRoute
+                annotations:
+                  k8s-dashboard-group: AI tools
+                  k8s-dashboard-appname: KAgent - AI for K8S                
                 spec:
                   spec:
                     parentRefs:
