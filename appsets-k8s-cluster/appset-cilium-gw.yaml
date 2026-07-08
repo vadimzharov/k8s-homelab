@@ -126,12 +126,12 @@ spec:
         chart: cilium
         targetRevision: '{{metadata.labels.cilium-version}}'
       - repoURL: https://github.com/kubernetes-sigs/gateway-api.git
-        targetRevision: 'v1.2.0'
+        targetRevision: 'v1.4.1'
         path: config/crd/standard
-      - repoURL: https://github.com/kubernetes-sigs/gateway-api.git
-        targetRevision: 'v1.2.0'
-        path: config/crd/experimental/
-        include: 'gateway.networking.k8s.io_tlsroutes.yaml'
+      #- repoURL: https://github.com/kubernetes-sigs/gateway-api.git
+      #  targetRevision: 'v1.2.0'
+      #  path: config/crd/experimental/
+      #  include: 'gateway.networking.k8s.io_tlsroutes.yaml'
       destination:
         server: '{{server}}'
         namespace: kube-system
