@@ -5,7 +5,7 @@ metadata:
   namespace: argocd
   annotations:
     appset-dashboard-appname: "Harbor registry"
-    appset-dashboard-groupname: "K8S apps"
+    appset-dashboard-groupname: "K8S tools"
     k8s-dashboard-group: "Tools"
     k8s-dashboard-appname: "Harbor registry"              
 spec:

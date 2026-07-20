@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: jfrog-jcr
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "JFrog JCR"
+    appset-dashboard-groupname: "K8S tools"  
 spec:
   generators:
     - matrix:

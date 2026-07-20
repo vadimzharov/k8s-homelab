@@ -5,7 +5,7 @@ metadata:
   namespace: argocd
   annotations:
     appset-dashboard-appname: "Harbor registry (Spectro/Deprecated)"
-    appset-dashboard-groupname: "K8S apps"
+    appset-dashboard-groupname: "K8S tools"
 spec:
   generators:
     - matrix:
