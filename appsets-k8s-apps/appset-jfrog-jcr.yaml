@@ -1,0 +1,57 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: jfrog-jcr
+  namespace: argocd
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  jfrog-jcr: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-jfrog-jcr'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: jfrog-jcr
+          values: |
+            artifactory:
+              artifactory:
+                masterKey: {{ jfrogmasterkey }}
+                joinKey: {{ jfrogjoinkey }}
+
+              postgresql:
+                auth:
+                  password: "{{harborpgpassword}}"
+
+              ingress:
+                enabled: false
+
+              artifactory:
+                service:
+                  type: ClusterIP          
+
+        repoURL: https://charts.jfrog.io
+        chart: jfrog/artifactory-jcr
+        targetRevision: 107.133.17
+      destination:
+        server: '{{server}}' 
+        namespace: jfrog-jcr
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
