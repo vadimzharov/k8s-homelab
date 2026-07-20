@@ -33,10 +33,20 @@ spec:
               artifactory:
                 masterKey: {{ jfrogmasterkey }}
                 joinKey: {{ jfrogjoinkey }}
+              persistence:
+                enabled: true
+                storageClassName: synas-csi-delete
+                accessMode: ReadWriteOnce
+                size: 100Gi                
 
               postgresql:
                 auth:
                   password: "{{harborpgpassword}}"
+              primary:
+                persistence:
+                  enabled: true
+                  storageClass: synas-csi-delete
+                  size: 20Gi                  
 
               ingress:
                 enabled: false
