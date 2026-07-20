@@ -46,7 +46,7 @@ spec:
                   type: ClusterIP          
 
         repoURL: https://charts.jfrog.io
-        chart: jfrog/artifactory-jcr
+        chart: artifactory-jcr
         targetRevision: 107.133.17
       destination:
         server: '{{server}}' 
