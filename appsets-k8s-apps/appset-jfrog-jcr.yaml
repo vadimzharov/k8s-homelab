@@ -42,11 +42,11 @@ spec:
               postgresql:
                 auth:
                   password: "{{harborpgpassword}}"
-              primary:
-                persistence:
-                  enabled: true
-                  storageClass: synas-csi-delete
-                  size: 20Gi                  
+                primary:
+                  persistence:
+                    enabled: true
+                    storageClass: synas-csi-delete
+                    size: 20Gi                  
 
               ingress:
                 enabled: false
