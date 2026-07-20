@@ -50,6 +50,8 @@ spec:
 
               ingress:
                 enabled: false
+              nginx:
+                enabled: false
 
               artifactory:
                 service:
