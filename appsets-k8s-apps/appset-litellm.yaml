@@ -1,0 +1,166 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: litellm
+  namespace: argocd
+  annotations:
+    appset-dashboard-appname: "LiteLLM"
+    appset-dashboard-groupname: "AI tools"
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  litellm: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-litellm'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: litellm
+          values: |
+            replicaCount: 1
+
+            service:
+              type: ClusterIP
+              port: 4000
+
+            # No Ingress - using Gateway API HTTPRoute instead (see extraResources below).
+            ingress:
+              enabled: false
+
+            # Leave unset: the chart auto-generates a random `sk-...` master key and
+            # stores it in a Secret named "<release-name>-masterkey" / key "masterkey".
+            # Retrieve it with:
+            #   kubectl get secret litellm-masterkey -n litellm -o jsonpath='{.data.masterkey}' | base64 -d
+            masterkeySecretName: ""
+            masterkeySecretKey: ""
+
+            # Provider API keys are NOT stored here. Create this Secret out-of-band
+            # before installing:
+            #   kubectl create secret generic litellm-provider-keys -n litellm \
+            #     --from-literal=OPENAI_API_KEY=sk-... \
+            #     --from-literal=ANTHROPIC_API_KEY=sk-ant-...
+            # Its keys are exposed to the proxy pod as env vars and referenced from
+            # proxy_config below via `os.environ/<KEY>`.
+            environmentSecrets:
+              - litellm-provider-keys
+
+            proxy_config:
+              model_list:
+                # --- Cloud backends ---
+                - model_name: gpt-4o-mini
+                  litellm_params:
+                    model: openai/gpt-4o-mini
+                    api_key: os.environ/OPENAI_API_KEY
+
+                #- model_name: claude-sonnet
+                #  litellm_params:
+                #    model: anthropic/claude-sonnet-4-5
+                #    api_key: os.environ/ANTHROPIC_API_KEY
+
+                # --- Self-hosted backend ---
+                # Open question (see docs/01-foundation.md): which model to serve via
+                # vLLM, and its in-cluster Service name. Uncomment and fill in once
+                # vLLM is deployed.
+                # - model_name: local-llama
+                #   litellm_params:
+                #     model: hosted_vllm/<served-model-name>
+                #     api_base: http://vllm.vllm.svc.cluster.local:8000/v1
+                #     api_key: "not-needed"
+
+              general_settings:
+                master_key: os.environ/PROXY_MASTER_KEY
+
+            resources:
+              requests:
+                cpu: 250m
+                memory: 256Mi
+              limits:
+                cpu: "1"
+                memory: 512Mi
+
+            # Single replica for now: cross-pod rate limiting / spend coordination isn't
+            # needed yet. Set redis.enabled: true if replicaCount is ever raised above 1.
+            redis:
+              enabled: false
+
+            db:
+              deployStandalone: true
+
+            # Bundled Bitnami postgresql subchart, used because db.deployStandalone: true.
+            # SECURITY: the chart reads postgresql.auth.password/postgres-password
+            # directly from values to build its own DB credentials Secret, so a real
+            # password placed here WILL end up both in this file and in a rendered
+            # Kubernetes Secret. Do not commit real values — override at install time:
+            #   helm install litellm ./litellm-helm -n litellm --create-namespace \
+            #     -f values.yaml \
+            #     --set postgresql.auth.password=<generated> \
+            #     --set postgresql.auth.postgres-password=<generated>
+            postgresql:
+              auth:
+                username: litellm
+                database: litellm
+                password: "NoTaGrEaTpAsSwOrD"
+                postgres-password: "NoTaGrEaTpAsSwOrD"
+              primary:
+                persistence:
+                  enabled: true
+                  storageClass: "synas-csi-delete"
+                  size: 8Gi
+
+            # No PodDisruptionBudget: single replica, a PDB wouldn't protect anything.
+            pdb:
+              enabled: false
+
+            # Gateway API HTTPRoute, shipped as part of this release instead of Ingress.
+            # FILL IN before installing:
+            #   - parentRefs[0].name / namespace: your existing Gateway resource
+            #   - hostnames[0]: the hostname you want to route to LiteLLM
+            extraResources:
+              - apiVersion: v1
+                kind: Secret
+                metadata:
+                  name: litellm-provider-keys
+                  namespace: litellm
+                type: Opaque
+                stringData:
+                  OPENAI_API_KEY: "{{litellm-openai-api-key}}"
+            #      ANTHROPIC_API_KEY: "{{litellm-anthropic-api-key}}"
+              - apiVersion: gateway.networking.k8s.io/v1
+                kind: HTTPRoute
+                metadata:
+                  name: litellm
+                  namespace: litellm
+                spec:
+                  parentRefs:
+                    - name: "cilium-gw"
+                      namespace: "cilium-system"
+                  hostnames:
+                    - "litellm.{{ domainname }}"
+                  rules:
+                    - backendRefs:
+                        - name: litellm
+                          port: 4000
+        repoURL: oci://ghcr.io/berriai/litellm-helm
+        targetRevision: 1.93.0
+      destination:
+        server: '{{server}}' 
+        namespace: litellm
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
