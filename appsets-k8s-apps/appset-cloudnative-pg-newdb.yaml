@@ -60,6 +60,19 @@ spec:
                           key: secretkey
                       wal:
                         compression: gzip            
+              scheduledbackup:
+                apiVersion: postgresql.cnpg.io/v1
+                kind: ScheduledBackup
+                forceRename: "{{ metadata.labels.cnpg-newdb-name }}-db-backup"
+                spec:
+                  spec:
+                    schedule: "*/15 * * * *" 
+                    backupOwnerReference: self
+                    cluster:
+                      name: "{{ metadata.labels.cnpg-newdb-name }}-db"
+                    method: plugin
+                    pluginConfiguration:
+                      name: barman-cloud.cloudnative-pg.io                         
               pgsqlcluster:
                 apiVersion: postgresql.cnpg.io/v1
                 kind: Cluster

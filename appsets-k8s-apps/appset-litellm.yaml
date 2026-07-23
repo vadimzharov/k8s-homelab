@@ -103,7 +103,14 @@ spec:
               enabled: false
 
             db:
-              deployStandalone: true
+              deployStandalone: false
+              useExisting: true
+              database: litellm
+              secret:
+                name: litellm-postgres-app
+                usernameKey: username
+                passwordKey: password
+                endpointKey: host              
 
             # Bundled Bitnami postgresql subchart, used because db.deployStandalone: true.
             # SECURITY: the chart reads postgresql.auth.password/postgres-password
@@ -114,21 +121,21 @@ spec:
             #     -f values.yaml \
             #     --set postgresql.auth.password=<generated> \
             #     --set postgresql.auth.postgres-password=<generated>
-            postgresql:
-              image:
-                registry: docker.io
-                repository: bitnamilegacy/postgresql
-                tag: 16.2.0-debian-12-r6            
-              auth:
-                username: litellm
-                database: litellm
-                password: "NoTaGrEaTpAsSwOrD"
-                postgres-password: "NoTaGrEaTpAsSwOrD"
-              primary:
-                persistence:
-                  enabled: true
-                  storageClass: "synas-csi-delete"
-                  size: 8Gi
+            # postgresql:
+            #   image:
+            #     registry: docker.io
+            #     repository: bitnamilegacy/postgresql
+            #     tag: 16.2.0-debian-12-r6            
+            #   auth:
+            #     username: litellm
+            #     database: litellm
+            #     password: "NoTaGrEaTpAsSwOrD"
+            #     postgres-password: "NoTaGrEaTpAsSwOrD"
+            #   primary:
+            #     persistence:
+            #       enabled: true
+            #       storageClass: "synas-csi-delete"
+            #       size: 8Gi
 
             # No PodDisruptionBudget: single replica, a PDB wouldn't protect anything.
             pdb:
