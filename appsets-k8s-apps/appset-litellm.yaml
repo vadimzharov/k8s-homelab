@@ -38,11 +38,8 @@ spec:
             # No Ingress - using Gateway API HTTPRoute instead (see extraResources below).
             ingress:
               enabled: false
-
-            # Leave unset: the chart auto-generates a random `sk-...` master key and
-            # stores it in a Secret named "<release-name>-masterkey" / key "masterkey".
-            # Retrieve it with:
-            #   kubectl get secret litellm-masterkey -n litellm -o jsonpath='{.data.masterkey}' | base64 -d
+            
+            masterkey: "{{litellm-master-key}}"
             masterkeySecretName: ""
             masterkeySecretKey: ""
 
