@@ -107,7 +107,7 @@ spec:
               useExisting: true
               database: litellm
               secret:
-                name: litellm-postgres-app
+                name: litellm-db-app
                 usernameKey: username
                 passwordKey: password
                 endpointKey: host              
