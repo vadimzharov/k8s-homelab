@@ -63,7 +63,7 @@ spec:
               pgsqlcluster:
                 apiVersion: postgresql.cnpg.io/v1
                 kind: Cluster
-                forceRename: "{{ metadata.labels.cnpg-newdb-name }}"
+                forceRename: "{{ metadata.labels.cnpg-newdb-name }}-db"
                 spec:
                   spec:
                     instances: 1
