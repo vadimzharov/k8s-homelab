@@ -1,0 +1,98 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: cloudnative-pg-newdb
+  namespace: argocd
+  annotations:
+    appset-dashboard-appname: "New Postgres DB"
+    appset-dashboard-groupname: "K8S Tools"  
+spec:
+  generators:
+  - matrix:
+      generators:
+        - clusters:
+            selector:
+              matchLabels:
+                cnpg-newdb: "init"
+                cloudnative-pg: "installed"
+        - plugin:
+            configMapRef:
+              name: argocd-secrets-plugin
+            input:
+              parameters:
+                secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-cloudnative-pg-newdb'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: cnpg-newdb
+          values: |
+            controllers: 
+              main:
+               enabled: false
+            rawResources:
+              minio-credentials:
+                apiVersion: v1
+                kind: Secret
+                forceRename: "minio-credentials"
+                spec:
+                  stringData:
+                    accesskey: {{ miniokey }}
+                    secretkey: {{ miniosecretkey }}
+              backupobjectstore:
+                apiVersion: barmancloud.cnpg.io/v1
+                kind: ObjectStore
+                forceRename: "{{ metadata.labels.cnpg-newdb-name }}-db-backup"
+                spec:
+                  spec:
+                    configuration:
+                      destinationPath: s3://cloudnative-pg-backups/{{ metadata.labels.cnpg-newdb-name }}-db/
+                      endpointURL: http://{{ minioendpoint }}
+                      s3Credentials:
+                        accessKeyId:
+                          name:  minio-credentials
+                          key: accesskey
+                        secretAccessKey:
+                          name: minio-credentials
+                          key: secretkey
+                      wal:
+                        compression: gzip            
+              pgsqlcluster:
+                apiVersion: postgresql.cnpg.io/v1
+                kind: Cluster
+                forceRename: "{{ metadata.labels.cnpg-newdb-name }}"
+                spec:
+                  spec:
+                    instances: 1
+
+                    storage:
+                      size: 10Gi
+                      storageClass: synas-csi-delete
+
+                    imageName: ghcr.io/cloudnative-pg/postgresql:16.9-standard-bookworm
+
+                    plugins:
+                    - name: barman-cloud.cloudnative-pg.io
+                      isWALArchiver: true
+                      parameters:
+                        barmanObjectName: "{{ metadata.labels.cnpg-newdb-name }}-db-backup"
+                    bootstrap:
+                      initdb:
+                        database: {{ metadata.labels.cnpg-newdb-name }}
+                        owner: {{ metadata.labels.cnpg-newdb-name }}
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.4.0
+      destination:
+        server: '{{server}}' 
+        namespace: "{{ metadata.labels.cnpg-newdb-namespace }}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
