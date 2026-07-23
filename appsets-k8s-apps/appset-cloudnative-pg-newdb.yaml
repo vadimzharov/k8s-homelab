@@ -66,7 +66,7 @@ spec:
                 forceRename: "{{ metadata.labels.cnpg-newdb-name }}-db-backup"
                 spec:
                   spec:
-                    schedule: "*/15 * * * *" 
+                    schedule: "0 */15 * * * *" 
                     backupOwnerReference: self
                     cluster:
                       name: "{{ metadata.labels.cnpg-newdb-name }}-db"
