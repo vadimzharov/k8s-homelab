@@ -62,7 +62,7 @@ spec:
             #  value: "true"
         repoURL: https://helm.openwebui.com/
         chart: open-webui
-        targetRevision: 12.3.0
+        targetRevision: 15.2.0
       destination:
         server: '{{server}}' 
         namespace: openwebui

@@ -162,14 +162,17 @@ spec:
                 #    api_key: os.environ/ANTHROPIC_API_KEY
 
                 # --- Self-hosted backend ---
-                # Open question (see docs/01-foundation.md): which model to serve via
-                # vLLM, and its in-cluster Service name. Uncomment and fill in once
-                # vLLM is deployed.
-                # - model_name: local-llama
-                #   litellm_params:
-                #     model: hosted_vllm/<served-model-name>
-                #     api_base: http://vllm.vllm.svc.cluster.local:8000/v1
-                #     api_key: "not-needed"
+                - model_name: qwen2.5-7b-instruct
+                  litellm_params:
+                    model: hosted_vllm/Qwen/Qwen2.5-7B-Instruct
+                    api_base: http://vllm-qwen-engine-service.vllm.svc.cluster.local:8000/v1
+                    api_key: "{{ vllm-master-key }}"
+                  model_info:
+                    input_cost_per_token: 0
+                    output_cost_per_token: 0
+                  model_info:
+                    input_cost_per_token: 0
+                    output_cost_per_token: 0
 
               general_settings:
                 master_key: os.environ/PROXY_MASTER_KEY
