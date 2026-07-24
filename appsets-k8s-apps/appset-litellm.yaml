@@ -154,16 +154,7 @@ spec:
                 type: Opaque
                 stringData:
                   OPENAI_API_KEY: "{{litellm-openai-api-key}}"
-            #      ANTHROPIC_API_KEY: "{{litellm-anthropic-api-key}}"
-              - apiVersion: v1
-                kind: Secret
-                metadata:
-                  name: minio-credentials
-                  namespace: litellm
-                type: Opaque
-                stringData:
-                  accesskey: {{ miniokey }}
-                  secretkey: {{ miniosecretkey }}                            
+            #      ANTHROPIC_API_KEY: "{{litellm-anthropic-api-key}}"                    
               - apiVersion: gateway.networking.k8s.io/v1
                 kind: HTTPRoute
                 metadata:
@@ -179,59 +170,95 @@ spec:
                     - backendRefs:
                         - name: litellm
                           port: 4000
-              - apiVersion: barmancloud.cnpg.io/v1
-                kind: ObjectStore
-                metadata:
-                  name: litellm-db-backup
-                  namespace: litellm
-                spec:
-                  configuration:
-                    destinationPath: s3://cloudnative-pg-backups/litellm-db/
-                    endpointURL: http://{{ minioendpoint }}
-                    s3Credentials:
-                      accessKeyId:
-                        key: accesskey
-                        name: minio-credentials
-                      secretAccessKey:
-                        key: secretkey
-                        name: minio-credentials
-                    wal:
-                      compression: gzip                
-              - apiVersion: postgresql.cnpg.io/v1
-                kind: Cluster
-                metadata:
-                  annotations:
-                    cnpg.io/skipEmptyWalArchiveCheck: "enabled"
-                  name: litellm-db
-                  namespace: litellm
-                spec:
-                  instances: 1
-                  storage:
-                    size: 10Gi
-                    storageClass: synas-csi-delete
-                  
-                  bootstrap:
-                    recovery:
-                      source: origin
-
-                  externalClusters:
-                    - name: origin
-                      plugin:
-                        name: barman-cloud.cloudnative-pg.io
-                        parameters:
-                          barmanObjectName: litellm-db-backup
-                          serverName: litellm-db
-
-                  imageName: ghcr.io/cloudnative-pg/postgresql:16.9-standard-bookworm
-
-                  plugins:
-                  - name: barman-cloud.cloudnative-pg.io
-                    isWALArchiver: true
-                    parameters:
-                      barmanObjectName: litellm-db-backup
         repoURL: oci://ghcr.io/berriai/litellm-helm
         targetRevision: 1.93.0
-        path: .        
+        path: .
+      - helm:
+          releaseName: litellm-db
+          values: |
+            controllers: 
+              main:
+               enabled: false
+            rawResources:
+              minio-credentials:
+                apiVersion: v1
+                kind: Secret
+                forceRename: "minio-credentials"
+                spec:
+                  stringData:
+                    accesskey: {{ miniokey }}
+                    secretkey: {{ miniosecretkey }}
+              backupobjectstore:
+                apiVersion: barmancloud.cnpg.io/v1
+                kind: ObjectStore
+                forceRename: "litellm-db-backup"
+                spec:
+                  spec:
+                    retentionPolicy: "5d"
+                    configuration:
+                      destinationPath: s3://cloudnative-pg-backups/litellm-db/
+                      endpointURL: http://{{ minioendpoint }}
+                      s3Credentials:
+                        accessKeyId:
+                          name:  minio-credentials
+                          key: accesskey
+                        secretAccessKey:
+                          name: minio-credentials
+                          key: secretkey
+                      wal:
+                        compression: gzip
+              # scheduledbackup:
+              #   apiVersion: postgresql.cnpg.io/v1
+              #   kind: ScheduledBackup
+              #   forceRename: litellm-db-backup
+              #   spec:
+              #     spec:
+              #       schedule: "0 0 * * * *" 
+              #       backupOwnerReference: self
+              #       cluster:
+              #         name: litellm-db
+              #       method: plugin
+              #       pluginConfiguration:
+              #         name: barman-cloud.cloudnative-pg.io                        
+              pgsqlcluster:
+                apiVersion: postgresql.cnpg.io/v1
+                kind: Cluster
+                forceRename: "litellm-db"
+                annotations:
+                  cnpg.io/skipEmptyWalArchiveCheck: "enabled"
+                spec:
+                  spec:
+                    instances: 1
+
+                    storage:
+                      size: 10Gi
+                      storageClass: synas-csi-delete
+                                        
+                    bootstrap:
+                      recovery:
+                        source: origin
+                        database: litellm
+                        owner: litellm
+
+                    externalClusters:
+                      - name: origin
+                        plugin:
+                          name: barman-cloud.cloudnative-pg.io
+                          parameters:
+                            barmanObjectName: litellm-db-backup
+                            serverName: litellm-db
+
+                    imageName: ghcr.io/cloudnative-pg/postgresql:16.9-standard-bookworm
+
+                    plugins:
+                    - name: barman-cloud.cloudnative-pg.io
+                      isWALArchiver: true
+                      parameters:
+                        barmanObjectName: litellm-db-backup
+
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.4.0        
       destination:
         server: '{{server}}' 
         namespace: litellm
