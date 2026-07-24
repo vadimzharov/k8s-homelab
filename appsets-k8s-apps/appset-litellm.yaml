@@ -60,19 +60,19 @@ spec:
                           key: secretkey
                       wal:
                         compression: gzip
-              # scheduledbackup:
-              #   apiVersion: postgresql.cnpg.io/v1
-              #   kind: ScheduledBackup
-              #   forceRename: litellm-db-backup
-              #   spec:
-              #     spec:
-              #       schedule: "0 0 * * * *" 
-              #       backupOwnerReference: self
-              #       cluster:
-              #         name: litellm-db
-              #       method: plugin
-              #       pluginConfiguration:
-              #         name: barman-cloud.cloudnative-pg.io                        
+              scheduledbackup:
+                apiVersion: postgresql.cnpg.io/v1
+                kind: ScheduledBackup
+                forceRename: litellm-db-backup
+                spec:
+                  spec:
+                    schedule: "0 0/30 * * * *" 
+                    backupOwnerReference: self
+                    cluster:
+                      name: litellm-db
+                    method: plugin
+                    pluginConfiguration:
+                      name: barman-cloud.cloudnative-pg.io                        
               pgsqlcluster:
                 apiVersion: postgresql.cnpg.io/v1
                 kind: Cluster
