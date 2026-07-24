@@ -37,6 +37,8 @@ spec:
                   repository: vllm/vllm-openai
                   tag: "v0.25.1"
                   modelURL: "Qwen/Qwen2.5-7B-Instruct"
+                  enableTool: true
+                  toolCallParser: "hermes"                  
                   # No --served-model-name equivalent in this chart — clients calling
                   # this vLLM instance directly must use the full modelURL as the
                   # model name. LiteLLM's model_list gives it a friendlier alias
