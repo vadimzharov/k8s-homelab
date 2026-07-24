@@ -155,6 +155,15 @@ spec:
                 stringData:
                   OPENAI_API_KEY: "{{litellm-openai-api-key}}"
             #      ANTHROPIC_API_KEY: "{{litellm-anthropic-api-key}}"
+              - apiVersion: v1
+                kind: Secret
+                metadata:
+                  name: minio-credentials
+                  namespace: litellm
+                type: Opaque
+                stringData:
+                  accesskey: {{ miniokey }}
+                  secretkey: {{ miniosecretkey }}                            
               - apiVersion: gateway.networking.k8s.io/v1
                 kind: HTTPRoute
                 metadata:
@@ -170,6 +179,54 @@ spec:
                     - backendRefs:
                         - name: litellm
                           port: 4000
+              - apiVersion: barmancloud.cnpg.io/v1
+                kind: ObjectStore
+
+                spec:
+                  configuration:
+                    destinationPath: s3://cloudnative-pg-backups/litellm-db/
+                    endpointURL: http://{{ minioendpoint }}
+                    s3Credentials:
+                      accessKeyId:
+                        key: accesskey
+                        name: minio-credentials
+                      secretAccessKey:
+                        key: secretkey
+                        name: minio-credentials
+                    wal:
+                      compression: gzip                
+              - apiVersion: postgresql.cnpg.io/v1
+                kind: Cluster
+                metadata:
+                  annotations:
+                    cnpg.io/skipEmptyWalArchiveCheck: "enabled"
+                  name: litellm-db
+                  namespace: litellm
+                spec:
+                  instances: 1
+                  storage:
+                    size: 10Gi
+                    storageClass: synas-csi-delete
+                  
+                  bootstrap:
+                    recovery:
+                      source: origin
+
+                  externalClusters:
+                    - name: origin
+                      plugin:
+                        name: barman-cloud.cloudnative-pg.io
+                        parameters:
+                          barmanObjectName: litellm-db-backup
+                          serverName: litellm-db
+
+                  imageName: ghcr.io/cloudnative-pg/postgresql:16.9-standard-bookworm
+
+                  plugins:
+                  - name: barman-cloud.cloudnative-pg.io
+                    isWALArchiver: true
+                    parameters:
+                      barmanObjectName: litellm-db-backup                      
         repoURL: oci://ghcr.io/berriai/litellm-helm
         targetRevision: 1.93.0
         path: .        
