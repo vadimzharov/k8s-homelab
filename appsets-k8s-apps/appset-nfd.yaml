@@ -23,7 +23,7 @@ spec:
       project: k8s-homelab-apps
       sources:
       - repoURL: https://github.com/intel/intel-device-plugins-for-kubernetes.git
-        targetRevision: release-0.29
+        targetRevision: release-0.36
         path: deployments/nfd
       destination:
         server: '{{server}}'
