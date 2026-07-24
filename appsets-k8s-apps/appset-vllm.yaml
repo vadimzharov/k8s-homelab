@@ -1,0 +1,117 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: vllm
+  namespace: argocd
+  annotations:
+    appset-dashboard-appname: "vllm"
+    appset-dashboard-groupname: "AI tools"
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  vllm: "installed"
+                  nvidia-gpu: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-vllm'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: vllm
+          values: |
+            servingEngineSpec:
+              modelSpec:
+                - name: qwen
+                  enabled: true
+                  repository: vllm/vllm-openai
+                  tag: "v0.25.1"
+                  modelURL: "Qwen/Qwen2.5-7B-Instruct"
+                  # No --served-model-name equivalent in this chart — clients calling
+                  # this vLLM instance directly must use the full modelURL as the
+                  # model name. LiteLLM's model_list gives it a friendlier alias
+                  # regardless (see apps/litellm/values.yaml).
+
+                  replicaCount: 1
+
+                  requestCPU: 4
+                  requestMemory: "16Gi"
+                  requestGPU: 1
+                  # requestGPUType intentionally omitted. The chart's own values.yaml
+                  # documents its default as "nvidia.com/mig-4g.71gb" (MIG-partitioned
+                  # GPU resource name — A100/H100 style), which does not exist on a
+                  # plain RTX 3090 and would leave the pod Pending forever. The actual
+                  # template-level fallback when this key is absent is
+                  # "nvidia.com/gpu" (confirmed in helm/templates/_helpers.tpl,
+                  # chart.resources) — the correct one for this hardware.
+
+                  limitCPU: 4
+                  limitMemory: "20Gi"
+
+                  pvcStorage: "30Gi"
+                  # storageClass intentionally OMITTED, not set to "". This chart
+                  # renders `storageClassName: ""` if the key is present at all (even
+                  # as an empty string) — which in Kubernetes means "no storage class,
+                  # static provisioning only", NOT "use the cluster default". Omitting
+                  # the key entirely is the only way to get default-StorageClass
+                  # behavior, confirmed against helm/templates/pvc.yaml. Matches the
+                  # earlier decision that this PVC doesn't need "synas-csi-delete".
+
+                  vllmConfig:
+                    dtype: bfloat16
+                    maxModelLen: 8192
+                    tensorParallelSize: 1
+                    gpuMemoryUtilization: 0.90
+                    # Not gated by hasKey like the other vllmConfig flags: including
+                    # this block at all makes the chart emit either
+                    # --enable-prefix-caching or --no-enable-prefix-caching (defaults
+                    # to the "no" branch if omitted). Explicitly on: worth having for
+                    # a chat/instruct model with repeated conversation prefixes.
+                    enablePrefixCaching: true
+
+                  # Keep the first deployment simple; KV-cache offloading (LMCache) is
+                  # worth revisiting once the basics are confirmed working.
+                  lmcacheConfig:
+                    enabled: false
+
+                  # No KEDA installed in this cluster; the chart's own default
+                  # modelSpec example enables it with a Prometheus trigger this
+                  # cluster doesn't have.
+                  keda:
+                    enabled: false
+
+              # Secures the vLLM endpoint itself (defense in depth — LiteLLM is the
+              # only intended caller, but this Service is still reachable by anything
+              # else in-cluster otherwise). Plaintext here on purpose: this file isn't
+              # pushed to git, same convention as apps/litellm/values.yaml. Must match
+              # the api_key used in that file's vLLM model_list entry once uncommented.
+              vllmApiKey: "{{ vllm-master-key }}"
+
+              containerPort: 8000
+              servicePort: 8000
+
+            routerSpec:
+              enableRouter: false           
+        repoURL: https://vllm-project.github.io/production-stack
+        chart: vllm
+        targetRevision: 0.1.12
+      destination:
+        server: '{{server}}' 
+        namespace: vllm
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
