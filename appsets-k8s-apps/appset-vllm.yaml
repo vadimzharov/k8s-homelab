@@ -31,6 +31,8 @@ spec:
           releaseName: vllm
           values: |
             servingEngineSpec:
+              strategy:
+                type: Recreate            
               modelSpec:
                 - name: qwen
                   enabled: true
