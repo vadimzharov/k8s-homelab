@@ -103,7 +103,7 @@ spec:
             routerSpec:
               enableRouter: false           
         repoURL: https://vllm-project.github.io/production-stack
-        chart: vllm
+        chart: vllm-stack
         targetRevision: 0.1.12
       destination:
         server: '{{server}}' 
