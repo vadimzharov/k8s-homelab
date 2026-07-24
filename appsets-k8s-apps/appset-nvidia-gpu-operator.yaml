@@ -32,10 +32,11 @@ spec:
           releaseName: nvidia-gpu
           values: |
             driver:
-              enabed: false
+              enabed: true
+              version: "590.48.01"
         repoURL: https://helm.ngc.nvidia.com/nvidia
         chart: gpu-operator
-        targetRevision: v25.3.0
+        targetRevision: v25.3.4
       destination:
         server: '{{server}}' 
         namespace: nvidia-gpu
