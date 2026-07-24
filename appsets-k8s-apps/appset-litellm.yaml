@@ -181,7 +181,9 @@ spec:
                           port: 4000
               - apiVersion: barmancloud.cnpg.io/v1
                 kind: ObjectStore
-
+                metadata:
+                  name: litellm-db-backup
+                  namespace: litellm
                 spec:
                   configuration:
                     destinationPath: s3://cloudnative-pg-backups/litellm-db/
@@ -226,7 +228,7 @@ spec:
                   - name: barman-cloud.cloudnative-pg.io
                     isWALArchiver: true
                     parameters:
-                      barmanObjectName: litellm-db-backup                      
+                      barmanObjectName: litellm-db-backup
         repoURL: oci://ghcr.io/berriai/litellm-helm
         targetRevision: 1.93.0
         path: .        
