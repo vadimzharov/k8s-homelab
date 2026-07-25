@@ -73,7 +73,7 @@ spec:
 
                   vllmConfig:
                     dtype: bfloat16
-                    maxModelLen: 8192
+                    maxModelLen: 32768
                     tensorParallelSize: 1
                     gpuMemoryUtilization: 0.90
                     # Not gated by hasKey like the other vllmConfig flags: including
