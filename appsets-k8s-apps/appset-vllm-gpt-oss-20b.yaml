@@ -39,6 +39,7 @@ spec:
                   repository: vllm/vllm-openai
                   tag: "v0.25.1"
                   modelURL: "openai/gpt-oss-20b"
+                  hf_token: "{{ vllm-hf-token }}"
                   enableTool: true
                   toolCallParser: "openai"                  
 

@@ -39,6 +39,7 @@ spec:
                   repository: vllm/vllm-openai
                   tag: "v0.25.1"
                   modelURL: "Qwen/Qwen2.5-7B-Instruct"
+                  hf_token: "{{ vllm-hf-token }}"
                   enableTool: true
                   toolCallParser: "hermes"
 
@@ -58,27 +59,17 @@ spec:
                     gpuMemoryUtilization: 0.90
                     enablePrefixCaching: true
 
-                  # Keep the first deployment simple; KV-cache offloading (LMCache) is
-                  # worth revisiting once the basics are confirmed working.
                   lmcacheConfig:
                     enabled: false
 
-                  # No KEDA installed in this cluster; the chart's own default
-                  # modelSpec example enables it with a Prometheus trigger this
-                  # cluster doesn't have.
                   keda:
                     enabled: false
 
-              # Secures the vLLM endpoint itself (defense in depth — LiteLLM is the
-              # only intended caller, but this Service is still reachable by anything
-              # else in-cluster otherwise). Plaintext here on purpose: this file isn't
-              # pushed to git, same convention as apps/litellm/values.yaml. Must match
-              # the api_key used in that file's vLLM model_list entry once uncommented.
               vllmApiKey: "{{ vllm-master-key }}"
 
               containerPort: 8000
               servicePort: 8000
-              
+
             sharedPvcStorage:
               enabled: true
               size: "60Gi"
