@@ -1,10 +1,10 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: vllm-qwen2-5-7b-instruct
+  name: vllm-gpt-oss-20b
   namespace: argocd
   annotations:
-    appset-dashboard-appname: "vllm Qwen2.5-7B-Instruct model"
+    appset-dashboard-appname: "vllm gpt-oss-20b model"
     appset-dashboard-groupname: "AI tools"
 spec:
   generators:
@@ -13,7 +13,7 @@ spec:
           - clusters:
               selector:
                 matchLabels:
-                  vllm: "vllm-qwen2-5-7b-instruct"
+                  vllm: "vllm-gpt-oss-20b"
                   nvidia-gpu: "installed"
           - plugin:
               configMapRef:
@@ -34,13 +34,13 @@ spec:
               strategy:
                 type: Recreate            
               modelSpec:
-                - name: qwen
+                - name: gptoss
                   enabled: true
                   repository: vllm/vllm-openai
                   tag: "v0.25.1"
-                  modelURL: "Qwen/Qwen2.5-7B-Instruct"
+                  modelURL: "openai/gpt-oss-20b"
                   enableTool: true
-                  toolCallParser: "hermes"
+                  toolCallParser: "openai"                  
 
                   replicaCount: 1
 
@@ -51,6 +51,7 @@ spec:
                   limitCPU: 4
                   limitMemory: "20Gi"
 
+
                   vllmConfig:
                     dtype: bfloat16
                     maxModelLen: 32768
@@ -58,27 +59,20 @@ spec:
                     gpuMemoryUtilization: 0.90
                     enablePrefixCaching: true
 
+
                   # Keep the first deployment simple; KV-cache offloading (LMCache) is
                   # worth revisiting once the basics are confirmed working.
                   lmcacheConfig:
                     enabled: false
 
-                  # No KEDA installed in this cluster; the chart's own default
-                  # modelSpec example enables it with a Prometheus trigger this
-                  # cluster doesn't have.
                   keda:
                     enabled: false
 
-              # Secures the vLLM endpoint itself (defense in depth — LiteLLM is the
-              # only intended caller, but this Service is still reachable by anything
-              # else in-cluster otherwise). Plaintext here on purpose: this file isn't
-              # pushed to git, same convention as apps/litellm/values.yaml. Must match
-              # the api_key used in that file's vLLM model_list entry once uncommented.
               vllmApiKey: "{{ vllm-master-key }}"
 
               containerPort: 8000
               servicePort: 8000
-              
+
             sharedPvcStorage:
               enabled: true
               size: "60Gi"
