@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: vllm
+  name: vllm-qwen2-5-7b-instruct
   namespace: argocd
   annotations:
     appset-dashboard-appname: "vllm"
@@ -13,7 +13,7 @@ spec:
           - clusters:
               selector:
                 matchLabels:
-                  vllm: "installed"
+                  vllm: "vllm-qwen2-5-7b-instruct"
                   nvidia-gpu: "installed"
           - plugin:
               configMapRef:
