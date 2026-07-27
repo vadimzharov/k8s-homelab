@@ -290,6 +290,19 @@ spec:
                 metadata:
                   name: litellm-custom-callbacks
                   namespace: litellm
+                  # The chart's migrations Job shares the same
+                  # volumes/volumeMounts values as the main Deployment, and
+                  # runs as an ArgoCD PreSync hook - which executes before
+                  # this ConfigMap would otherwise be created (plain
+                  # resources only apply in the main Sync phase, after
+                  # PreSync). Without this, the migrations Job pod fails
+                  # with "configmap not found" trying to mount it. Making
+                  # this ConfigMap a PreSync hook too, at an earlier wave,
+                  # fixes the ordering (confirmed by hitting this exact
+                  # failure on first sync, 2026-07-27).
+                  annotations:
+                    argocd.argoproj.io/hook: PreSync
+                    argocd.argoproj.io/sync-wave: "-1"
                 data:
                   custom_callbacks.py: |
                     """Strip leaked Harmony control tokens (<|channel|>, <|constrain|>,
