@@ -55,7 +55,13 @@ spec:
 
                   vllmConfig:
                     dtype: bfloat16
-                    maxModelLen: 32768
+                    # Raised from 32768: kagent's k8s tool calls (unscoped
+                    # k8s_get_resources/k8s_get_pod_logs) can return single
+                    # tool results large enough to exceed 32768 tokens,
+                    # failing the whole request outright. Real KV-cache
+                    # headroom exists at this gpuMemoryUtilization for
+                    # gpt-oss-20b's ~13.8GB MXFP4 weights.
+                    maxModelLen: 65536
                     tensorParallelSize: 1
                     gpuMemoryUtilization: 0.90
                     enablePrefixCaching: true
