@@ -290,19 +290,18 @@ spec:
                 metadata:
                   name: litellm-custom-callbacks
                   namespace: litellm
-                  # The chart's migrations Job shares the same
-                  # volumes/volumeMounts values as the main Deployment, and
-                  # runs as an ArgoCD PreSync hook - which executes before
-                  # this ConfigMap would otherwise be created (plain
-                  # resources only apply in the main Sync phase, after
-                  # PreSync). Without this, the migrations Job pod fails
-                  # with "configmap not found" trying to mount it. Making
-                  # this ConfigMap a PreSync hook too, at an earlier wave,
-                  # fixes the ordering (confirmed by hitting this exact
-                  # failure on first sync, 2026-07-27).
-                  annotations:
-                    argocd.argoproj.io/hook: PreSync
-                    argocd.argoproj.io/sync-wave: "-1"
+                  # NOT an ArgoCD hook (tried that, see docs/07's "Round 3"
+                  # in k8s-ai-homelab - a PreSync-hook ConfigMap gets
+                  # deleted on every sync via ArgoCD's default
+                  # BeforeHookCreation policy, and being a "passive"
+                  # resource with no completion state, ArgoCD does not
+                  # reliably recreate it afterward - this actually deleted
+                  # the ConfigMap from under a running pod on this cluster,
+                  # 2026-07-27). Plain resource instead: on a cluster where
+                  # this ConfigMap already exists, it just gets patched in
+                  # place on every sync, no ordering issue. See docs/07 for
+                  # the one-time manual bootstrap step this requires on a
+                  # from-scratch install.
                 data:
                   custom_callbacks.py: |
                     """Strip leaked Harmony control-token garbage out of tool_call
