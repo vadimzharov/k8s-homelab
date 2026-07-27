@@ -186,22 +186,6 @@ spec:
               general_settings:
                 master_key: os.environ/PROXY_MASTER_KEY
 
-              # Forces greedy/deterministic decoding (temperature=0, seed=0),
-              # but ONLY for gpt-oss-20b requests that carry a `tools` list
-              # (see custom_temp_override.py, shipped via extraResources /
-              # volumes / volumeMounts below). gpt-oss's Harmony tool-call
-              # format is a strict token grammar; at default sampling the
-              # model occasionally emits a malformed tool-call recipient
-              # (e.g. "k8s_get_resources<|channel|>commentary" instead of
-              # "k8s_get_resources") once conversation context grows across
-              # a multi-turn agentic session. Greedy decoding removes the
-              # sampling step that lets it wander off that grammar. Scoped to
-              # gpt-oss-20b + tool-bearing requests only, so it doesn't
-              # change behavior for the other models on this proxy or for
-              # plain chat traffic.
-              litellm_settings:
-                callbacks: ["custom_temp_override.proxy_handler_instance"]
-
             # resources:
             #   requests:
             #     cpu: 250m
@@ -250,26 +234,6 @@ spec:
             #       storageClass: "synas-csi-delete"
             #       size: 8Gi
 
-            # Mounts custom_temp_override.py (the ConfigMap added below under
-            # extraResources) into the SAME directory as config.yaml
-            # (/etc/litellm/), because LiteLLM resolves a "module.instance"
-            # callback string by loading "module.py" from
-            # os.path.dirname(<path to config.yaml>) - it does not look on
-            # PYTHONPATH or anywhere else. The built-in config.yaml volume
-            # mount only ever projects that one key, so this file has to
-            # arrive via its own volume + volumeMount rather than as a
-            # second key on the chart's own generated ConfigMap.
-            volumes:
-              - name: litellm-custom-callbacks
-                configMap:
-                  name: litellm-custom-callbacks
-
-            volumeMounts:
-              - name: litellm-custom-callbacks
-                mountPath: /etc/litellm/custom_temp_override.py
-                subPath: custom_temp_override.py
-                readOnly: true
-
             # No PodDisruptionBudget: single replica, a PDB wouldn't protect anything.
             pdb:
               enabled: false
@@ -303,51 +267,6 @@ spec:
                     - backendRefs:
                         - name: litellm
                           port: 4000
-
-              # Custom pre-call hook, wired up via litellm_settings.callbacks
-              # above and mounted into /etc/litellm/ via volumes/volumeMounts
-              # above. Forces temperature=0/seed=0 only for gpt-oss-20b
-              # requests carrying a `tools` list - see the comment on
-              # litellm_settings.callbacks above for the full "why".
-              - apiVersion: v1
-                kind: ConfigMap
-                metadata:
-                  name: litellm-custom-callbacks
-                  namespace: litellm
-                data:
-                  custom_temp_override.py: |
-                    from litellm.integrations.custom_logger import CustomLogger
-
-
-                    class ToolCallDeterminism(CustomLogger):
-                        """Forces greedy decoding for gpt-oss-20b tool-calling requests.
-
-                        gpt-oss's Harmony tool-call format is a strict token grammar
-                        (channel/recipient/message markers). Under default sampling the
-                        model occasionally emits a malformed recipient - e.g.
-                        "k8s_get_resources<|channel|>commentary" instead of a clean
-                        "k8s_get_resources" - once conversation context grows across a
-                        multi-turn agentic session. Greedy decoding (temperature=0)
-                        removes the sampling step that lets it wander off that grammar.
-
-                        Scoped to gpt-oss-20b + requests that actually carry a `tools`
-                        list, so plain chat calls and every other model on this proxy
-                        (gpt-4o-mini, gpt-5.4-nano, gpt-5.6-luna, qwen2.5-7b-instruct)
-                        are unaffected.
-                        """
-
-                        TARGET_MODELS = {"gpt-oss-20b"}
-
-                        async def async_pre_call_hook(
-                            self, user_api_key_dict, cache, data, call_type
-                        ):
-                            if data.get("model") in self.TARGET_MODELS and data.get("tools"):
-                                data["temperature"] = 0
-                                data["seed"] = 0
-                            return data
-
-
-                    proxy_handler_instance = ToolCallDeterminism()
         repoURL: oci://ghcr.io/berriai/litellm-helm
         targetRevision: 1.93.0
         path: .    
