@@ -305,29 +305,63 @@ spec:
                     argocd.argoproj.io/sync-wave: "-1"
                 data:
                   custom_callbacks.py: |
-                    """Strip leaked Harmony control tokens (<|channel|>, <|constrain|>,
-                    etc.) out of tool_call function names before responses reach
-                    clients. gpt-oss occasionally emits these mid-generation; vLLM's
-                    "openai" tool-call parser passes them straight through as-is. See
+                    """Strip leaked Harmony control-token garbage out of tool_call
+                    function names before responses reach clients. gpt-oss occasionally
+                    emits these mid-generation; vLLM's "openai" tool-call parser passes
+                    them through uncorrected (or, per the second corruption pattern
+                    below, partially-but-wrongly corrected). See
                     docs/07-gpt-oss-tool-name-sanitizer.md in the k8s-ai-homelab repo
                     for the full incident writeup and upstream bug references
                     (vLLM issue #32587, PR #35906 - both unresolved as of writing).
 
-                    Only handles the non-streaming case (async_post_call_success_hook)
-                    - confirmed via LiteLLM_SpendLogs that kagent calls this proxy with
-                    stream=false, so that's sufficient here. A streaming equivalent
-                    would need to buffer tool_call name deltas across chunks before
-                    sanitizing, which this does not attempt.
+                    Two corruption patterns observed in production (2026-07-27), same
+                    underlying bug, different shapes - a naive "strip everything after
+                    the first '<|'" fix (this file's first version) only caught #1:
+                      1. "k8s_get_resources<|channel|>json" - literal control tokens
+                         leaked verbatim into the name.
+                      2. "k8s_get_resourcesjson" - no "<|" substring at all; whatever
+                         partial cleanup vLLM/harmony already attempted removed the
+                         pipe-delimited token but glued the surrounding text together
+                         with no separator, so pattern #1's fix can't find anything to
+                         truncate at.
+                    Handled by validating against the *actual* tool names from the
+                    request (data["tools"][].function.name - present because litellm
+                    needs them to make the call) rather than pattern-matching the
+                    corruption shape: exact match first, then truncate-at-"<|" (covers
+                    #1), then longest-prefix-match against the known valid names
+                    (covers #2 and, hopefully, similar future variants - anything
+                    where the real name survives intact as a prefix with garbage
+                    appended after it). Only handles the non-streaming case
+                    (async_post_call_success_hook) - confirmed via LiteLLM_SpendLogs
+                    that kagent calls this proxy with stream=false, so that's
+                    sufficient here.
                     """
 
                     from litellm.integrations.custom_logger import CustomLogger
 
 
-                    def _sanitize(name):
-                        if not name:
+                    def _valid_tool_names(data):
+                        names = set()
+                        for tool in (data.get("tools") or []):
+                            fn = tool.get("function") if isinstance(tool, dict) else None
+                            name = fn.get("name") if fn else None
+                            if name:
+                                names.add(name)
+                        return names
+
+
+                    def _sanitize(name, valid_names):
+                        if not name or name in valid_names:
                             return name
                         idx = name.find("<|")
-                        return name[:idx] if idx != -1 else name
+                        candidate = name[:idx] if idx != -1 else name
+                        if candidate in valid_names:
+                            return candidate
+                        best = None
+                        for valid in valid_names:
+                            if candidate.startswith(valid) and (best is None or len(valid) > len(best)):
+                                best = valid
+                        return best if best else name
 
 
                     class SanitizeHarmonyToolNames(CustomLogger):
@@ -337,6 +371,7 @@ spec:
                             choices = getattr(response, "choices", None)
                             if not choices:
                                 return response
+                            valid_names = _valid_tool_names(data)
                             for choice in choices:
                                 message = getattr(choice, "message", None)
                                 tool_calls = getattr(message, "tool_calls", None) if message else None
@@ -346,7 +381,7 @@ spec:
                                     function = getattr(tool_call, "function", None)
                                     if function is None:
                                         continue
-                                    clean_name = _sanitize(getattr(function, "name", None))
+                                    clean_name = _sanitize(getattr(function, "name", None), valid_names)
                                     if clean_name != function.name:
                                         function.name = clean_name
                             return response
