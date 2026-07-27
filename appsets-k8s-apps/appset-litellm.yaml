@@ -185,6 +185,22 @@ spec:
 
               general_settings:
                 master_key: os.environ/PROXY_MASTER_KEY
+                # Lets the Admin UI's Logs page show full request/response
+                # bodies per entry (previously "Request/Response Data Not
+                # Available" - also why debugging past incidents had to
+                # fall back to metadata.error_information and kagent's pod
+                # logs instead). Deliberately NOT setting
+                # store_model_in_db: true (the other setting LiteLLM's own
+                # UI bundles into its suggested snippet) - that lets models
+                # be added/edited via the Admin UI into the database
+                # instead of this file, opening a way for the live model
+                # list to drift from GitOps without anyone noticing.
+                # Tradeoff worth knowing: kagent's K8s troubleshooting
+                # tools can pull Secret YAML (base64, not encrypted) or
+                # other sensitive cluster data into a prompt/response -
+                # with this on, that ends up stored in the LiteLLM
+                # Postgres DB.
+                store_prompts_in_spend_logs: true
 
               # Sanitizes leaked Harmony control tokens (<|channel|>,
               # <|constrain|>, etc.) out of tool_call function names in
