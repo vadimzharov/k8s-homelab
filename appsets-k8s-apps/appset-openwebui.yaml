@@ -37,7 +37,7 @@ spec:
             route:
               enabled: true
               extraLabels:
-                k8s-dashboard-group: AI-tools
+                k8s-dashboard-group: AI tools
                 k8s-dashboard-appname: OpenWebUI
               hostnames: 
                 - chat.{{ domainname }}
