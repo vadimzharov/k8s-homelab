@@ -6,8 +6,6 @@ metadata:
   annotations:
     appset-dashboard-appname: "SearxNG"
     appset-dashboard-groupname: "AI tools"
-    k8s-dashboard-group: "AI tools"
-    k8s-dashboard-appname: "SearxNG"
 spec:
   generators:
     - matrix:
@@ -35,6 +33,9 @@ spec:
               enabled: false
             gateway:
               enabled: true
+              annotations:
+                k8s-dashboard-group: AI tools
+                k8s-dashboard-appname: SearxNG
               parentRefs:
                 - name: cilium-gw
                   namespace: cilium-system
