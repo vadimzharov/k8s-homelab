@@ -1,0 +1,82 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: searxng
+  namespace: argocd
+  annotations:
+    appset-dashboard-appname: "SearxNG"
+    appset-dashboard-groupname: "AI tools"
+    k8s-dashboard-group: "AI tools"
+    k8s-dashboard-appname: "SearxNG"
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  searxng: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"  
+  template:
+    metadata:
+      name: '{{name}}-searxng'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: searxng
+          values: |
+            ingress:
+              enabled: false
+            gateway:
+              enabled: true
+              parentRefs:
+                - name: public
+                  namespace: infra
+                  sectionName: https
+              hostnames:
+                - search.{{ domainname }}
+            config:
+              settings:
+                general:
+                  instance_name: Private Search
+                server:
+                  base_url: https://search.{{ domainname }}/
+                  limiter: false
+                  public_instance: false
+                  image_proxy: true
+                  method: GET
+                engines:
+                  - name: wikidata
+                    disabled: true
+                  - name: ahmia
+                    disabled: true
+            resources:
+              requests:
+                cpu: 250m
+                memory: 512Mi
+              limits:
+                memory: 1Gi
+            persistence:
+              cache:
+                storageClass: synas-csi-delete
+                size: 5Gi
+            valkey:
+              enabled: true                          
+        repoURL: https://techpipe-io.github.io/searxng-helm-chart
+        targetRevision: 0.1.8
+      destination:
+        server: '{{server}}' 
+        namespace: searxng
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      
