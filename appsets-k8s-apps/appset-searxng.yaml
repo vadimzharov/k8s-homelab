@@ -69,6 +69,7 @@ spec:
             valkey:
               enabled: true                          
         repoURL: https://techpipe-io.github.io/searxng-helm-chart
+        chart: searxng
         targetRevision: 0.1.8
       destination:
         server: '{{server}}' 
