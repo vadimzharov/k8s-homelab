@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: immich-m-db
   namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Immich-M - external DB"
+    appset-dashboard-groupname: "Photos"  
 spec:
   generators:
   - matrix:
