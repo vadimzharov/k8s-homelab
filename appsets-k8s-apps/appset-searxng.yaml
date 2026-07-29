@@ -36,9 +36,8 @@ spec:
             gateway:
               enabled: true
               parentRefs:
-                - name: public
-                  namespace: infra
-                  sectionName: https
+                - name: cilium-gw
+                  namespace: cilium-system
               hostnames:
                 - search.{{ domainname }}
             config:
