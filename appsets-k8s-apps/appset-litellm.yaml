@@ -408,6 +408,9 @@ spec:
                 metadata:
                   name: litellm
                   namespace: litellm
+                  annotations:
+                    k8s-dashboard-group: AI tools
+                    k8s-dashboard-appname: LiteLLM  
                 spec:
                   parentRefs:
                     - name: "cilium-gw"
