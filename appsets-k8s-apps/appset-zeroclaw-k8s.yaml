@@ -35,7 +35,10 @@ spec:
               tag: "latest"
             httpRoute:
               enabled: true
-              annotations: {}
+              annotations:
+                  k8s-dashboard-group: AI Tools
+                  k8s-dashboard-appname: ZeroClaw (AI assistant)
+                  k8s-dashboard-searchname: ZeroClaw 
               hostnames: 
                 - zeroclaw-{{name}}.{{ domainname }}
               parentRefs:
