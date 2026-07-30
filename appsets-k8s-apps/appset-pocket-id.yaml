@@ -41,6 +41,10 @@ spec:
               main:
                 enabled: true
                 kind: HTTPRoute
+                annotations:
+                  k8s-dashboard-group: Tools
+                  k8s-dashboard-appname: Pocket ID
+                  k8s-dashboard-searchname: Pocket ID
                 labels:
                   k8s-dashboard-group: Tools
                   k8s-dashboard-appname: Pocket-ID
