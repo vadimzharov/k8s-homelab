@@ -46,6 +46,7 @@ spec:
                 annotations:
                   k8s-dashboard-group: Remote work
                   k8s-dashboard-appname: Firefox browser
+                  k8s-dashboard-searchname: Firefox
                 parentRefs:
                   - name: cilium-gw
                     namespace: cilium-system

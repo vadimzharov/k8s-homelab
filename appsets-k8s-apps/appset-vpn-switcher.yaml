@@ -72,6 +72,7 @@ spec:
                 annotations:
                   k8s-dashboard-group: Tools
                   k8s-dashboard-appname: VPN switcher
+                  k8s-dashboard-searchname: VPN                  
                 parentRefs:
                   - name: cilium-gw
                     namespace: cilium-system
