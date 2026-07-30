@@ -4,7 +4,7 @@ metadata:
   name: tranarr
   namespace: argocd
   annotations:
-    appset-dashboard-appname: "Trannsmission torrent client"
+    appset-dashboard-appname: "Transmission torrent client"
     appset-dashboard-groupname: "Media"
 spec:
   generators:
@@ -101,7 +101,7 @@ spec:
                 kind: HTTPRoute
                 labels:
                   k8s-dashboard-group: Media
-                  k8s-dashboard-appname: Tranansmission  
+                  k8s-dashboard-appname: Transmission
                 parentRefs:
                   - name: cilium-gw
                     namespace: cilium-system
