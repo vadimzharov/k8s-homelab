@@ -36,9 +36,9 @@ spec:
             httpRoute:
               enabled: true
               annotations:
-                  k8s-dashboard-group: AI Tools
+                  k8s-dashboard-group: AI tools
                   k8s-dashboard-appname: ZeroClaw (AI assistant)
-                  k8s-dashboard-searchname: ZeroClaw 
+                  k8s-dashboard-searchname: ZeroClaw
               hostnames: 
                 - zeroclaw-{{name}}.{{ domainname }}
               parentRefs:
