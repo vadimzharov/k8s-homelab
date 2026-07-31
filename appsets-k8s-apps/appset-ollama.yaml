@@ -6,6 +6,8 @@ metadata:
   annotations:
     appset-dashboard-appname: "Ollama"
     appset-dashboard-groupname: "AI tools"
+    k8s-dashboard-group: "AI tools"
+    k8s-dashboard-appname: "Ollama"
 spec:
   generators:
     - matrix:
@@ -29,35 +31,33 @@ spec:
       - helm:
           releaseName: ollama
           values: |
-            runtimeClassName: nvidia
             ollama:
               gpu:
-                enabled: true
+                enabled: false
               models:
-                pull: 
-                  - llama3.2
+                pull:
+                  - llama3.2:1b
+                  - qwen2.5:1.5b
                 run:
-                  - llama3.2
-            ingress:
+                  - llama3.2:1b
+                  - qwen2.5:1.5b
+            httpRoute:
               enabled: true
-              className: "nginx"
-              hosts:
-                - host: ollama.{{ domainname }}
-                  paths:
-                    - path: /
-                      pathType: Prefix
-              tls: []
+              hostnames:
+                - ollama.{{ domainname }}
+              parentRefs:
+                - name: cilium-gw
+                  namespace: cilium-system
             resources:
-              requests: 
-                memory: 1024Mi
+              requests:
+                memory: 2Gi
                 cpu: 500m
-                nvidia.com/gpu: 1
-              limits: 
-                cpu: 3000m
-                nvidia.com/gpu: 1                
+              limits:
+                memory: 4Gi
+                cpu: 2000m
         repoURL: https://otwld.github.io/ollama-helm/
         chart: ollama
-        targetRevision: 1.16.0
+        targetRevision: 1.70.0
       destination:
         server: '{{server}}' 
         namespace: ollama
