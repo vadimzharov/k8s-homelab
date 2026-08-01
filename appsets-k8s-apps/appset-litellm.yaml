@@ -203,8 +203,13 @@ spec:
                     input_cost_per_token: 0
                     output_cost_per_token: 0
 
-                # --- Auto Router: complexity_router with an LLM classifier (llama3.2-1b
+                # --- Auto Router: complexity_router with an LLM classifier (qwen2.5-1.5b
                 # above) instead of the default zero-API-call heuristic scorer.
+                # Was llama3.2-1b - confirmed misclassifying a plain factual question
+                # ("Tell me about Roman Empire") as COMPLEX with full confidence
+                # (score=1.000), not a timeout/fallback. Switched to try qwen2.5-1.5b
+                # instead; also unrelated to the GPU (both Ollama models are always
+                # available regardless of which vLLM model is currently deployed).
                 # SIMPLE/MEDIUM deliberately route to self-hosted models, not cloud:
                 #   - SIMPLE -> llama3.2-1b (Ollama, CPU-only, always available - no
                 #     single-GPU contention, appropriately small for simple requests).
@@ -227,7 +232,7 @@ spec:
                     complexity_router_config:
                       classifier_type: llm
                       classifier_llm_config:
-                        model: llama3.2-1b
+                        model: qwen2.5-1.5b
                         timeout_ms: 3000
                       tiers:
                         SIMPLE: llama3.2-1b
