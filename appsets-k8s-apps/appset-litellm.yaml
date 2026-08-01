@@ -181,7 +181,59 @@ spec:
                     api_key: "{{ vllm-master-key }}"   # must match apps/vllm/secrets.local.yaml
                   model_info:
                     input_cost_per_token: 0
-                    output_cost_per_token: 0                    
+                    output_cost_per_token: 0
+
+                # --- Ollama (CPU-only, no GPU contention with vLLM) ---
+                # No api_key: Ollama has no auth enabled (OLLAMA_AUTH unset, defaults to
+                # false - see docs/09-ollama.md in k8s-ai-homelab) and LiteLLM's Ollama
+                # provider only sends an Authorization header if api_key is set.
+                - model_name: llama3.2-1b
+                  litellm_params:
+                    model: ollama/llama3.2:1b
+                    api_base: http://ollama.ollama.svc.cluster.local:11434
+                  model_info:
+                    input_cost_per_token: 0
+                    output_cost_per_token: 0
+
+                - model_name: qwen2.5-1.5b
+                  litellm_params:
+                    model: ollama/qwen2.5:1.5b
+                    api_base: http://ollama.ollama.svc.cluster.local:11434
+                  model_info:
+                    input_cost_per_token: 0
+                    output_cost_per_token: 0
+
+                # --- Auto Router: complexity_router with an LLM classifier (llama3.2-1b
+                # above) instead of the default zero-API-call heuristic scorer.
+                # SIMPLE/MEDIUM deliberately route to self-hosted models, not cloud:
+                #   - SIMPLE -> llama3.2-1b (Ollama, CPU-only, always available - no
+                #     single-GPU contention, appropriately small for simple requests).
+                #   - MEDIUM -> gpt-oss-20b (vLLM/GPU). Same accepted tradeoff as this
+                #     model's direct model_list entry above: only one vLLM model is
+                #     deployed at a time (single RTX 3090), so MEDIUM-tier calls will
+                #     error whenever qwen2.5-7b-instruct is the one currently deployed
+                #     instead. gpt-oss-20b chosen over qwen2.5-7b-instruct as the
+                #     stronger general-purpose model of the two.
+                # COMPLEX/REASONING stay on cloud (gpt-5.6-luna) - self-hosted models
+                # aren't expected to match frontier quality for harder requests, and
+                # this tier fires less often so the cost is acceptable.
+                # Any classifier failure (timeout, bad JSON, provider error) falls back
+                # silently to the heuristic scorer (confirmed from LiteLLM's own
+                # complexity_router.py), so this is low-risk to leave live while tuning.
+                - model_name: smart-router
+                  litellm_params:
+                    model: auto_router/complexity_router
+                    complexity_router_default_model: gpt-4o-mini
+                    complexity_router_config:
+                      classifier_type: llm
+                      classifier_llm_config:
+                        model: llama3.2-1b
+                        timeout_ms: 3000
+                      tiers:
+                        SIMPLE: llama3.2-1b
+                        MEDIUM: gpt-oss-20b
+                        COMPLEX: gpt-5.6-luna
+                        REASONING: gpt-5.6-luna
 
               general_settings:
                 master_key: os.environ/PROXY_MASTER_KEY
