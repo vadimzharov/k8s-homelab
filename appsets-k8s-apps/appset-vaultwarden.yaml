@@ -127,7 +127,7 @@ spec:
                   main:
                     image:
                       repository: docker.io/vaultwarden/server
-                      pullPolicy: IfNotPresent
+                      pullPolicy: Always
                       tag: latest
                     env:
                       LOG_LEVEL: info 
