@@ -32,8 +32,8 @@ spec:
             ollama:              
               enabled: false
             persistence:
-              enabled: false
-              storageClass: ""
+              enabled: true
+              existingClaim: "openwebui-data"
             route:
               enabled: true
               extraLabels:
