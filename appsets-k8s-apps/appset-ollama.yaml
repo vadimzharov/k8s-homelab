@@ -41,6 +41,14 @@ spec:
                 run:
                   - llama3.2:1b
                   - qwen2.5:1.5b
+            # Keep pulled models loaded well past the chart's 5m default -
+            # complexity_router's classifier calls llama3.2:1b/qwen2.5:1.5b on
+            # every smart-router request, and a cold reload after an idle
+            # gap was a real contributor to classifier timeouts (2026-08-01
+            # incident - see docs/09-ollama.md in k8s-ai-homelab).
+            extraEnv:
+              - name: OLLAMA_KEEP_ALIVE
+                value: "30m"
             httpRoute:
               enabled: true
               hostnames:
@@ -48,13 +56,17 @@ spec:
               parentRefs:
                 - name: cilium-gw
                   namespace: cilium-system
+            # Bumped from 2Gi/4Gi (request/limit) after a confirmed OOM kill of
+            # the llama-server subprocess ("signal: killed") when llama3.2:1b
+            # (serving a real answer) and qwen2.5:1.5b (classifying) were both
+            # active concurrently - see docs/09-ollama.md incident writeup.
             resources:
               requests:
-                memory: 2Gi
-                cpu: 500m
+                memory: 3Gi
+                cpu: 1000m
               limits:
-                memory: 4Gi
-                cpu: 2000m
+                memory: 6Gi
+                cpu: 3000m
         repoURL: https://otwld.github.io/ollama-helm/
         chart: ollama
         targetRevision: 1.70.0

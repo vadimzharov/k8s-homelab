@@ -251,7 +251,11 @@ spec:
                       classifier_type: llm
                       classifier_llm_config:
                         model: qwen2.5-1.5b
-                        timeout_ms: 3000
+                        # Raised from 3000: repeatedly hit on CPU inference, worse on a
+                        # cold model load (Ollama pod, no GPU) - confirmed via
+                        # LiteLLM pod logs showing multiple 3.0s timeouts before either
+                        # eventual success or falling back to the heuristic scorer.
+                        timeout_ms: 9000
                       tiers:
                         SIMPLE: llama3.2-1b
                         MEDIUM: gpt-oss-20b
