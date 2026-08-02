@@ -1,0 +1,133 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: palette-mcp
+  namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Palette MCP server"
+    appset-dashboard-groupname: "AI tools"
+  labels:
+    appset-dashboard-multicluster: "true"
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  palette-mcp: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-palette-mcp'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: palette-mcp
+          values: |
+            # Spectro Cloud only ships palette-mcp-server as a stdio-only binary/image
+            # (public.ecr.aws/palette-ai/palette-mcp-server) - no HTTP/SSE listener and
+            # no Helm chart. To make it reachable over the network from other in-cluster
+            # tools (kagent, Open WebUI, etc.) instead of only via `docker run -i` /
+            # `kubectl exec`, this bridges it with mcp-proxy (github.com/sparfenyuk/mcp-proxy),
+            # which spawns the stdio binary as a child process and exposes it over SSE/
+            # streamable-HTTP.
+            #
+            # The vendor image is distroless (no shell, no cp/tar - confirmed via
+            # `skopeo inspect` and `docker run --entrypoint sh`), so the binary can't be
+            # extracted from it with a normal initContainer copy. Spectro Cloud does
+            # publish standalone Linux binaries on GitHub releases though, so the
+            # initContainer below downloads that instead and hands it to mcp-proxy via a
+            # shared emptyDir.
+            controllers:
+              main:
+                type: deployment
+                initContainers:
+                  fetch-palette-mcp:
+                    image:
+                      repository: curlimages/curl
+                      pullPolicy: IfNotPresent
+                      tag: 8.11.1
+                    command:
+                      - sh
+                      - -c
+                      - |
+                        curl -fsSL https://github.com/spectrocloud/palette-agent-toolkit/releases/download/v0.4.2/palette-mcp_linux_amd64.tar.gz \
+                          | tar xz -C /palette-bin palette-mcp
+                        chmod +x /palette-bin/palette-mcp
+                containers:
+                  main:
+                    image:
+                      repository: ghcr.io/sparfenyuk/mcp-proxy
+                      pullPolicy: IfNotPresent
+                      tag: v0.12.0
+                    args:
+                      - --port
+                      - "8080"
+                      - --host
+                      - "0.0.0.0"
+                      - --pass-environment
+                      - --
+                      - /palette-bin/palette-mcp
+                      # Palette MCP defaults to read-only tools. To enable create/update/
+                      # delete tools, append "-allow-write" as one more entry at the end
+                      # of this args list (it gets passed straight through to the binary).
+                    env:
+                      PALETTE_HOST: "{{ palettehost }}"
+                      PALETTE_API_KEY: "{{ paletteapikey }}"
+                      # Optional: scopes all calls to a single Palette project. Leave the
+                      # corresponding Vault property empty if you want unscoped access.
+                      PALETTE_PROJECT_UID: "{{ paletteprojectuid }}"
+            persistence:
+              palette-bin:
+                enabled: true
+                type: emptyDir
+                globalMounts:
+                  - path: /palette-bin
+            service:
+              main:
+                primary: true
+                enabled: true
+                controller: main
+                ports:
+                  http:
+                    port: 8080
+            route:
+              main:
+                enabled: true
+                kind: HTTPRoute
+                annotations:
+                  k8s-dashboard-group: AI tools
+                  k8s-dashboard-appname: Palette MCP server
+                  k8s-dashboard-searchname: Palette MCP server
+                parentRefs:
+                  - name: cilium-gw
+                    namespace: cilium-system
+                hostnames:
+                  - palette-mcp-{{ name }}.{{ domainname }}
+                rules:
+                - matches:
+                  - path:
+                      type: PathPrefix
+                      value: /
+                  backendRefs:
+                  - name: palette-mcp
+                    port: 8080
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.6.2
+      destination:
+        server: '{{server}}'
+        namespace: palette-mcp
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
