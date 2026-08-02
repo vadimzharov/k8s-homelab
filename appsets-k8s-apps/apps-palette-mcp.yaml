@@ -110,7 +110,7 @@ spec:
                   - name: cilium-gw
                     namespace: cilium-system
                 hostnames:
-                  - palette-mcp-{{ name }}.{{ domainname }}
+                  - palette-mcp.{{ domainname }}
                 rules:
                 - matches:
                   - path:
