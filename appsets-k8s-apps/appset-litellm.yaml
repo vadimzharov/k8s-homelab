@@ -219,9 +219,27 @@ spec:
                 #     error whenever qwen2.5-7b-instruct is the one currently deployed
                 #     instead. gpt-oss-20b chosen over qwen2.5-7b-instruct as the
                 #     stronger general-purpose model of the two.
-                # COMPLEX/REASONING stay on cloud (gpt-5.6-luna) - self-hosted models
-                # aren't expected to match frontier quality for harder requests, and
-                # this tier fires less often so the cost is acceptable.
+                # COMPLEX stays on cloud (gpt-4o-mini), but NOT gpt-5.6-luna: real
+                # production failure confirmed (2026-08-01) - OpenAI's API defaults
+                # gpt-5.6-luna into a reasoning mode that's incompatible with function
+                # tools over /v1/chat/completions ("Function tools with reasoning_effort
+                # are not supported... use /v1/responses or set reasoning_effort to
+                # 'none'"), and Open WebUI attaches its full toolset (34 tools) to
+                # essentially every request. This isn't a misclassification problem - a
+                # *correctly* classified COMPLEX/REASONING request would fail
+                # identically, so no classifier accuracy improvement fixes it.
+                # gpt-4o-mini works because it's not part of the reasoning-effort model
+                # family at all, so it can't hit this failure mode. gpt-5.4-nano was
+                # considered but not used - untested, and plausibly shares
+                # gpt-5.6-luna's reasoning-family behavior going by the naming pattern,
+                # not worth the risk of hitting the same bug again.
+                # REASONING -> gpt-oss-20b instead of gpt-4o-mini: gpt-4o-mini isn't a
+                # reasoning model at all, which defeats the point of a dedicated
+                # REASONING tier. gpt-oss-20b is a genuine reasoning model (native
+                # reasoning_effort support, Harmony format) AND already proven safe
+                # with tool-calling in this cluster (it's the kagent model - see
+                # docs/05/07 in k8s-ai-homelab) without gpt-5.6-luna's chat-completions
+                # restriction. Same accepted GPU-availability tradeoff as MEDIUM above.
                 # Any classifier failure (timeout, bad JSON, provider error) falls back
                 # silently to the heuristic scorer (confirmed from LiteLLM's own
                 # complexity_router.py), so this is low-risk to leave live while tuning.
@@ -237,8 +255,8 @@ spec:
                       tiers:
                         SIMPLE: llama3.2-1b
                         MEDIUM: gpt-oss-20b
-                        COMPLEX: gpt-5.6-luna
-                        REASONING: gpt-5.6-luna
+                        COMPLEX: gpt-4o-mini
+                        REASONING: gpt-oss-20b
 
               general_settings:
                 master_key: os.environ/PROXY_MASTER_KEY
