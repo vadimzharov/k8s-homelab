@@ -262,6 +262,18 @@ spec:
                         COMPLEX: gpt-4o-mini
                         REASONING: gpt-oss-20b
 
+              # MCP servers, config.yaml-managed (not store_model_in_db-backed - that's
+              # only required for the UI/DB-managed path, per LiteLLM's own docs).
+              # palette-mcp namespace/Service is the mcp-proxy sidecar bridging Spectro
+              # Cloud's stdio-only palette-mcp binary to SSE (see apps-palette-mcp.yaml)
+              # - LiteLLM only talks to that internal, unauthenticated SSE endpoint;
+              # real Palette auth happens inside the sidecar via PALETTE_API_KEY.
+              mcp_servers:
+                palette:
+                  transport: "sse"
+                  url: "http://palette-mcp.palette-mcp.svc.cluster.local:8080/sse"
+                  description: "Spectro Cloud Palette - cluster management, fleet health, infrastructure operations"
+
               general_settings:
                 master_key: os.environ/PROXY_MASTER_KEY
                 # Lets the Admin UI's Logs page show full request/response
