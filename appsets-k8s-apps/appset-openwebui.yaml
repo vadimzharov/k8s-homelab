@@ -27,24 +27,24 @@ spec:
       project: k8s-homelab-apps
       sources:
       - helm:
-          releaseName: openwebui
-          values: |
-             ollama:
-               enabled: false
-             persistence:
-               enabled: true
-               existingClaim: openwebui-data
-             route:
-               enabled: true
-               annotations:
-                 k8s-dashboard-group: AI tools
-                 k8s-dashboard-appname: OpenWebUI
-               hostnames:
-                 - chat.{{ domainname }}
-               parentRefs:
-                 - name: cilium-gw
-                   namespace: cilium-system
-                   sectionName: https-gw
+      releaseName: openwebui
+      values: |
+            ollama:
+                enabled: false
+            persistence:
+                enabled: true
+                existingClaim: openwebui-data
+            route:
+                enabled: true
+                annotations:
+                    k8s-dashboard-group: AI tools
+                    k8s-dashboard-appname: OpenWebUI
+                hostnames:
+                    - chat.{{ domainname }}
+                parentRefs:
+                    - name: cilium-gw
+                      namespace: cilium-system
+                      sectionName: https-gw
 
             #extraEnvVars:
             #- name: OPENAI_API_KEY
