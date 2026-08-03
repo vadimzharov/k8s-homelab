@@ -165,18 +165,21 @@ spec:
                           # first boot even with the weights already cached.
                           failureThreshold: 60
                           periodSeconds: 10
-                    # -ngl 99 offloads all layers to the GPU, so host CPU/RAM
-                    # needs are modest (this is a C++ binary, not a Python/
-                    # PyTorch stack like vLLM) - first-pass estimate, revisit
-                    # after watching real usage.
+                    # First-pass estimate (4Gi/8Gi) was wrong - confirmed OOMKilled
+                    # (exitCode 137) during boot even with -ngl 99 offloading all
+                    # layers to GPU. The 16.2GB GGUF still gets read through host
+                    # memory before/while copying to the GPU, so host RAM needs
+                    # to comfortably exceed the model file size, not just cover
+                    # process overhead. Node has ~31Gi allocatable with ~20Gi
+                    # free at request-level, so this fits with room to spare.
                     resources:
                       requests:
                         cpu: "1"
-                        memory: 4Gi
+                        memory: 12Gi
                         nvidia.com/gpu: "1"
                       limits:
                         cpu: "4"
-                        memory: 8Gi
+                        memory: 24Gi
                         nvidia.com/gpu: "1"
             persistence:
               gguf-cache:
