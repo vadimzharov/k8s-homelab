@@ -76,9 +76,6 @@ spec:
                           -o "$DEST.partial" \
                           "https://huggingface.co/ubergarm/Qwen3.6-27B-GGUF/resolve/main/Qwen3.6-27B-MTP-IQ4_KS.gguf"
                         mv "$DEST.partial" "$DEST"
-                    volumeMounts:
-                      - name: gguf-cache
-                        mountPath: /models
                 containers:
                   main:
                     image:
