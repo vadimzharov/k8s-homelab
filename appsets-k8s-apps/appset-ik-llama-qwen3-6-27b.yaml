@@ -1,0 +1,224 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: ik-llama-qwen3-6-27b
+  namespace: argocd
+  annotations:
+    appset-dashboard-appname: "ik_llama.cpp (Qwen3.6-27B)"
+    appset-dashboard-groupname: "AI tools"
+    k8s-dashboard-group: "AI tools"
+    k8s-dashboard-appname: "ik_llama.cpp (Qwen3.6-27B)"
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  ik-llama: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-ik-llama-qwen3-6-27b'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: ik-llama-qwen3-6-27b
+          values: |
+            # ik_llama.cpp serving Qwen3.6-27B (ubergarm MTP-IQ4_KS GGUF quant).
+            # Config lifted from the single-card "blessed default" at
+            # https://github.com/noonghunna/club-3090/blob/master/models/qwen3.6-27b/ik-llama/compose/single/ubergarm-iq4ks/mtp.yml
+            # (~60/69 narr/code TPS, 200K ctx, ~22GB VRAM on one RTX 3090).
+            #
+            # SHARES THE SINGLE RTX 3090 WITH vLLM - mutually exclusive by
+            # design, same as the vllm-gpt-oss-20b / vllm-qwen2-5-7b-instruct
+            # rotation. Only set the `ik-llama: "installed"` cluster label OR
+            # one of the `vllm: vllm-*` labels at a time, never both - there's
+            # one GPU. Switching to this model takes gpt-oss-20b (and kagent,
+            # which depends on it) offline for the duration.
+            #
+            # Image: using the `cu12` tag, deliberately NOT the club-3090
+            # repo's pinned cu13 digest. Confirmed via `kubectl get nodes -o
+            # json` that this cluster's GPU node reports
+            # nvidia.com/cuda.runtime-version.full: "13.1", below the cu13
+            # image's documented "driver must support CUDA >= 13.2"
+            # requirement - running cu13 here would hit the repo's own
+            # documented failure mode (their issue #633): silent CPU
+            # fallback, then a crash loop.
+            controllers:
+              main:
+                type: deployment
+                pod:
+                  runtimeClassName: nvidia
+                initContainers:
+                  fetch-gguf:
+                    image:
+                      repository: curlimages/curl
+                      pullPolicy: IfNotPresent
+                      tag: 8.11.1
+                    command:
+                      - sh
+                      - -c
+                      - |
+                        set -eu
+                        DEST=/models/Qwen3.6-27B-MTP-IQ4_KS.gguf
+                        if [ -f "$DEST" ]; then
+                          echo "GGUF already present, skipping download"
+                          exit 0
+                        fi
+                        curl -fL --retry 5 --retry-all-errors \
+                          -o "$DEST.partial" \
+                          "https://huggingface.co/ubergarm/Qwen3.6-27B-GGUF/resolve/main/Qwen3.6-27B-MTP-IQ4_KS.gguf"
+                        mv "$DEST.partial" "$DEST"
+                    volumeMounts:
+                      - name: gguf-cache
+                        mountPath: /models
+                containers:
+                  main:
+                    image:
+                      repository: ghcr.io/ikawrakow/ik-llama-cpp
+                      pullPolicy: IfNotPresent
+                      tag: cu12-server-4574
+                    # Image ENTRYPOINT is already /app/llama-server - args only.
+                    args:
+                      - --host
+                      - "0.0.0.0"
+                      - --port
+                      - "8080"
+                      - --model
+                      - /models/Qwen3.6-27B-MTP-IQ4_KS.gguf
+                      - -ngl
+                      - "99"
+                      - --ctx-size
+                      - "200000"
+                      - -b
+                      - "4096"
+                      - -ub
+                      - "1024"
+                      - -np
+                      - "1"
+                      - -ctk
+                      - q4_0
+                      - -ctv
+                      - q4_0
+                      - -khad
+                      - -vhad
+                      - -ngld
+                      - "99"
+                      - --spec-type
+                      - "mtp:n_max=2,p_min=0.0"
+                      - --recurrent-ckpt-mode
+                      - auto
+                      - --merge-qkv
+                      - -fa
+                      - "on"
+                      - --jinja
+                      - --parallel-tool-calls
+                      - --reasoning
+                      - "off"
+                      - --reasoning-format
+                      - deepseek
+                      - --temp
+                      - "0.6"
+                      - --top-p
+                      - "0.95"
+                      - --top-k
+                      - "20"
+                      - --min-p
+                      - "0.0"
+                      - --repeat-penalty
+                      - "1.0"
+                    probes:
+                      liveness:
+                        enabled: true
+                        type: HTTP
+                        path: /health
+                        port: 8080
+                        spec:
+                          initialDelaySeconds: 30
+                          periodSeconds: 15
+                      readiness:
+                        enabled: true
+                        type: HTTP
+                        path: /health
+                        port: 8080
+                        spec:
+                          initialDelaySeconds: 30
+                          periodSeconds: 10
+                      startup:
+                        enabled: true
+                        type: HTTP
+                        path: /health
+                        port: 8080
+                        spec:
+                          # GGUF load + MTP head init can take a while on
+                          # first boot even with the weights already cached.
+                          failureThreshold: 60
+                          periodSeconds: 10
+                    # -ngl 99 offloads all layers to the GPU, so host CPU/RAM
+                    # needs are modest (this is a C++ binary, not a Python/
+                    # PyTorch stack like vLLM) - first-pass estimate, revisit
+                    # after watching real usage.
+                    resources:
+                      requests:
+                        cpu: "1"
+                        memory: 4Gi
+                        nvidia.com/gpu: "1"
+                      limits:
+                        cpu: "4"
+                        memory: 8Gi
+                        nvidia.com/gpu: "1"
+            persistence:
+              gguf-cache:
+                type: persistentVolumeClaim
+                accessMode: ReadWriteOnce
+                size: 25Gi
+                storageClass: synas-csi-delete
+                globalMounts:
+                  - path: /models
+            service:
+              main:
+                primary: true
+                enabled: true
+                controller: main
+                ports:
+                  http:
+                    port: 8080
+            route:
+              main:
+                enabled: true
+                kind: HTTPRoute
+                annotations:
+                  k8s-dashboard-group: AI tools
+                  k8s-dashboard-appname: ik_llama.cpp (Qwen3.6-27B)
+                parentRefs:
+                  - name: cilium-gw
+                    namespace: cilium-system
+                hostnames:
+                  - ik-llama.{{ domainname }}
+                rules:
+                - matches:
+                  - path:
+                      type: PathPrefix
+                      value: /
+                  backendRefs:
+                  - name: ik-llama-qwen3-6-27b
+                    port: 8080
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.6.2
+      destination:
+        server: '{{server}}'
+        namespace: ik-llama
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
