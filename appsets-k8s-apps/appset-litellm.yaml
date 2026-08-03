@@ -162,14 +162,20 @@ spec:
                 #    api_key: os.environ/ANTHROPIC_API_KEY
 
                 # --- Self-hosted backend ---
+                # vLLM decommissioned 2026-08-03: the single RTX 3090 now runs
+                # ik_llama.cpp serving Qwen3.6-27B instead (see
+                # appset-ik-llama-qwen3-6-27b.yaml). The vllm-* Services these two entries
+                # point at don't currently exist (cluster label flipped from
+                # vllm:vllm-gpt-oss-20b to ik-llama:installed, appset-vllm-*.yaml no longer
+                # match any cluster) - calls to either will fail until vLLM is redeployed.
+                # Left active (not commented out) deliberately: access is controlled via
+                # virtual keys instead, and this way switching back to vLLM later doesn't
+                # need a LiteLLM redeploy, just the cluster label flip + these keys re-enabled.
                 - model_name: qwen2.5-7b-instruct
                   litellm_params:
                     model: hosted_vllm/Qwen/Qwen2.5-7B-Instruct
                     api_base: http://vllm-qwen-engine-service.vllm.svc.cluster.local:8000/v1
                     api_key: "{{ vllm-master-key }}"
-                  model_info:
-                    input_cost_per_token: 0
-                    output_cost_per_token: 0
                   model_info:
                     input_cost_per_token: 0
                     output_cost_per_token: 0
@@ -179,6 +185,30 @@ spec:
                     model: hosted_vllm/openai/gpt-oss-20b
                     api_base: http://vllm-gptoss-engine-service.vllm.svc.cluster.local:8000/v1
                     api_key: "{{ vllm-master-key }}"   # must match apps/vllm/secrets.local.yaml
+                  model_info:
+                    input_cost_per_token: 0
+                    output_cost_per_token: 0
+
+                # NOTE: kagent's Agent CR (k8s-agent-litellm, not GitOps-managed - see
+                # docs/05-kagent-config.md) still directly references "gpt-oss-20b" as its
+                # ModelConfig. That model_name resolves in LiteLLM's model_list but the
+                # underlying vLLM Service doesn't exist right now, so kagent is currently
+                # broken until either vLLM comes back or its ModelConfig is repointed at
+                # qwen3.6-27b separately.
+
+                # ik_llama.cpp serving Qwen3.6-27B (see appset-ik-llama-qwen3-6-27b.yaml
+                # in this repo). In-cluster Service endpoint, no HTTPRoute - both LiteLLM
+                # and ik_llama.cpp run on the same cluster, so no need to round-trip through
+                # the external Gateway. No api_key: the ik_llama.cpp server has no auth
+                # configured (confirmed no Authorization enforcement), and its OpenAI-compat
+                # endpoint doesn't validate the "model" field against anything (confirmed by
+                # calling it directly with an arbitrary model string) - "not-needed" is a
+                # placeholder purely because the OpenAI SDK requires a non-empty api_key value.
+                - model_name: qwen3.6-27b
+                  litellm_params:
+                    model: openai/qwen3.6-27b
+                    api_base: http://ik-llama-qwen3-6-27b.ik-llama.svc.cluster.local:8080/v1
+                    api_key: "not-needed"
                   model_info:
                     input_cost_per_token: 0
                     output_cost_per_token: 0
@@ -212,13 +242,14 @@ spec:
                 # available regardless of which vLLM model is currently deployed).
                 # SIMPLE/MEDIUM deliberately route to self-hosted models, not cloud:
                 #   - SIMPLE -> llama3.2-1b (Ollama, CPU-only, always available - no
-                #     single-GPU contention, appropriately small for simple requests).
-                #   - MEDIUM -> gpt-oss-20b (vLLM/GPU). Same accepted tradeoff as this
-                #     model's direct model_list entry above: only one vLLM model is
-                #     deployed at a time (single RTX 3090), so MEDIUM-tier calls will
-                #     error whenever qwen2.5-7b-instruct is the one currently deployed
-                #     instead. gpt-oss-20b chosen over qwen2.5-7b-instruct as the
-                #     stronger general-purpose model of the two.
+                #     GPU contention, appropriately small for simple requests).
+                #   - MEDIUM -> qwen3.6-27b (ik_llama.cpp/GPU, updated 2026-08-03 -
+                #     was gpt-oss-20b, now decommissioned along with the rest of vLLM in
+                #     favor of ik_llama.cpp on the single RTX 3090 - see
+                #     appset-ik-llama-qwen3-6-27b.yaml). Same single-GPU-availability
+                #     caveat as before still applies in spirit: this is the only
+                #     self-hosted GPU model now, so MEDIUM/REASONING calls depend on this
+                #     one Deployment staying up rather than picking between two.
                 # COMPLEX stays on cloud (gpt-4o-mini), but NOT gpt-5.6-luna: real
                 # production failure confirmed (2026-08-01) - OpenAI's API defaults
                 # gpt-5.6-luna into a reasoning mode that's incompatible with function
@@ -233,13 +264,16 @@ spec:
                 # considered but not used - untested, and plausibly shares
                 # gpt-5.6-luna's reasoning-family behavior going by the naming pattern,
                 # not worth the risk of hitting the same bug again.
-                # REASONING -> gpt-oss-20b instead of gpt-4o-mini: gpt-4o-mini isn't a
+                # REASONING -> qwen3.6-27b instead of gpt-4o-mini: gpt-4o-mini isn't a
                 # reasoning model at all, which defeats the point of a dedicated
-                # REASONING tier. gpt-oss-20b is a genuine reasoning model (native
-                # reasoning_effort support, Harmony format) AND already proven safe
-                # with tool-calling in this cluster (it's the kagent model - see
-                # docs/05/07 in k8s-ai-homelab) without gpt-5.6-luna's chat-completions
-                # restriction. Same accepted GPU-availability tradeoff as MEDIUM above.
+                # REASONING tier. qwen3.6-27b is a genuine hybrid-reasoning model
+                # (thinking mode, tool-calling via --jinja/--parallel-tool-calls on the
+                # ik_llama.cpp side) without gpt-5.6-luna's chat-completions restriction.
+                # Not yet proven with real agentic tool-calling traffic the way
+                # gpt-oss-20b was for kagent - kagent itself is currently broken (its
+                # ModelConfig still points at the now-gone gpt-oss-20b) and needs a
+                # separate fix to point at qwen3.6-27b before that claim can be verified
+                # here the same way.
                 # Any classifier failure (timeout, bad JSON, provider error) falls back
                 # silently to the heuristic scorer (confirmed from LiteLLM's own
                 # complexity_router.py), so this is low-risk to leave live while tuning.
@@ -258,9 +292,9 @@ spec:
                         timeout_ms: 9000
                       tiers:
                         SIMPLE: llama3.2-1b
-                        MEDIUM: gpt-oss-20b
+                        MEDIUM: qwen3.6-27b
                         COMPLEX: gpt-4o-mini
-                        REASONING: gpt-oss-20b
+                        REASONING: qwen3.6-27b
 
               # MCP servers, config.yaml-managed (not store_model_in_db-backed - that's
               # only required for the UI/DB-managed path, per LiteLLM's own docs).
