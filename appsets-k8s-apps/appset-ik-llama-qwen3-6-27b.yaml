@@ -56,6 +56,13 @@ spec:
                 type: deployment
                 pod:
                   runtimeClassName: nvidia
+                  # curlimages/curl runs as uid=100/gid=101 (curl_user/curl_group,
+                  # confirmed via `kubectl exec ... id`) - the freshly-provisioned
+                  # ext4 volume from the Synology CSI driver is root-owned by
+                  # default, so the initContainer got "Permission denied"
+                  # writing the GGUF without this.
+                  securityContext:
+                    fsGroup: 101
                 initContainers:
                   fetch-gguf:
                     image:
