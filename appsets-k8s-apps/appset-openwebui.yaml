@@ -27,8 +27,8 @@ spec:
       project: k8s-homelab-apps
       sources:
       - helm:
-      releaseName: openwebui
-      values: |
+        releaseName: openwebui
+        values: |
             ollama:
                 enabled: false
             persistence:
