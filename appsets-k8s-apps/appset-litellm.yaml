@@ -204,11 +204,21 @@ spec:
                 # endpoint doesn't validate the "model" field against anything (confirmed by
                 # calling it directly with an arbitrary model string) - "not-needed" is a
                 # placeholder purely because the OpenAI SDK requires a non-empty api_key value.
+                #
+                # max_parallel_requests: 1 matches the server's real -np 1 capacity
+                # (single request slot, deliberately not raised - see
+                # appset-ik-llama-qwen3-6-27b.yaml for why). Confirmed from LiteLLM's own
+                # source this is enforced via an asyncio.Semaphore per deployment - extra
+                # concurrent requests queue and wait here rather than being rejected, and
+                # rather than all piling up unbounded against the backend's own queue.
+                # Model-specific: read from this deployment's own litellm_params, doesn't
+                # affect any other model_list entry.
                 - model_name: qwen3.6-27b
                   litellm_params:
                     model: openai/qwen3.6-27b
                     api_base: http://ik-llama-qwen3-6-27b.ik-llama.svc.cluster.local:8080/v1
                     api_key: "not-needed"
+                    max_parallel_requests: 1
                   model_info:
                     input_cost_per_token: 0
                     output_cost_per_token: 0
