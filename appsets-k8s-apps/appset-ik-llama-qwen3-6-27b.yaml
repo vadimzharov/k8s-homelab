@@ -179,7 +179,7 @@ spec:
                         nvidia.com/gpu: "1"
                       limits:
                         cpu: "4"
-                        memory: 24Gi
+                        memory: 28Gi
                         nvidia.com/gpu: "1"
             persistence:
               gguf-cache:
