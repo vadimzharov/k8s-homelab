@@ -138,6 +138,15 @@ spec:
                       - "0.0"
                       - --repeat-penalty
                       - "1.0"
+                    # timeoutSeconds explicitly set on all three probes below - the
+                    # k8s default (1s) is too aggressive for this server. Confirmed via
+                    # real production incident (2026-08-08): under actual inference
+                    # load (-np 1, single request slot, GPU-bound), /health can take
+                    # longer than 1s to respond even when genuinely healthy, and the
+                    # 1s default caused real "context deadline exceeded" probe
+                    # failures under load - one of which triggered an actual liveness
+                    # restart, killing an in-flight request. See K8s events on this
+                    # Deployment around that timestamp for the exact failure pattern.
                     probes:
                       liveness:
                         enabled: true
@@ -147,6 +156,7 @@ spec:
                         spec:
                           initialDelaySeconds: 30
                           periodSeconds: 15
+                          timeoutSeconds: 10
                       readiness:
                         enabled: true
                         type: HTTP
@@ -155,6 +165,7 @@ spec:
                         spec:
                           initialDelaySeconds: 30
                           periodSeconds: 10
+                          timeoutSeconds: 10
                       startup:
                         enabled: true
                         type: HTTP
@@ -165,6 +176,7 @@ spec:
                           # first boot even with the weights already cached.
                           failureThreshold: 60
                           periodSeconds: 10
+                          timeoutSeconds: 10
                     # First-pass estimate (4Gi/8Gi) was wrong - confirmed OOMKilled
                     # (exitCode 137) during boot even with -ngl 99 offloading all
                     # layers to GPU. The 16.2GB GGUF still gets read through host
