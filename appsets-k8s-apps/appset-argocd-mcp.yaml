@@ -80,9 +80,9 @@ spec:
               limits:
                 cpu: 500m
                 memory: 256Mi
-          repoURL: https://bjw-s-labs.github.io/helm-charts
-          chart: app-template
-          targetRevision: 4.6.2
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.6.2
       destination:
         server: '{{server}}'
         namespace: argocd-mcp
