@@ -182,8 +182,21 @@ spec:
                     # layers to GPU. The 16.2GB GGUF still gets read through host
                     # memory before/while copying to the GPU, so host RAM needs
                     # to comfortably exceed the model file size, not just cover
-                    # process overhead. Node has ~31Gi allocatable with ~20Gi
-                    # free at request-level, so this fits with room to spare.
+                    # process overhead.
+                    #
+                    # Limit lowered 28Gi -> 24Gi after a real node-hang incident
+                    # (2026-08-09): this node's real capacity is 30Gi total, and
+                    # a 28Gi limit left no headroom for the GPU operator stack,
+                    # cilium, CSI node plugins, coredns etc. also running here
+                    # (~2.5-3Gi combined). Under sustained use this container's
+                    # RSS grew enough to hit the kernel's *global* OOM killer
+                    # (not just its own cgroup limit) - which killed llama-server
+                    # directly and left the node degraded, requiring a hard
+                    # reboot ~30 min later. 24Gi keeps this container's own
+                    # ceiling comfortably below the node's real available memory
+                    # (see kubelet systemReserved/kubeReserved on the node itself)
+                    # so a future runaway is a contained pod restart, not a
+                    # repeat of that.
                     resources:
                       requests:
                         cpu: "1"
@@ -191,7 +204,7 @@ spec:
                         nvidia.com/gpu: "1"
                       limits:
                         cpu: "4"
-                        memory: 28Gi
+                        memory: 24Gi
                         nvidia.com/gpu: "1"
             persistence:
               gguf-cache:
