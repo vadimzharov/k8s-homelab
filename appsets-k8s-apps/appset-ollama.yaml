@@ -67,6 +67,20 @@ spec:
               limits:
                 memory: 6Gi
                 cpu: 3000m
+            # k8s02-worker-02 (the GPU node) is tainted
+            # dedicated=gpu-inference:NoSchedule to keep general workloads off
+            # it after a real node-hang incident (2026-08-09). Ollama is
+            # CPU-only and deliberately kept on this node anyway - it's the
+            # most powerful box in the cluster (24 cores vs 4 elsewhere) and
+            # ollama benefits from the extra CPU. This toleration is what
+            # keeps it schedulable there (verified field placement via
+            # `helm template` against the otwld/ollama chart - top-level
+            # `tolerations`, not nested under `ollama:`).
+            tolerations:
+              - key: dedicated
+                operator: Equal
+                value: gpu-inference
+                effect: NoSchedule
         repoURL: https://otwld.github.io/ollama-helm/
         chart: ollama
         targetRevision: 1.70.0
