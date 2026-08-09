@@ -117,8 +117,17 @@ spec:
                       - "200000"
                       - -b
                       - "4096"
+                      # Lowered from 1024 -> 512 (2026-08-09) as a first,
+                      # low-cost memory-tuning step after repeated OOM-restart
+                      # cycles under sustained use. Smaller micro-batch means
+                      # prompt processing happens in more, smaller chunks -
+                      # ~2-4% slower prefill (source repo's own documented
+                      # cost), no reduction in context window or output
+                      # quality. See docs/13-qwen3.6-27b-3090-k8s-tuning.md in
+                      # k8s-ai-homelab for the full reasoning and what's still
+                      # on the table (--ctx-size reduction, not yet applied).
                       - -ub
-                      - "1024"
+                      - "512"
                       - -np
                       - "1"
                       - -ctk
