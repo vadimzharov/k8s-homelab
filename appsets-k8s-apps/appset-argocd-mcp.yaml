@@ -82,7 +82,7 @@ spec:
                 memory: 256Mi
           repoURL: https://bjw-s-labs.github.io/helm-charts
           chart: app-template
-          targetRevision: 3.4.0
+          targetRevision: 4.6.2
       destination:
         server: '{{server}}'
         namespace: argocd-mcp
