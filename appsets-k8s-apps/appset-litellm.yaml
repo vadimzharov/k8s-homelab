@@ -318,6 +318,20 @@ spec:
                   url: "http://palette-mcp.palette-mcp.svc.cluster.local:8080/sse"
                   description: "Spectro Cloud Palette - cluster management, fleet health, infrastructure operations"
 
+                # argoproj-labs/mcp-for-argocd (see appset-argocd-mcp.yaml), a native MCP
+                # implementation (not a bridged/proxied stdio binary like palette above) -
+                # it speaks the MCP protocol directly over streamable HTTP (POST /mcp,
+                # session via the Mcp-Session-Id header), hence transport: "http" here
+                # rather than "sse". In-cluster Service endpoint, no HTTPRoute - both
+                # LiteLLM and this server run on the same cluster. No api_key: LiteLLM
+                # only talks to this internal, unauthenticated endpoint; the real ArgoCD
+                # API token is configured inside the server itself (ARGOCD_API_TOKEN env
+                # var), one hop further down, same pattern as Palette's PALETTE_API_KEY.
+                argocd:
+                  transport: "http"
+                  url: "http://argocd-mcp.argocd-mcp.svc.cluster.local:3000/mcp"
+                  description: "ArgoCD - list/get/sync applications, inspect resources, view workload logs and events"
+
               general_settings:
                 master_key: os.environ/PROXY_MASTER_KEY
                 # Lets the Admin UI's Logs page show full request/response
