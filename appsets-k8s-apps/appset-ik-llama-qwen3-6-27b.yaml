@@ -63,6 +63,20 @@ spec:
                   # writing the GGUF without this.
                   securityContext:
                     fsGroup: 101
+                  # k8s02-worker-02 (the only GPU node) is tainted
+                  # dedicated=gpu-inference:NoSchedule to keep general workloads
+                  # off it after a real node-hang incident (2026-08-09) revealed
+                  # it was also hosting the entire kagent fleet, immich, ollama,
+                  # and openwebui alongside this GPU-bound pod. This toleration
+                  # is what still lets ik-llama land there - it doesn't need a
+                  # matching nodeSelector too since the nvidia.com/gpu resource
+                  # request below already pins it to the only node advertising
+                  # that capacity.
+                  tolerations:
+                    - key: dedicated
+                      operator: Equal
+                      value: gpu-inference
+                      effect: NoSchedule
                 initContainers:
                   fetch-gguf:
                     image:
