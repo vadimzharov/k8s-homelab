@@ -42,9 +42,6 @@ spec:
                         value: "https://argocd.{{ domainname }}"
                       ARGOCD_API_TOKEN:
                         value: "{{ argocd-api-token }}"
-                    args:
-                      - http
-                      - --stateless
             service:
               main:
                 primary: true
