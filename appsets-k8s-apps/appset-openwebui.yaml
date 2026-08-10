@@ -34,6 +34,22 @@ spec:
             persistence:
               enabled: true
               existingClaim: openwebui-data
+            # Was `resources: {}` (chart default) - BestEffort QoS, no
+            # protection at all under node memory/CPU pressure. Same
+            # silently-empty-resources-block class of gap already found and
+            # fixed for argocd-mcp and ik-llama in this cluster. Sized off
+            # real observed usage (~730-790Mi RSS during light-to-moderate
+            # use, confirmed via `kubectl top pod`), with headroom for
+            # RAG/file-processing spikes. Verified placement via
+            # `helm template` against this chart (top-level `resources:`,
+            # not nested).
+            resources:
+              requests:
+                cpu: 250m
+                memory: 512Mi
+              limits:
+                cpu: "1"
+                memory: 2Gi
             route:
               enabled: true
               annotations:
