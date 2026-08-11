@@ -34,7 +34,7 @@ spec:
             - name: crds.enabled
               value: "true"          
         repoURL: oci://ghcr.io/kagent-dev/kagent/helm/kagent-crds
-        targetRevision: 0.10.0
+        targetRevision: 0.9.12
         path: .
       - helm:
           releaseName: kagent
@@ -51,7 +51,7 @@ spec:
                   storage: 5Gi
                   storageClassName: synas-csi-retain
         repoURL: oci://ghcr.io/kagent-dev/kagent/helm/kagent
-        targetRevision: 0.10.0
+        targetRevision: 0.9.12
         path: .
       - helm:
           releaseName: kagent-httproute
