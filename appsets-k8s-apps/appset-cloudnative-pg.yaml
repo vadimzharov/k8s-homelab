@@ -35,9 +35,22 @@ spec:
         repoURL: https://cloudnative-pg.github.io/charts
         chart: cloudnative-pg
         targetRevision: 0.27.0
-      - repoURL: https://github.com/cloudnative-pg/plugin-barman-cloud.git
-        targetRevision: 'v0.9.0'
-        path: kubernetes/    
+      # Upstream's own kubernetes/kustomization.yaml unconditionally points
+      # both the controller image and the SIDECAR_IMAGE it injects into
+      # every CNPG-managed Postgres pod at a floating -testing:main tag,
+      # even at a pinned release ref (verified on v0.9.0, v0.14.0, and
+      # main - no version differs). This silently let two clusters running
+      # this identical appset end up on different plugin builds depending
+      # on when each Postgres pod happened to pull :main - on one of them
+      # this surfaced as a real bug (retention-policy enforcement failing
+      # 100% of the time). Fixed via a local overlay
+      # (manifests-k8s-apps/cloudnative-pg-barman-cloud-overlay/) that pins
+      # both images to the stable v0.14.0 release instead of trusting
+      # upstream's testing tag - see that file for the full writeup and
+      # local-render verification.
+      - repoURL: https://github.com/vadimzharov/k8s-homelab.git
+        targetRevision: main
+        path: manifests-k8s-apps/cloudnative-pg-barman-cloud-overlay
       destination:
         server: '{{server}}' 
         namespace: cnpg-system

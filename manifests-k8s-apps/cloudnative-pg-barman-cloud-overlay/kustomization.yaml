@@ -1,0 +1,34 @@
+# Wrapper for cloudnative-pg/plugin-barman-cloud's official release
+# manifest (referenced by appsets-k8s-apps/appset-cloudnative-pg.yaml's
+# second Helm source). ArgoCD needs a git repoURL+path or Helm chart as a
+# source - it can't point directly at an arbitrary release-asset URL - so
+# this one-resource kustomization exists purely to make that possible.
+#
+# Why not just reference upstream's kubernetes/ directory at a pinned git
+# ref (what appset-cloudnative-pg.yaml did before)? Its committed
+# kustomization.yaml unconditionally points both the controller Deployment
+# and the SIDECAR_IMAGE injected into every CNPG-managed Postgres pod at a
+# floating `-testing:main` tag - confirmed true at v0.9.0, v0.14.0, and
+# `main` itself (no version differs; this looks like their dev/e2e config,
+# not meant for consumption). Two clusters running the identical git-pinned
+# appset ended up on genuinely different plugin builds purely based on when
+# each Postgres pod happened to pull `:main` - on one of them (immich-v,
+# k8s-01) this surfaced as a real bug: retention-policy enforcement failing
+# 100% of the time with a Kubernetes API scheme/type-conversion error,
+# meaning that cluster's backup bucket had likely never been pruned in its
+# ~90-day life.
+#
+# This release manifest is different: it's upstream's own official,
+# published install artifact (https://cloudnative-pg.io/plugin-barman-cloud/
+# docs/installation/ recommends `kubectl apply -f` against it directly),
+# and it already has both images correctly pinned to :v0.14.0 - confirmed
+# by decoding its embedded SIDECAR_IMAGE secret and comparing byte-for-byte
+# against a hand-built override of the kubernetes/ directory: all 17
+# resources matched exactly (same content-hashed Secret name
+# plugin-barman-cloud-f998mh5292 on both). So the fix upstream's release
+# process applies before publishing this asset is exactly the fix this repo
+# needed - just consuming their already-correct output directly, rather
+# than re-deriving equivalent overrides by hand and having to redo that
+# verification on every future version bump.
+resources:
+  - https://github.com/cloudnative-pg/plugin-barman-cloud/releases/download/v0.14.0/manifest.yaml
