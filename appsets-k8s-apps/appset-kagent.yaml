@@ -83,17 +83,17 @@ spec:
                 kind: HTTPRoute
                 annotations:
                   k8s-dashboard-group: AI tools
-                  k8s-dashboard-appname: KAgent - AI for K8S                
+                  k8s-dashboard-appname: KAgent - AI for K8S
                 spec:
                   spec:
                     parentRefs:
                       - name: cilium-gw
                         namespace: cilium-system
                         group: gateway.networking.k8s.io
-                        kind: Gateway                        
+                        kind: Gateway
                     hostnames:
                       - kagent-{{name}}.{{ domainname }}
-                    rules:  
+                    rules:
                       - backendRefs:
                           - group: ''
                             kind: Service
@@ -105,6 +105,109 @@ spec:
                           - path:
                               type: PathPrefix
                               value: /
+              # LiteLLM-backed ModelConfig + Agent - previously applied
+              # directly on the cluster (not GitOps-managed), now brought
+              # into this appset via rawResources rather than a plain
+              # manifest path in this git repo, per explicit direction.
+              # This is deliberately a SEPARATE agent from the bundled
+              # `k8s-agent` (OpenAI-backed, kept as-is as a backup/fallback
+              # agent, not touched here) - k8s-agent-litellm is the one
+              # intended for A2A registration with the planned Hermes/
+              # cross-cluster agent setup; k8s-agent is explicitly NOT to
+              # be registered there.
+              litellm-creds:
+                apiVersion: v1
+                kind: Secret
+                forceRename: "litellm-creds"
+                spec:
+                  stringData:
+                    PROVIDER_API_KEY: {{litellm-kagent-key}}
+              litellm-model:
+                apiVersion: kagent.dev/v1alpha2
+                kind: ModelConfig
+                forceRename: "litellm-model"
+                spec:
+                  spec:
+                    apiKeySecret: litellm-creds
+                    apiKeySecretKey: PROVIDER_API_KEY
+                    model: qwen3.6-27b
+                    openAI:
+                      baseUrl: https://litellm.{{ domainname }}/v1
+                    provider: OpenAI
+              k8s-agent-litellm:
+                apiVersion: kagent.dev/v1alpha2
+                kind: Agent
+                forceRename: "k8s-agent-litellm"
+                spec:
+                  spec:
+                    declarative:
+                      context:
+                        compaction:
+                          compactionInterval: 5
+                          overlapSize: 2
+                          tokenThreshold: 31000
+                      modelConfig: litellm-model
+                      runtime: python
+                      systemMessage: |
+                        You're a helpful agent, made by the kagent team.
+
+                        # Instructions
+                            - If user question is unclear, ask for clarification before running any tools
+                            - Always be helpful and friendly
+                            - If you don't know how to answer the question DO NOT make things up, tell the user "Sorry, I don't know how to answer that" and ask them to clarify the question further
+                            - If you are unable to help, or something goes wrong, refer the user to https://kagent.dev for more information or support.
+
+                        # Tool usage - keep outputs small
+                            - The model backing you has a limited context window. Oversized tool results will make the
+                              whole request fail outright (not just get truncated) - so scope every call as narrowly as
+                              possible up front, rather than fetching broadly and filtering after the fact.
+                            - k8s_get_pod_logs: always pass a small tail_lines (50-200) unless the user explicitly asks
+                              for more history. Never fetch full/unbounded logs from a pod you haven't already narrowed
+                              down to.
+                            - k8s_get_resources: prefer output=wide or output=json over output=yaml for anything beyond a
+                              single resource - yaml is verbose. Avoid combining all_namespaces=true with an unfiltered
+                              resource_type across many resources; scope to a specific namespace and/or resource_name
+                              whenever you already know roughly where the problem is.
+                            - k8s_get_resource_yaml / k8s_describe_resource: fine for a single, already-identified
+                              resource - avoid looping these across many resources in one investigation without a good
+                              reason.
+                            - k8s_execute_command: avoid commands whose output can be arbitrarily large (e.g. dumping
+                              whole files or verbose process listings) unless you've first confirmed the expected output
+                              is small.
+                            - If you genuinely need a broad view first, get a compact listing (wide/json, narrow
+                              namespace) to identify the specific resource(s) involved, then drill into just those with
+                              more detailed calls - don't fetch full detail for everything at once.
+
+                        # Response format:
+                            - ALWAYS format your response as Markdown
+                            - Your response will include a summary of actions you took and an explanation of the result
+                            - If you created any artifacts such as files or resources, you will include those in your response as well
+                      tools:
+                      - mcpServer:
+                          apiGroup: kagent.dev
+                          kind: RemoteMCPServer
+                          name: kagent-tool-server
+                          namespace: kagent
+                          # Read-only/inspection tools only - this agent is a
+                          # health-checker (planned for A2A registration with
+                          # Hermes), not an operator. Mutating tools
+                          # (create/delete/patch/label/annotate/scale/rollout/
+                          # apply/exec) removed 2026-08-14: not needed yet, and
+                          # removing them now is safer than granting write
+                          # access before there's an actual need for it.
+                          toolNames:
+                          - k8s_check_service_connectivity
+                          - k8s_describe_resource
+                          - k8s_generate_resource
+                          - k8s_get_available_api_resources
+                          - k8s_get_cluster_configuration
+                          - k8s_get_events
+                          - k8s_get_pod_logs
+                          - k8s_get_resource_yaml
+                          - k8s_get_resources
+                        type: McpServer
+                    description: Test LiteLLM
+                    type: Declarative
         repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 4.4.0        
