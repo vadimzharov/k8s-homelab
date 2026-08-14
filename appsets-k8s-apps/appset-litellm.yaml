@@ -350,6 +350,13 @@ spec:
                 # with this on, that ends up stored in the LiteLLM
                 # Postgres DB.
                 store_prompts_in_spend_logs: true
+                # Allows models to be added/edited via the Admin UI,
+                # persisting to the LiteLLM_Config DB table. DB values
+                # deep-merge over config.yaml on every reload, so a
+                # model created in the UI will coexist with (not replace)
+                # YAML-defined models. Be aware the live model list can
+                # drift from GitOps if models are managed through the UI.
+                store_model_in_db: true
 
               # Sanitizes leaked Harmony control tokens (<|channel|>,
               # <|constrain|>, etc.) out of tool_call function names in
