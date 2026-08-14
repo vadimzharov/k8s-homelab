@@ -332,6 +332,32 @@ spec:
                   url: "http://argocd-mcp.argocd-mcp.svc.cluster.local:3000/mcp"
                   description: "ArgoCD - list/get/sync applications, inspect resources, view workload logs and events"
 
+              # A2A agent gateway. k8s-agent-litellm is kagent's read-only,
+              # LiteLLM-backed health-check agent (see appset-kagent.yaml) -
+              # exposed via its own HTTPRoute (kagent-controller:8083, not
+              # the kagent-ui route) scoped to just this agent's A2A path.
+              # k8s-agent (the OpenAI-backed backup agent) is deliberately
+              # NOT registered here, and its A2A path isn't even reachable
+              # through that HTTPRoute.
+              agents:
+                - agent_name: k8s02-health-agent
+                  agent_card_params:
+                    name: "k8s-02 kagent"
+                    url: "https://kagent-a2a-{{name}}.{{ domainname }}/api/a2a/kagent/k8s-agent-litellm/"
+                    protocolVersion: "1.0"
+                # k8s01 - {{name}} above resolves to k8s02 (where LiteLLM
+                # itself is deployed), so it can't be reused here; this is a
+                # different, remote cluster from LiteLLM's own vantage point,
+                # hence the literal cluster name. {{ domainname }} is still
+                # shared/global so it's reused as-is. Same appset, same
+                # rawResources pattern, deployed independently on k8s01 -
+                # see appset-kagent.yaml.
+                - agent_name: k8s01-health-agent
+                  agent_card_params:
+                    name: "k8s-01 kagent"
+                    url: "https://kagent-a2a-k8s01.{{ domainname }}/api/a2a/kagent/k8s-agent-litellm/"
+                    protocolVersion: "1.0"
+
               general_settings:
                 master_key: os.environ/PROXY_MASTER_KEY
                 # Lets the Admin UI's Logs page show full request/response

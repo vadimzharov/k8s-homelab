@@ -146,6 +146,39 @@ spec:
                           compactionInterval: 5
                           overlapSize: 2
                           tokenThreshold: 31000
+                      # Serves this agent over A2A at
+                      # <kagent-controller>:8083/api/a2a/kagent/k8s-agent-litellm/
+                      # - exposed externally via the k8s-agent-litellm-a2a
+                      # HTTPRoute below, for registration in LiteLLM's A2A
+                      # gateway (planned Hermes integration). Skills are
+                      # scoped to match this agent's actual (read-only)
+                      # toolset - no skill implies write/mutate capability,
+                      # since that access was deliberately removed above.
+                      a2aConfig:
+                        skills:
+                          - id: cluster-health-check
+                            name: "Cluster Health Check"
+                            description: "Inspect pod, deployment, and node status across the cluster to report on overall health and surface problems (e.g. CrashLoopBackOff, pending pods, failed rollouts)."
+                            tags:
+                              - kubernetes
+                              - health
+                              - monitoring
+                            examples:
+                              - "Are there any unhealthy pods in the cluster?"
+                              - "What's the status of the litellm deployment?"
+                          - id: resource-inspection
+                            name: "Resource Inspection"
+                            description: "Describe or retrieve the full configuration of any Kubernetes resource for troubleshooting. Read-only - cannot create, modify, or delete resources."
+                            tags:
+                              - kubernetes
+                              - inspection
+                          - id: event-and-log-review
+                            name: "Event and Log Review"
+                            description: "Review recent Kubernetes events and pod logs to help diagnose issues."
+                            tags:
+                              - kubernetes
+                              - logs
+                              - events
                       modelConfig: litellm-model
                       runtime: python
                       systemMessage: |
@@ -208,6 +241,42 @@ spec:
                         type: McpServer
                     description: Test LiteLLM
                     type: Declarative
+              # Exposes k8s-agent-litellm's A2A endpoint for registration in
+              # LiteLLM's A2A gateway. Points at kagent-controller:8083 (the
+              # A2A server), NOT kagent-ui:8080 (the existing kagent-httproute
+              # above, which serves the web UI). Path is scoped to exactly
+              # this agent's A2A path, deliberately excluding
+              # /api/a2a/kagent/k8s-agent - the OpenAI-backed backup agent is
+              # not meant to be reachable here, matching explicit direction
+              # not to register it in A2A. No auth for now, per direction.
+              k8s-agent-litellm-a2a:
+                apiVersion: gateway.networking.k8s.io/v1beta1
+                kind: HTTPRoute
+                forceRename: "k8s-agent-litellm-a2a"
+                annotations:
+                  k8s-dashboard-group: AI tools
+                  k8s-dashboard-appname: KAgent LiteLLM Agent (A2A)
+                spec:
+                  spec:
+                    parentRefs:
+                      - name: cilium-gw
+                        namespace: cilium-system
+                        group: gateway.networking.k8s.io
+                        kind: Gateway
+                    hostnames:
+                      - kagent-a2a-{{name}}.{{ domainname }}
+                    rules:
+                      - backendRefs:
+                          - group: ''
+                            kind: Service
+                            name: kagent-controller
+                            namespace: kagent
+                            port: 8083
+                            weight: 1
+                        matches:
+                          - path:
+                              type: PathPrefix
+                              value: /api/a2a/kagent/k8s-agent-litellm
         repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 4.4.0        
