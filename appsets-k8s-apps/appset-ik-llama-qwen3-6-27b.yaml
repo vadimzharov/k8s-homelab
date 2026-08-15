@@ -113,27 +113,20 @@ spec:
                       - /models/Qwen3.6-27B-MTP-IQ4_KS.gguf
                       - -ngl
                       - "99"
-                      # Lowered from 200000 -> 131072 (2026-08-15). The -ub
-                      # 512 tuning alone (below) wasn't enough: a real,
-                      # isolated test (fresh boot baseline ~9.6GB, one heavy
-                      # 23-message agentic tool-calling exchange via kagent)
-                      # showed a single such session permanently adding
-                      # ~3.1GB to host RSS - it never released after the
-                      # request completed. At that rate only ~4-5 heavy
-                      # agentic sessions exhaust the entire 24Gi ceiling from
-                      # a fresh boot, which fully explains why the interval
-                      # between OOM-restarts dropped from ~5 days to ~9.5
-                      # hours as soon as real kagent/A2A agentic traffic
-                      # started hitting this model. The recurrent-checkpoint
-                      # pool (--recurrent-ckpt-mode, see below) is believed
-                      # to scale with the context *budget*, not just what's
-                      # used, so cutting the budget should cut that pool
-                      # proportionally. Real cost: shorter max
-                      # conversation/tool-output window before truncation -
-                      # see docs/13-qwen3.6-27b-3090-k8s-tuning.md in
+                      # Briefly lowered to 131072 on 2026-08-15, then
+                      # reverted back to 200000 the same day once the real
+                      # cause of the host-RAM growth was found (see
+                      # --cache-ram / --ctx-checkpoints below): a real,
+                      # isolated load test showed the growth (~3-4GB per
+                      # heavy agentic exchange) tracked conversation/token
+                      # volume, not the --ctx-size ceiling - a fresh-boot
+                      # baseline at 131072 was barely lower than at 200000,
+                      # and per-message growth was unchanged. --ctx-size was
+                      # never the actual lever; see
+                      # docs/13-qwen3.6-27b-3090-k8s-tuning.md in
                       # k8s-ai-homelab for the full history.
                       - --ctx-size
-                      - "131072"
+                      - "200000"
                       - -b
                       - "4096"
                       # Lowered from 1024 -> 512 (2026-08-09) as a first,
@@ -159,6 +152,34 @@ spec:
                       - "mtp:n_max=2,p_min=0.0"
                       - --recurrent-ckpt-mode
                       - auto
+                      # Added 2026-08-15 after root-causing the real
+                      # host-RAM growth to this MTP checkpoint pool, not
+                      # --ctx-size (see above). Live server logs showed
+                      # "created context checkpoint N of 32 ... size =
+                      # 149.6 MiB" - the default --ctx-checkpoints is 32,
+                      # so the pool's own ceiling is ~32 * 150MiB =~ 4.8GB.
+                      # Cut to 8 (~1.2GB ceiling) since we don't need deep
+                      # speculative-decoding rollback history for this
+                      # workload.
+                      - --ctx-checkpoints
+                      - "8"
+                      # Added 2026-08-15, same investigation. This is the
+                      # documented prompt-cache-for-repeated-prompts
+                      # feature (explicitly recommended for "coding
+                      # agents" / repeated-tool-call workloads by
+                      # ik_llama.cpp's own docs) - it was left at its
+                      # default (8192 MiB) the whole time, and live logs
+                      # confirmed it filling toward that 8GB cap after just
+                      # two test queries. Combined with the checkpoint pool
+                      # above and the ~10GB base model footprint, the
+                      # uncapped defaults summed to ~22.8GB - right against
+                      # the 24Gi container limit, which is what actually
+                      # explains the OOM-restart-interval collapse (5 days
+                      # -> 9.5 hours) once real agentic traffic started
+                      # filling these caches. Capped to 2048 MiB (down from
+                      # 8192) to leave real headroom.
+                      - --cache-ram
+                      - "2048"
                       - --merge-qkv
                       - -fa
                       - "on"
