@@ -1,0 +1,221 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: hermes
+  namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Hermes Agent"
+    appset-dashboard-groupname: "AI tools"
+    k8s-dashboard-group: "AI tools"
+    k8s-dashboard-appname: "Hermes Agent"
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  hermes: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-hermes'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: hermes
+          values: |
+            controllers:
+              main:
+                type: deployment
+                strategy: Recreate
+                replicas: 1
+                pod:
+                  securityContext:
+                    fsGroup: 10000
+                initContainers:
+                  hermes-restore:
+                    image:
+                      repository: ghcr.io/vadimzharov/pdbackup
+                      pullPolicy: IfNotPresent
+                      tag: 0.0.4
+                    args:
+                      - restore
+                    envFrom:
+                      - secretRef:
+                          name: hermes-b-r-secret
+                      - configMapRef:
+                          name: hermes-b-r-settings
+                    env:
+                      POD_NAME:
+                        valueFrom:
+                          fieldRef:
+                            fieldPath: metadata.name
+                      POD_NAMESPACE:
+                        valueFrom:
+                          fieldRef:
+                            fieldPath: metadata.namespace
+                      POD_UID:
+                        valueFrom:
+                          fieldRef:
+                            fieldPath: metadata.uid
+                containers:
+                  main:
+                    image:
+                      repository: docker.io/nousresearch/hermes-agent
+                      tag: v2026.8.13
+                      pullPolicy: IfNotPresent
+                    args:
+                      - gateway
+                      - run
+                    env:
+                      HERMES_UID: "10000"
+                      HERMES_GID: "10000"
+                      TELEGRAM_BOT_TOKEN: "{{hermes-telegram-bot-token}}"
+                      TELEGRAM_ALLOWED_USERS: "{{hermes-telegram-user-id}}"
+                      LITELLM_API_KEY: "{{litellm-hermes-key}}"
+                    resources:
+                      requests:
+                        cpu: "250m"
+                        memory: 512Mi
+                      limits:
+                        cpu: "1"
+                        memory: 1Gi
+                  hermes-backup-daemon:
+                    image:
+                      repository: ghcr.io/vadimzharov/pdbackup
+                      pullPolicy: IfNotPresent
+                      tag: 0.0.4
+                    args:
+                      - daemon
+                    envFrom:
+                      - secretRef:
+                          name: hermes-b-r-secret
+                      - configMapRef:
+                          name: hermes-b-r-settings
+                    env:
+                      POD_NAME:
+                        valueFrom:
+                          fieldRef:
+                            fieldPath: metadata.name
+                      POD_NAMESPACE:
+                        valueFrom:
+                          fieldRef:
+                            fieldPath: metadata.namespace
+                      POD_UID:
+                        valueFrom:
+                          fieldRef:
+                            fieldPath: metadata.uid
+            persistence:
+              data:
+                type: persistentVolumeClaim
+                forceRename: "hermes-data"
+                accessMode: ReadWriteOnce
+                size: 5Gi
+                storageClass: synas-csi-retain
+                globalMounts:
+                  - path: /opt/data
+              hermes-config:
+                type: configMap
+                identifier: hermes-config
+                globalMounts:
+                  - path: /opt/data/config.yaml
+                    subPath: config.yaml
+                    readOnly: true
+            secrets:
+              b-r-secret:
+                enabled: true
+                forceRename: "hermes-b-r-secret"
+                stringData:
+                  PDBACKUP_S3_ENDPOINT: "http://{{ minioendpoint }}"
+                  PDBACKUP_S3_ACCESS_KEY: {{ miniokey }}
+                  PDBACKUP_S3_SECRET_KEY: {{ miniosecretkey }}
+            configMaps:
+              hermes-config:
+                forceRename: "hermes-config"
+                data:
+                  config.yaml: |
+                    providers:
+                      litellm:
+                        api: https://litellm.{{ domainname }}/v1
+                        api_key: ${LITELLM_API_KEY}
+                        discover_models: false
+                        models:
+                          - qwen3.6-27b
+
+                    model:
+                      provider: litellm
+                      default: qwen3.6-27b
+                      base_url: 'https://litellm.{{ domainname }}/v1'
+                      api_mode: chat_completions
+
+                    gateway:
+                      platforms:
+                        telegram:
+                          enabled: true
+
+                    a2a_agents:
+                      k8s02-health-agent:
+                        url: "https://litellm.{{ domainname }}/a2a/k8s02-health-agent"
+                        auth: { type: bearer, token: "${LITELLM_API_KEY}" }
+                        timeout: 120
+                        capabilities: [kubernetes, health, monitoring]
+                      k8s01-health-agent:
+                        url: "https://litellm.{{ domainname }}/a2a/k8s01-health-agent"
+                        auth: { type: bearer, token: "${LITELLM_API_KEY}" }
+                        timeout: 120
+                        capabilities: [kubernetes, health, monitoring]
+              b-r-settings:
+                forceRename: "hermes-b-r-settings"
+                data:
+                  PDBACKUP_S3_BUCKET: "k8s-apps-pdbackup"
+                  PDBACKUP_S3_PREFIX: "hermes-data"
+                  PDBACKUP_BACKUP_INTERVAL: "1h"
+                  PDBACKUP_RETENTION_KEEP_LATEST: "10"
+                  PDBACKUP_FORCE_RESTORE: "false"
+                  PDBACKUP_RESTORE_PVC_MODE: "true"
+                  PDBACKUP_SOURCE_DIR: /opt/data
+                  PDBACKUP_TARGET_DIR: /opt/data
+                  PDBACKUP_KOPIA_PASSWORD: {{ encryptpassword }}
+                  PDBACKUP_HOSTNAME: hermes-data
+            rawResources:
+              hermes-pdbackup-events:
+                apiVersion: rbac.authorization.k8s.io/v1
+                kind: Role
+                forceRename: "hermes-pdbackup-events"
+                spec:
+                  rules:
+                    - apiGroups: [""]
+                      resources: ["events"]
+                      verbs: ["create"]
+              hermes-pdbackup-events-binding:
+                apiVersion: rbac.authorization.k8s.io/v1
+                kind: RoleBinding
+                forceRename: "hermes-pdbackup-events-binding"
+                spec:
+                  subjects:
+                    - kind: ServiceAccount
+                      name: default
+                      namespace: hermes
+                  roleRef:
+                    apiGroup: rbac.authorization.k8s.io
+                    kind: Role
+                    name: hermes-pdbackup-events
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.6.2
+      destination:
+        server: '{{server}}'
+        namespace: hermes
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
