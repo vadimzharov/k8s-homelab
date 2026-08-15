@@ -50,6 +50,25 @@ spec:
                   enabled: true
                   storage: 5Gi
                   storageClassName: synas-csi-retain
+            controller:
+              # Without this, kagent advertises its A2A agent-card `url` /
+              # `supportedInterfaces[].url` as the in-cluster Service DNS
+              # name (http://<fullname>-controller.<namespace>.svc.cluster.local:8083/...),
+              # which is IDENTICAL across every cluster running this same
+              # appset. A2A clients (e.g. LiteLLM's agent gateway) follow
+              # that self-declared URL for the actual message-send call,
+              # not the discovery URL they were originally configured
+              # with - so any client living inside one of these clusters
+              # (like LiteLLM, which runs on k8s02) resolves that hostname
+              # to ITS OWN cluster's kagent-controller, silently
+              # cross-wiring every "k8s01" A2A call to k8s02's agent
+              # instead. Confirmed via live agent-card.json inspection and
+              # a direct curl test on 2026-08-15. Setting this to the real,
+              # externally-reachable HTTPRoute hostname (see the
+              # k8s-agent-litellm-a2a HTTPRoute below) makes each
+              # cluster's agent card advertise a URL only ITS OWN cluster
+              # can be correctly reached at.
+              a2aBaseUrl: "https://kagent-a2a-{{name}}.{{ domainname }}"
             kgateway-agent:
               enabled: false
             istio-agent:
