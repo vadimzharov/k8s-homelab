@@ -360,6 +360,18 @@ spec:
 
               general_settings:
                 master_key: os.environ/PROXY_MASTER_KEY
+                # SSRF allowlist for the A2A agent card URLs above - both
+                # resolve to an internal/private IP (the Cilium Gateway),
+                # which LiteLLM's SSRF guard blocks by default for
+                # user-supplied URLs (image_url, file_url, MCP/OpenAPI/A2A
+                # spec fetches, etc). Entries are hostname-only (no scheme/
+                # path) per LiteLLM's own field docs. Confirmed against the
+                # pinned chart version's source (ConfigGeneralSettings in
+                # litellm/proxy/_types.py) that this belongs under
+                # general_settings, not litellm_settings.
+                user_url_allowed_hosts:
+                  - "kagent-a2a-k8s02.{{ domainname }}"
+                  - "kagent-a2a-k8s01.{{ domainname }}"
                 # Lets the Admin UI's Logs page show full request/response
                 # bodies per entry (previously "Request/Response Data Not
                 # Available" - also why debugging past incidents had to
