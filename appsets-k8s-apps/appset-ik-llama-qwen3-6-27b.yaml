@@ -113,8 +113,27 @@ spec:
                       - /models/Qwen3.6-27B-MTP-IQ4_KS.gguf
                       - -ngl
                       - "99"
+                      # Lowered from 200000 -> 131072 (2026-08-15). The -ub
+                      # 512 tuning alone (below) wasn't enough: a real,
+                      # isolated test (fresh boot baseline ~9.6GB, one heavy
+                      # 23-message agentic tool-calling exchange via kagent)
+                      # showed a single such session permanently adding
+                      # ~3.1GB to host RSS - it never released after the
+                      # request completed. At that rate only ~4-5 heavy
+                      # agentic sessions exhaust the entire 24Gi ceiling from
+                      # a fresh boot, which fully explains why the interval
+                      # between OOM-restarts dropped from ~5 days to ~9.5
+                      # hours as soon as real kagent/A2A agentic traffic
+                      # started hitting this model. The recurrent-checkpoint
+                      # pool (--recurrent-ckpt-mode, see below) is believed
+                      # to scale with the context *budget*, not just what's
+                      # used, so cutting the budget should cut that pool
+                      # proportionally. Real cost: shorter max
+                      # conversation/tool-output window before truncation -
+                      # see docs/13-qwen3.6-27b-3090-k8s-tuning.md in
+                      # k8s-ai-homelab for the full history.
                       - --ctx-size
-                      - "200000"
+                      - "131072"
                       - -b
                       - "4096"
                       # Lowered from 1024 -> 512 (2026-08-09) as a first,
@@ -123,9 +142,7 @@ spec:
                       # prompt processing happens in more, smaller chunks -
                       # ~2-4% slower prefill (source repo's own documented
                       # cost), no reduction in context window or output
-                      # quality. See docs/13-qwen3.6-27b-3090-k8s-tuning.md in
-                      # k8s-ai-homelab for the full reasoning and what's still
-                      # on the table (--ctx-size reduction, not yet applied).
+                      # quality.
                       - -ub
                       - "512"
                       - -np
