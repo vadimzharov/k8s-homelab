@@ -10,11 +10,19 @@ metadata:
     k8s-dashboard-appname: "KAgent - Hub cluster agent"
 spec:
   generators:
-    - clusters:
-        selector:
-          matchLabels:
-            k8s-hub-mcp: "installed"
-            kagent: "installed"
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  k8s-hub-mcp: "installed"
+                  kagent: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
   template:
     metadata:
       name: '{{name}}-kagent-hub-k8s-cluster'

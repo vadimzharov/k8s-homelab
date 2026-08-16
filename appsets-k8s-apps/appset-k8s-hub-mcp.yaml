@@ -83,7 +83,7 @@ spec:
                 forceRename: "k8s-hub-mcp-kubeconfig"
                 spec:
                   data:
-                    kubeconfig: {{k8s-hub-mcp-kubeconfig}}
+                    kubeconfig: {{k8s-hub-mcp-reader-token}}
         repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 4.6.2
