@@ -65,15 +65,6 @@ spec:
                         valueFrom:
                           fieldRef:
                             fieldPath: metadata.uid
-                  hermes-seed-config:
-                    image:
-                      repository: busybox
-                      pullPolicy: IfNotPresent
-                      tag: "1.36"
-                    command:
-                      - sh
-                      - -c
-                      - '[ -f /opt/data/config.yaml ] || cp /etc/hermes-config/config.yaml /opt/data/config.yaml'
                 containers:
                   main:
                     image:
@@ -157,14 +148,6 @@ spec:
                 storageClass: synas-csi-retain
                 globalMounts:
                   - path: /opt/data
-              hermes-config:
-                type: configMap
-                identifier: hermes-config
-                advancedMounts:
-                  main:
-                    hermes-seed-config:
-                      - path: /etc/hermes-config
-                        readOnly: true
             secrets:
               b-r-secret:
                 enabled: true
@@ -174,57 +157,6 @@ spec:
                   PDBACKUP_S3_ACCESS_KEY: {{ miniokey }}
                   PDBACKUP_S3_SECRET_KEY: {{ miniosecretkey }}
             configMaps:
-              hermes-config:
-                forceRename: "hermes-config"
-                data:
-                  config.yaml: |
-                    _config_version: 12
-
-                    providers:
-                      litellm:
-                        api: https://litellm.{{ domainname }}/v1
-                        api_key: ${LITELLM_API_KEY}
-                        discover_models: false
-                        models:
-                          - qwen3.6-27b
-
-                    model:
-                      provider: litellm
-                      default: qwen3.6-27b
-                      base_url: 'https://litellm.{{ domainname }}/v1'
-                      api_mode: chat_completions
-                      context_length: 200000
-
-                    gateway:
-                      platforms:
-                        telegram:
-                          enabled: true
-                        a2a:
-                          enabled: true
-                          extra:
-                            port: 9900
-
-                    dashboard:
-                      oauth:
-                        provider: self-hosted
-                        self_hosted:
-                          issuer: https://pocket-id.{{ domainname }}
-                          client_id: "{{hermes-pocketid-client-id}}"
-
-                    platform_toolsets:
-                      telegram: [hermes-telegram, a2a]
-
-                    a2a_agents:
-                      k8s02-health-agent:
-                        url: "https://litellm.{{ domainname }}/a2a/k8s02-health-agent"
-                        auth: { type: bearer, token: "${LITELLM_API_KEY}" }
-                        timeout: 120
-                        capabilities: [kubernetes, health, monitoring]
-                      k8s01-health-agent:
-                        url: "https://litellm.{{ domainname }}/a2a/k8s01-health-agent"
-                        auth: { type: bearer, token: "${LITELLM_API_KEY}" }
-                        timeout: 120
-                        capabilities: [kubernetes, health, monitoring]
               b-r-settings:
                 forceRename: "hermes-b-r-settings"
                 data:
