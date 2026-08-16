@@ -89,6 +89,8 @@ spec:
                       TELEGRAM_BOT_TOKEN: "{{hermes-telegram-bot-token}}"
                       TELEGRAM_ALLOWED_USERS: "{{hermes-telegram-user-id}}"
                       LITELLM_API_KEY: "{{litellm-hermes-key}}"
+                      HERMES_DASHBOARD: "true"
+                      HERMES_DASHBOARD_PUBLIC_URL: "https://hermes.{{ domainname }}"
                     resources:
                       requests:
                         cpu: "250m"
@@ -121,6 +123,31 @@ spec:
                         valueFrom:
                           fieldRef:
                             fieldPath: metadata.uid
+            service:
+              main:
+                primary: true
+                enabled: true
+                controller: main
+                ports:
+                  http:
+                    port: 9119
+            route:
+              main:
+                enabled: true
+                kind: HTTPRoute
+                parentRefs:
+                  - name: cilium-gw
+                    namespace: cilium-system
+                hostnames:
+                  - hermes.{{ domainname }}
+                rules:
+                  - matches:
+                      - path:
+                          type: PathPrefix
+                          value: /
+                    backendRefs:
+                      - name: hermes
+                        port: 9119
             persistence:
               data:
                 type: persistentVolumeClaim
@@ -175,6 +202,13 @@ spec:
                           enabled: true
                           extra:
                             port: 9900
+
+                    dashboard:
+                      oauth:
+                        provider: self-hosted
+                        self_hosted:
+                          issuer: https://pocket-id.{{ domainname }}
+                          client_id: "{{hermes-pocketid-client-id}}"
 
                     platform_toolsets:
                       telegram: [hermes-telegram, a2a]
