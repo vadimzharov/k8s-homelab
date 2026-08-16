@@ -193,6 +193,7 @@ spec:
                       default: qwen3.6-27b
                       base_url: 'https://litellm.{{ domainname }}/v1'
                       api_mode: chat_completions
+                      context_length: 200000
 
                     gateway:
                       platforms:
