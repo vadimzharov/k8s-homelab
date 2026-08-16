@@ -160,6 +160,9 @@ spec:
                         telegram:
                           enabled: true
 
+                    platform_toolsets:
+                      telegram: [hermes-telegram, a2a]
+
                     a2a_agents:
                       k8s02-health-agent:
                         url: "https://litellm.{{ domainname }}/a2a/k8s02-health-agent"
