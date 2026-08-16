@@ -169,6 +169,10 @@ spec:
                       platforms:
                         telegram:
                           enabled: true
+                        a2a:
+                          enabled: true
+                          extra:
+                            port: 9900
 
                     platform_toolsets:
                       telegram: [hermes-telegram, a2a]
