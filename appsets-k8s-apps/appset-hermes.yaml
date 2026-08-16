@@ -73,7 +73,7 @@ spec:
                     command:
                       - sh
                       - -c
-                      - cp /etc/hermes-config/config.yaml /opt/data/config.yaml
+                      - '[ -f /opt/data/config.yaml ] || cp /etc/hermes-config/config.yaml /opt/data/config.yaml'
                 containers:
                   main:
                     image:
