@@ -151,6 +151,8 @@ spec:
                 forceRename: "hermes-config"
                 data:
                   config.yaml: |
+                    _config_version: 12
+
                     providers:
                       litellm:
                         api: https://litellm.{{ domainname }}/v1
