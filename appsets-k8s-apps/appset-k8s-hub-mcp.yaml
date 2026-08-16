@@ -1,0 +1,98 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: k8s-hub-mcp
+  namespace: argocd
+  annotations:
+    appset-dashboard-appname: "K8S Hub MCP server"
+    appset-dashboard-groupname: "AI tools"
+    k8s-dashboard-group: "AI tools"
+    k8s-dashboard-appname: "K8S Hub MCP server"
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  k8s-hub-mcp: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-k8s-hub-mcp'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: k8s-hub-mcp
+          values: |
+            serviceAccount:
+              automountToken: false
+            rbac:
+              create: false
+            extraArgs:
+              - --kubeconfig
+              - /etc/k8s-hub-mcp/kubeconfig
+              - --cluster-provider
+              - kubeconfig
+              - --read-only
+            extraVolumes:
+              - name: hub-kubeconfig
+                secret:
+                  secretName: k8s-hub-mcp-kubeconfig
+            extraVolumeMounts:
+              - name: hub-kubeconfig
+                mountPath: /etc/k8s-hub-mcp
+                readOnly: true
+            ingress:
+              enabled: false
+            httpRoute:
+              enabled: true
+              annotations:
+                k8s-dashboard-group: AI tools
+                k8s-dashboard-appname: K8S Hub MCP server
+              hostnames:
+                - "k8s-hub-mcp.{{ domainname }}"
+              parentRefs:
+                - name: cilium-gw
+                  namespace: cilium-system
+                  sectionName: https-gw
+              rules:
+                - matches:
+                    - path:
+                        type: PathPrefix
+                        value: /
+        repoURL: oci://ghcr.io/containers/charts/kubernetes-mcp-server
+        targetRevision: 0.1.0
+        path: .
+      - helm:
+          releaseName: k8s-hub-mcp-secrets
+          values: |
+            controllers:
+              main:
+                enabled: false
+            rawResources:
+              hub-kubeconfig:
+                apiVersion: v1
+                kind: Secret
+                forceRename: "k8s-hub-mcp-kubeconfig"
+                spec:
+                  data:
+                    kubeconfig: {{k8s-hub-mcp-kubeconfig}}
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.6.2
+      destination:
+        server: '{{server}}'
+        namespace: k8s-hub-mcp
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

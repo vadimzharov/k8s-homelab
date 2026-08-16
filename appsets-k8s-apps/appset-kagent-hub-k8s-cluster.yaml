@@ -1,0 +1,173 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: kagent-hub-k8s-cluster
+  namespace: argocd
+  annotations:
+    appset-dashboard-appname: "KAgent - Hub cluster agent"
+    appset-dashboard-groupname: "AI tools"
+    k8s-dashboard-group: "AI tools"
+    k8s-dashboard-appname: "KAgent - Hub cluster agent"
+spec:
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            k8s-hub-mcp: "installed"
+            kagent: "installed"
+  template:
+    metadata:
+      name: '{{name}}-kagent-hub-k8s-cluster'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: kagent-hub-k8s-cluster
+          values: |
+            controllers:
+              main:
+                enabled: false
+            rawResources:
+              k8s-hub-mcp-server:
+                apiVersion: kagent.dev/v1alpha2
+                kind: RemoteMCPServer
+                forceRename: "k8s-hub-mcp-server"
+                spec:
+                  spec:
+                    description: Read-only Kubernetes MCP server targeting the hub/ArgoCD cluster (via mounted kubeconfig, not in-cluster access)
+                    protocol: STREAMABLE_HTTP
+                    url: http://k8s-hub-mcp-kubernetes-mcp-server.k8s-hub-mcp.svc.cluster.local:8080/mcp
+                    timeout: 30s
+                    sseReadTimeout: 5m0s
+                    terminateOnClose: true
+              argocd-mcp-server:
+                apiVersion: kagent.dev/v1alpha2
+                kind: RemoteMCPServer
+                forceRename: "argocd-mcp-server"
+                spec:
+                  spec:
+                    description: ArgoCD - list/get/sync applications, inspect resources, view workload logs and events
+                    protocol: STREAMABLE_HTTP
+                    url: http://argocd-mcp.argocd-mcp.svc.cluster.local:3000/mcp
+                    timeout: 30s
+                    sseReadTimeout: 5m0s
+                    terminateOnClose: true
+              kagent-hub-k8s-cluster:
+                apiVersion: kagent.dev/v1alpha2
+                kind: Agent
+                forceRename: "kagent-hub-k8s-cluster"
+                spec:
+                  spec:
+                    type: Declarative
+                    description: "Read-only agent for the hub/management cluster (k3s, ARM, no persistent storage) where ArgoCD runs - covers both general cluster health and ArgoCD application status"
+                    declarative:
+                      modelConfig: litellm-model
+                      context:
+                        compaction:
+                          compactionInterval: 5
+                          overlapSize: 2
+                          tokenThreshold: 31000
+                      a2aConfig:
+                        skills:
+                          - id: hub-cluster-health-check
+                            name: Hub Cluster Health Check
+                            description: Inspect pod, deployment, and node status on the hub/management cluster (where ArgoCD runs) to report on overall health.
+                            tags: ["kubernetes", "health", "monitoring"]
+                            examples:
+                              - "Are there any unhealthy pods on the hub cluster?"
+                              - "What's the node status on the ArgoCD cluster?"
+                            inputModes: ["text"]
+                            outputModes: ["text"]
+                          - id: argocd-application-status
+                            name: ArgoCD Application Status
+                            description: List and inspect ArgoCD Applications - sync status, health status, and recent sync history across the homelab.
+                            tags: ["argocd", "gitops", "deployments"]
+                            examples:
+                              - "Are all ArgoCD applications synced and healthy?"
+                              - "What's the status of the litellm ArgoCD application?"
+                            inputModes: ["text"]
+                            outputModes: ["text"]
+                      systemMessage: |
+                        You are a read-only assistant for the hub/management
+                        cluster (k3s, ARM, no persistent storage) - the cluster
+                        where ArgoCD itself runs. That cluster is separate from
+                        the one you're deployed on: you reach its Kubernetes API
+                        entirely through a mounted kubeconfig behind a dedicated
+                        MCP server, not through this cluster's own API. All
+                        Kubernetes tools are strictly read-only, enforced by the
+                        MCP server itself (--read-only), not just this prompt -
+                        never claim to have made a change.
+
+                        You also have ArgoCD-specific tools (list/get
+                        applications, inspect resources, view workload logs and
+                        events, sync status and history). Use these for
+                        questions about GitOps deployment state, not the
+                        generic Kubernetes tools.
+
+                        Health assessment: pod/deployment status alone is not
+                        enough - a pod can show "Running" while still flapping,
+                        or its owning controller can be stuck (scheduling
+                        failures, image pull errors, failed probes, OOM kills,
+                        volume mount issues). Always also check recent
+                        Warning-type Kubernetes events for the relevant
+                        namespace/resource when assessing health, not just a
+                        pod/deployment listing - events often surface the real
+                        problem before, or instead of, a visible status change.
+
+                        Tool usage - keep outputs small: always pass a small
+                        tail_lines for logs, prefer wide/json output over yaml,
+                        avoid unscoped all-namespaces + unfiltered resource-type
+                        combinations, narrow then drill in instead of
+                        fetch-everything-then-filter. Scope events to a
+                        namespace or resource rather than fetching cluster-wide
+                        events unscoped.
+                      tools:
+                        - type: McpServer
+                          mcpServer:
+                            apiGroup: kagent.dev
+                            kind: RemoteMCPServer
+                            name: k8s-hub-mcp-server
+                            namespace: kagent
+                        - type: McpServer
+                          mcpServer:
+                            apiGroup: kagent.dev
+                            kind: RemoteMCPServer
+                            name: argocd-mcp-server
+                            namespace: kagent
+              kagent-hub-k8s-cluster-a2a:
+                apiVersion: gateway.networking.k8s.io/v1beta1
+                kind: HTTPRoute
+                forceRename: "kagent-hub-k8s-cluster-a2a"
+                spec:
+                  spec:
+                    parentRefs:
+                      - name: cilium-gw
+                        namespace: cilium-system
+                        group: gateway.networking.k8s.io
+                        kind: Gateway
+                    hostnames:
+                      - kagent-a2a-hub.{{ domainname }}
+                    rules:
+                      - backendRefs:
+                          - group: ''
+                            kind: Service
+                            name: kagent-controller
+                            namespace: kagent
+                            port: 8083
+                            weight: 1
+                        matches:
+                          - path:
+                              type: PathPrefix
+                              value: /api/a2a/kagent/kagent-hub-k8s-cluster
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.6.2
+      destination:
+        server: '{{server}}'
+        namespace: kagent
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

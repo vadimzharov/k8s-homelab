@@ -1,0 +1,105 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: k8s-hub-mcp-argocd-rbac
+  namespace: argocd
+  annotations:
+    appset-dashboard-appname: "K8S Hub MCP - ArgoCD cluster RBAC"
+    appset-dashboard-groupname: "AI tools"
+    k8s-dashboard-group: "AI tools"
+    k8s-dashboard-appname: "K8S Hub MCP - ArgoCD cluster RBAC"
+spec:
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            k8s-hub-mcp-argocd-rbac: "installed"
+  template:
+    metadata:
+      name: '{{name}}-k8s-hub-mcp-argocd-rbac'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: k8s-hub-mcp-argocd-rbac
+          values: |
+            controllers:
+              main:
+                enabled: false
+            rawResources:
+              k8s-hub-mcp-reader-sa:
+                apiVersion: v1
+                kind: ServiceAccount
+                forceRename: "k8s-hub-mcp-reader"
+                spec: {}
+              k8s-hub-mcp-reader-role:
+                apiVersion: rbac.authorization.k8s.io/v1
+                kind: ClusterRole
+                forceRename: "k8s-hub-mcp-reader"
+                spec:
+                  rules:
+                    - apiGroups: [""]
+                      resources:
+                        - pods
+                        - pods/log
+                        - nodes
+                        - events
+                        - namespaces
+                        - services
+                        - configmaps
+                        - endpoints
+                        - persistentvolumes
+                        - persistentvolumeclaims
+                        - replicationcontrollers
+                        - resourcequotas
+                        - serviceaccounts
+                      verbs: ["get", "list", "watch"]
+                    - apiGroups: ["apps"]
+                      resources:
+                        - deployments
+                        - statefulsets
+                        - daemonsets
+                        - replicasets
+                      verbs: ["get", "list", "watch"]
+                    - apiGroups: ["batch"]
+                      resources: ["jobs", "cronjobs"]
+                      verbs: ["get", "list", "watch"]
+                    - apiGroups: ["networking.k8s.io"]
+                      resources: ["ingresses", "networkpolicies"]
+                      verbs: ["get", "list", "watch"]
+                    - apiGroups: ["argoproj.io"]
+                      resources: ["applications", "applicationsets", "appprojects"]
+                      verbs: ["get", "list", "watch"]
+              k8s-hub-mcp-reader-binding:
+                apiVersion: rbac.authorization.k8s.io/v1
+                kind: ClusterRoleBinding
+                forceRename: "k8s-hub-mcp-reader-binding"
+                spec:
+                  subjects:
+                    - kind: ServiceAccount
+                      name: k8s-hub-mcp-reader
+                      namespace: k8s-hub-mcp-reader
+                  roleRef:
+                    apiGroup: rbac.authorization.k8s.io
+                    kind: ClusterRole
+                    name: k8s-hub-mcp-reader
+              k8s-hub-mcp-reader-token:
+                apiVersion: v1
+                kind: Secret
+                forceRename: "k8s-hub-mcp-reader-token"
+                annotations:
+                  kubernetes.io/service-account.name: k8s-hub-mcp-reader
+                spec:
+                  type: kubernetes.io/service-account-token
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.6.2
+      destination:
+        server: '{{server}}'
+        namespace: k8s-hub-mcp-reader
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

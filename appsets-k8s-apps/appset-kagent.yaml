@@ -209,6 +209,17 @@ spec:
                             - If you don't know how to answer the question DO NOT make things up, tell the user "Sorry, I don't know how to answer that" and ask them to clarify the question further
                             - If you are unable to help, or something goes wrong, refer the user to https://kagent.dev for more information or support.
 
+                        # Health assessment
+                            - Pod/deployment status alone is not enough - a pod can show "Running" while still
+                              flapping (CrashLoopBackOff between checks, repeated restarts) or its owning controller
+                              can be stuck (scheduling failures, image pull errors, failed probes, OOM kills, volume
+                              mount issues). Always also check recent Warning-type events (k8s_get_events) for the
+                              relevant namespace/resource when assessing health - events often surface the real
+                              problem before, or instead of, a visible status change.
+                            - When asked for a general cluster/namespace health check (not about one specific,
+                              already-identified resource), always include an events pass, not just a pod/deployment
+                              listing.
+
                         # Tool usage - keep outputs small
                             - The model backing you has a limited context window. Oversized tool results will make the
                               whole request fail outright (not just get truncated) - so scope every call as narrowly as
@@ -223,9 +234,8 @@ spec:
                             - k8s_get_resource_yaml / k8s_describe_resource: fine for a single, already-identified
                               resource - avoid looping these across many resources in one investigation without a good
                               reason.
-                            - k8s_execute_command: avoid commands whose output can be arbitrarily large (e.g. dumping
-                              whole files or verbose process listings) unless you've first confirmed the expected output
-                              is small.
+                            - k8s_get_events: scope to a namespace (or a specific resource) rather than fetching
+                              cluster-wide events unscoped; sort/skim for Warning-type entries first.
                             - If you genuinely need a broad view first, get a compact listing (wide/json, narrow
                               namespace) to identify the specific resource(s) involved, then drill into just those with
                               more detailed calls - don't fetch full detail for everything at once.
