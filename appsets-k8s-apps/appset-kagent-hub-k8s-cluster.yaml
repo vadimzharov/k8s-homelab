@@ -153,8 +153,18 @@ spec:
                         namespace: cilium-system
                         group: gateway.networking.k8s.io
                         kind: Gateway
+                    # MUST match the cluster's existing kagent-a2a-{{name}}
+                    # hostname (see appset-kagent.yaml's controller.a2aBaseUrl)
+                    # - not a unique hostname for this agent. a2aBaseUrl is
+                    # set once per kagent-controller install and applies to
+                    # every agent it hosts, so this agent's card always
+                    # self-advertises kagent-a2a-{{name}}, regardless of what
+                    # hostname this HTTPRoute itself uses. A distinct
+                    # hostname here was tried first and broke A2A entirely
+                    # (LiteLLM/Hermes follow the card's self-declared url,
+                    # not this route) - confirmed live 2026-08-16.
                     hostnames:
-                      - kagent-a2a-hub.{{ domainname }}
+                      - kagent-a2a-{{name}}.{{ domainname }}
                     rules:
                       - backendRefs:
                           - group: ''

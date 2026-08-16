@@ -362,11 +362,20 @@ spec:
                 # reaches the hub cluster's k8s API via a mounted kubeconfig
                 # (see appset-k8s-hub-mcp.yaml / appset-k8s-hub-mcp-argocd-rbac.yaml),
                 # plus the existing argocd-mcp server for ArgoCD app status.
-                # See appset-kagent-hub-k8s-cluster.yaml.
+                # See appset-kagent-hub-k8s-cluster.yaml. URL uses the k8s02
+                # hostname (not a hub-specific one) because kagent's
+                # controller.a2aBaseUrl is set once per cluster and applies
+                # to every agent that cluster's controller hosts - this
+                # agent's card self-advertises kagent-a2a-k8s02 regardless
+                # of what hostname a separate HTTPRoute might use, so the
+                # HTTPRoute has to share the same hostname too. A dedicated
+                # "hub" hostname was tried first and broke A2A entirely
+                # (LiteLLM/Hermes follow the card's self-declared url, not
+                # this registration entry) - confirmed live 2026-08-16.
                 - agent_name: hub-cluster-agent
                   agent_card_params:
                     name: "Hub cluster (ArgoCD) kagent"
-                    url: "https://kagent-a2a-hub.{{ domainname }}/api/a2a/kagent/kagent-hub-k8s-cluster/"
+                    url: "https://kagent-a2a-k8s02.{{ domainname }}/api/a2a/kagent/kagent-hub-k8s-cluster/"
                     protocolVersion: "1.0"
 
               general_settings:
@@ -383,7 +392,6 @@ spec:
                 user_url_allowed_hosts:
                   - "kagent-a2a-k8s02.{{ domainname }}"
                   - "kagent-a2a-k8s01.{{ domainname }}"
-                  - "kagent-a2a-hub.{{ domainname }}"
                 # Lets the Admin UI's Logs page show full request/response
                 # bodies per entry (previously "Request/Response Data Not
                 # Available" - also why debugging past incidents had to
