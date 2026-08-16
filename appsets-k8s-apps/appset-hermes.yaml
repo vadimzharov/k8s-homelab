@@ -65,6 +65,15 @@ spec:
                         valueFrom:
                           fieldRef:
                             fieldPath: metadata.uid
+                  hermes-seed-config:
+                    image:
+                      repository: busybox
+                      pullPolicy: IfNotPresent
+                      tag: "1.36"
+                    command:
+                      - sh
+                      - -c
+                      - cp /etc/hermes-config/config.yaml /opt/data/config.yaml
                 containers:
                   main:
                     image:
@@ -124,10 +133,11 @@ spec:
               hermes-config:
                 type: configMap
                 identifier: hermes-config
-                globalMounts:
-                  - path: /opt/data/config.yaml
-                    subPath: config.yaml
-                    readOnly: true
+                advancedMounts:
+                  main:
+                    hermes-seed-config:
+                      - path: /etc/hermes-config
+                        readOnly: true
             secrets:
               b-r-secret:
                 enabled: true
