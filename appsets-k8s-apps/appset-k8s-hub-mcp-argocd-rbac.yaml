@@ -61,6 +61,11 @@ spec:
                         - daemonsets
                         - replicasets
                       verbs: ["get", "list", "watch"]
+                    - apiGroups: ["metrics.k8s.io"]
+                      resources:
+                        - nodes
+                        - pods
+                      verbs: ["get", "list"]
                     - apiGroups: ["batch"]
                       resources: ["jobs", "cronjobs"]
                       verbs: ["get", "list", "watch"]
