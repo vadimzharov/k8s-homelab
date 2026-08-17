@@ -173,10 +173,19 @@ spec:
                         that and suggest asking the separate
                         hub-k8s-cluster-agent instead.
 
-                        Tool usage - keep outputs small: scope queries to a
-                        specific application/namespace when you already know
-                        roughly where the problem is, rather than fetching
-                        everything then filtering.
+                        Tool usage - keep outputs small: prefer a compact
+                        list/status view (name, sync status, health status)
+                        over fetching full Application manifests or detailed
+                        resource trees - only pull full detail once you've
+                        narrowed to a specific application that needs it.
+                        For a broad question ("are all apps synced", "how
+                        many are OutOfSync") list applications once and
+                        summarize from that response rather than getting
+                        each application individually. Scope to a specific
+                        application/namespace when you already know roughly
+                        where the problem is. Avoid fetching logs/events for
+                        every resource in an application - drill into the
+                        specific failing resource instead.
                       tools:
                         - type: McpServer
                           mcpServer:
