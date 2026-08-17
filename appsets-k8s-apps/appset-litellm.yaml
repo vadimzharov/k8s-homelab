@@ -358,10 +358,9 @@ spec:
                     url: "https://kagent-a2a-k8s01.{{ domainname }}/api/a2a/kagent/k8s-agent-litellm/"
                     protocolVersion: "1.0"
                 # Hub/ArgoCD cluster (k3s, ARM, no persistent storage) - kagent
-                # itself isn't installed there; this agent runs on k8s02 and
-                # reaches the hub cluster's k8s API via a mounted kubeconfig
-                # (see appset-k8s-hub-mcp.yaml / appset-k8s-hub-mcp-argocd-rbac.yaml),
-                # plus the existing argocd-mcp server for ArgoCD app status.
+                # itself isn't installed there; these agents run on k8s02 and
+                # reach the hub cluster's k8s API via a mounted kubeconfig
+                # (see appset-k8s-hub-mcp.yaml / appset-k8s-hub-mcp-argocd-rbac.yaml).
                 # See appset-kagent-hub-k8s-cluster.yaml. URL uses the k8s02
                 # hostname (not a hub-specific one) because kagent's
                 # controller.a2aBaseUrl is set once per cluster and applies
@@ -372,10 +371,20 @@ spec:
                 # "hub" hostname was tried first and broke A2A entirely
                 # (LiteLLM/Hermes follow the card's self-declared url, not
                 # this registration entry) - confirmed live 2026-08-16.
-                - agent_name: hub-cluster-agent
+                #
+                # Split into two agents 2026-08-17 - a single agent carrying
+                # both the k8s and argocd-mcp toolsets made every query
+                # balloon in context size, slow enough (~4 min) to starve
+                # Hermes' Telegram polling loop and drop the connection.
+                - agent_name: hub-k8s-agent
                   agent_card_params:
-                    name: "Hub cluster (ArgoCD) kagent"
+                    name: "Hub cluster kagent"
                     url: "https://kagent-a2a-k8s02.{{ domainname }}/api/a2a/kagent/kagent-hub-k8s-cluster/"
+                    protocolVersion: "1.0"
+                - agent_name: hub-argocd-agent
+                  agent_card_params:
+                    name: "Hub ArgoCD kagent"
+                    url: "https://kagent-a2a-k8s02.{{ domainname }}/api/a2a/kagent/kagent-hub-argocd/"
                     protocolVersion: "1.0"
 
               general_settings:
