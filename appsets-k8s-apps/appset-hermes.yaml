@@ -126,6 +126,9 @@ spec:
               main:
                 enabled: true
                 kind: HTTPRoute
+                annotations:
+                  k8s-dashboard-group: AI tools
+                  k8s-dashboard-appname: Hermes Agent
                 parentRefs:
                   - name: cilium-gw
                     namespace: cilium-system
