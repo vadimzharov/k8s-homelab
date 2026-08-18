@@ -227,10 +227,17 @@ spec:
                             - k8s_get_pod_logs: always pass a small tail_lines (50-200) unless the user explicitly asks
                               for more history. Never fetch full/unbounded logs from a pod you haven't already narrowed
                               down to.
-                            - k8s_get_resources: prefer output=wide or output=json over output=yaml for anything beyond a
-                              single resource - yaml is verbose. Avoid combining all_namespaces=true with an unfiltered
-                              resource_type across many resources; scope to a specific namespace and/or resource_name
-                              whenever you already know roughly where the problem is.
+                            - k8s_get_resources: for a SINGLE, already-identified resource, output=wide or output=json is
+                              fine. For a BROAD/multi-resource listing, always use output=wide (a compact table), never
+                              output=json or output=yaml - json/yaml embed each object's full body (spec+status+metadata),
+                              which for resource types with large embedded status (Backup, Application, and similar CRDs)
+                              can make a single all_namespaces=true call return more tokens than the entire context
+                              window by itself, failing the whole request outright with no chance for compaction to help
+                              (this happened for real: an all_namespaces=true, output=json listing of Backup resources
+                              returned ~230K tokens in one response). Never combine all_namespaces=true with
+                              output=json/yaml. If you need to check the same resource_type across several specific
+                              namespaces (e.g. backup status app-by-app), query each namespace individually with
+                              output=wide rather than one unscoped all_namespaces call.
                             - k8s_get_resource_yaml / k8s_describe_resource: fine for a single, already-identified
                               resource - avoid looping these across many resources in one investigation without a good
                               reason.
