@@ -46,27 +46,6 @@ spec:
                 enabled: true
                 size: 50Gi
                 storageClass: "freenas-iscsi-csi"
-              route:
-                enabled: true
-                annotations:
-                  k8s-dashboard-group: Monitoring
-                  k8s-dashboard-appname: Prometheus
-                hostnames:
-                  - prometheus.{{ domainname }}
-                parentRefs:
-                  - name: cilium-gw
-                    namespace: cilium-system
-                    sectionName: https-gw
-              additionalRouteRules:
-                - matches:
-                    - path:
-                        type: PathPrefix
-                        value: /api/v1/write
-                  hostname: prometheus-write.{{ domainname }}
-                  parentRefs:
-                    - name: cilium-gw
-                      namespace: cilium-system
-                      sectionName: https-gw
             alertmanager:
               enabled: false
             prometheus-pushgateway:
@@ -74,6 +53,9 @@ spec:
         repoURL: https://prometheus-community.github.io/helm-charts
         chart: prometheus
         targetRevision: 26.0.0
+      - repoURL: https://github.com/vadimzharov/k8s-homelab.git
+        targetRevision: main
+        path: manifests-k8s-apps/prometheus-http-routes
       destination:
         server: '{{server}}'
         namespace: prometheus
