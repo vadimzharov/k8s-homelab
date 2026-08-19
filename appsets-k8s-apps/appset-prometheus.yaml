@@ -71,9 +71,9 @@ spec:
               enabled: false
             prometheus-pushgateway:
               enabled: false
-          repoURL: https://prometheus-community.github.io/helm-charts
-          chart: prometheus
-          targetRevision: 26.0.0
+        repoURL: https://prometheus-community.github.io/helm-charts
+        chart: prometheus
+        targetRevision: 26.0.0
       destination:
         server: '{{server}}'
         namespace: prometheus
