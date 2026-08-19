@@ -45,7 +45,7 @@ spec:
               persistentVolume:
                 enabled: true
                 size: 50Gi
-                storageClass: "synas-csi-retain"
+                storageClass: "freenas-iscsi-csi"
               route:
                 enabled: true
                 annotations:
