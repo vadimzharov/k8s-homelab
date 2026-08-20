@@ -1,0 +1,63 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: nvidia-gpu-servicemonitor
+  namespace: argocd
+  annotations:
+    appset-dashboard-appname: "NVIDIA GPU - Prometheus ServiceMonitor"
+    appset-dashboard-groupname: "Monitoring"
+spec:
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            nvidia-gpu: "installed"
+            prometheus: "installed"
+  template:
+    metadata:
+      name: '{{name}}-nvidia-gpu-servicemonitor'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: nvidia-gpu-servicemonitor
+          values: |
+            controllers:
+              main:
+                enabled: false
+            rawResources:
+              # Scrapes nvidia-dcgm-exporter (deployed by the gpu-operator,
+              # see appset-nvidia-gpu-operator.yaml) - separate
+              # ApplicationSet, gated on both cluster labels, so a cluster
+              # can run the GPU operator without requiring Prometheus and
+              # vice versa. Discovered automatically since
+              # appset-prometheus.yaml sets
+              # serviceMonitorSelectorNilUsesHelmValues: false (cluster-wide
+              # discovery, no release label needed here).
+              nvidia-dcgm-exporter-servicemonitor:
+                apiVersion: monitoring.coreos.com/v1
+                kind: ServiceMonitor
+                forceRename: "nvidia-dcgm-exporter"
+                spec:
+                  spec:
+                    selector:
+                      matchLabels:
+                        app: nvidia-dcgm-exporter
+                    namespaceSelector:
+                      matchNames:
+                        - nvidia-gpu
+                    endpoints:
+                      - port: gpu-metrics
+                        interval: 30s
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.6.2
+      destination:
+        server: '{{server}}'
+        namespace: nvidia-gpu
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

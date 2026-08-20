@@ -29,23 +29,50 @@ spec:
       - helm:
           releaseName: prometheus
           values: |
-            server:
-              retention: "14d"
-              retentionSize: "50GB"
-              extraFlags:
-                - storage.tsdb.wal-compression
-                - enable-feature=remote-write-receiver
-              resources:
-                requests:
-                  cpu: 250m
-                  memory: 512Mi
-                limits:
-                  cpu: "1"
-                  memory: 2Gi
-              persistentVolume:
-                enabled: true
-                size: 50Gi
-                storageClass: "freenas-iscsi-csi"
+            # kube-prometheus-stack (prometheus-operator), not the plain
+            # prometheus chart - scrape config is now via ServiceMonitor/
+            # PodMonitor CRDs discovered cluster-wide (see the
+            # SelectorNilUsesHelmValues: false settings below), not
+            # pod annotations. Any app that needs to be scraped drops a
+            # ServiceMonitor in its own appset (see
+            # appset-nvidia-gpu-operator.yaml for the nvidia-dcgm-exporter
+            # example) - no coordination with this appset needed.
+            # Grafana and Alertmanager are intentionally disabled here -
+            # Grafana already runs as its own appset (appset-grafana.yaml),
+            # and Alertmanager isn't in use yet (matches the previous
+            # chart's alertmanager.enabled: false).
+            grafana:
+              enabled: false
+            alertmanager:
+              enabled: false
+            prometheus-pushgateway:
+              enabled: false
+            prometheus:
+              prometheusSpec:
+                retention: "14d"
+                retentionSize: "50GB"
+                walCompression: true
+                enableRemoteWriteReceiver: true
+                serviceMonitorSelectorNilUsesHelmValues: false
+                podMonitorSelectorNilUsesHelmValues: false
+                probeSelectorNilUsesHelmValues: false
+                ruleSelectorNilUsesHelmValues: false
+                scrapeConfigSelectorNilUsesHelmValues: false
+                resources:
+                  requests:
+                    cpu: 250m
+                    memory: 512Mi
+                  limits:
+                    cpu: "1"
+                    memory: 2Gi
+                storageSpec:
+                  volumeClaimTemplate:
+                    spec:
+                      storageClassName: "freenas-iscsi-csi"
+                      accessModes: ["ReadWriteOnce"]
+                      resources:
+                        requests:
+                          storage: 50Gi
               route:
                 main:
                   enabled: true
@@ -61,19 +88,15 @@ spec:
                     - "prometheus-write.{{ domainname }}"
                   additionalRules:
                     - backendRefs:
-                        - name: prometheus-server
-                          port: 80
+                        - name: prometheus-kube-prometheus-prometheus
+                          port: 9090
                       matches:
                         - path:
                             type: PathPrefix
                             value: /api/v1/write
-            alertmanager:
-              enabled: false
-            prometheus-pushgateway:
-              enabled: false
         repoURL: https://prometheus-community.github.io/helm-charts
-        chart: prometheus
-        targetRevision: 29.27.0
+        chart: kube-prometheus-stack
+        targetRevision: 88.5.2
       destination:
         server: '{{server}}'
         namespace: prometheus
@@ -83,3 +106,7 @@ spec:
           selfHeal: true
         syncOptions:
           - CreateNamespace=true
+          # kube-prometheus-stack's CRDs (e.g. crd-prometheuses.yaml,
+          # ~830KB) exceed kubectl's 262144-byte client-side-apply
+          # annotation limit - without this, the first sync fails.
+          - ServerSideApply=true
