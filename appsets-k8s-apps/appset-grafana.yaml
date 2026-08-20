@@ -82,7 +82,7 @@ spec:
                         port: 3000
             persistence:
               enabled: true
-              storageClass: "freenas-iscsi-csi"
+              storageClassName: "freenas-iscsi-csi"
               size: 10Gi
             resources:
               requests:
