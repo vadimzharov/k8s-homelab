@@ -45,9 +45,9 @@ spec:
                       foldersFromFilesStructure: true
             dashboards:
               default:
-                k8s-cluster:
-                  gnetId: 16885
-                  revision: 133
+                k8s-pods:
+                  gnetId: 15757
+                  revision: 25
                   datasource: Prometheus
             datasources:
               datasources.yaml:
