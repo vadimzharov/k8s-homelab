@@ -1,0 +1,105 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: grafana
+  namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Grafana"
+    appset-dashboard-groupname: "Monitoring"
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  grafana: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-grafana'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+        - helm:
+            releaseName: grafana
+            values: |
+              adminPassword: "{{ password }}"
+              dashboardProviders:
+                dashboardproviders.yaml:
+                  apiVersion: 1
+                  providers:
+                    - name: default
+                      orgId: 1
+                      folder: ""
+                      type: file
+                      disableDeletion: false
+                      editable: true
+                      options:
+                        path: /var/lib/grafana/dashboards/default
+                        foldersFromFilesStructure: true
+              dashboards:
+                default:
+                  k8s-cluster:
+                    gnetId: 16885
+                    revision: 133
+                    datasource: Prometheus
+              datasources:
+                datasources.yaml:
+                  apiVersion: 1
+                  datasources:
+                    - name: Prometheus
+                      type: prometheus
+                      access: proxy
+                      url: http://prometheus-server.prometheus.svc.cluster.local
+                      isDefault: true
+              ingress:
+                enabled: false
+              route:
+                main:
+                  enabled: true
+                  kind: HTTPRoute
+                  annotations:
+                    k8s-dashboard-group: Monitoring
+                    k8s-dashboard-appname: Grafana
+                  parentRefs:
+                    - name: cilium-gw
+                      namespace: cilium-system
+                  hostnames:
+                    - grafana.{{ domainname }}
+                  rules:
+                    - matches:
+                        - path:
+                            type: PathPrefix
+                            value: /
+                      backendRefs:
+                        - name: grafana
+                          port: 3000
+              persistence:
+                enabled: true
+                storageClass: "freenas-iscsi-csi"
+                size: 10Gi
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: "1"
+                  memory: 1Gi
+            repoURL: https://grafana.github.io/helm-charts
+            chart: grafana
+            targetRevision: 10.5.15
+      destination:
+        server: '{{server}}'
+        namespace: grafana
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
