@@ -84,11 +84,3 @@ spec:
           selfHeal: true
         syncOptions:
           - CreateNamespace=true
-        ignoreDifferences:
-          - group: gateway.networking.k8s.io
-            kind: HTTPRoute
-            jqPathExpressions:
-              - '.spec.parentRefs[].controllerName'
-              - '.spec.parentRefs[].groupId'
-              - '.spec.parentRefs[].attachLoadBalancer'
-              - '.status'
