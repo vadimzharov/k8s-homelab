@@ -1,0 +1,96 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: prometheus-agent
+  namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Prometheus Agent"
+    appset-dashboard-groupname: "Monitoring"
+  labels:
+    appset-dashboard-multicluster: "true"
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  prometheus-agent: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-prometheus-agent'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: prometheus-agent
+          values: |
+            # kube-prometheus-stack in agent mode: no local TSDB/query API,
+            # no rule evaluation, no alertmanager - it only scrapes
+            # ServiceMonitors/PodMonitors on THIS cluster (same
+            # cluster-wide discovery as the hub, see appset-prometheus.yaml)
+            # and remote_writes the samples to the central Prometheus on
+            # the hub cluster. Grafana lives only on the hub
+            # (appset-grafana.yaml).
+            grafana:
+              enabled: false
+            alertmanager:
+              enabled: false
+            prometheus-pushgateway:
+              enabled: false
+            # Agent mode never evaluates PrometheusRule objects, so don't
+            # bother creating the chart's default alerting/recording rules.
+            defaultRules:
+              create: false
+            prometheus:
+              prometheusSpec:
+                agentMode: true
+                walCompression: true
+                serviceMonitorSelectorNilUsesHelmValues: false
+                podMonitorSelectorNilUsesHelmValues: false
+                probeSelectorNilUsesHelmValues: false
+                scrapeConfigSelectorNilUsesHelmValues: false
+                # externalLabels distinguish this cluster's series once
+                # they land in the hub's TSDB - without this, e.g.
+                # up{job="kubelet"} from different clusters collide.
+                externalLabels:
+                  cluster: '{{name}}'
+                remoteWrite:
+                  - url: "https://prometheus-write.{{ domainname }}/api/v1/write"
+                resources:
+                  requests:
+                    cpu: 100m
+                    memory: 256Mi
+                  limits:
+                    cpu: 500m
+                    memory: 1Gi
+                storageSpec:
+                  volumeClaimTemplate:
+                    spec:
+                      storageClassName: "freenas-iscsi-csi"
+                      accessModes: ["ReadWriteOnce"]
+                      resources:
+                        requests:
+                          storage: 10Gi
+        repoURL: https://prometheus-community.github.io/helm-charts
+        chart: kube-prometheus-stack
+        targetRevision: 88.5.2
+      destination:
+        server: '{{server}}'
+        namespace: prometheus-agent
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          # kube-prometheus-stack's CRDs (e.g. crd-prometheuses.yaml,
+          # ~830KB) exceed kubectl's 262144-byte client-side-apply
+          # annotation limit - without this, the first sync fails.
+          - ServerSideApply=true
