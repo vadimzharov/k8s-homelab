@@ -58,14 +58,29 @@ spec:
                 probeSelectorNilUsesHelmValues: false
                 ruleSelectorNilUsesHelmValues: false
                 scrapeConfigSelectorNilUsesHelmValues: false
-                # Same externalLabels convention as the spoke agents
-                # (appset-prometheus-agent.yaml) - without this, series
-                # scraped directly by this instance (on {{name}}) carry
-                # no cluster label, so they don't show up as a selectable
-                # cluster in dashboards that template on it, alongside
-                # the agent-forwarded clusters that do have the label.
+                # externalLabels only get attached to data this instance
+                # sends to external systems (remote_write, federation,
+                # alerting) - NOT to series it scrapes and stores itself.
+                # That's why agent-forwarded clusters (appset-prometheus-
+                # agent.yaml, whose externalLabels get baked in by their
+                # own remote_write) show up fine as real `cluster` label
+                # values, but this instance's own local scrapes never
+                # would with externalLabels alone. Set here anyway since
+                # it's still correct for anything this instance later
+                # sends onward (e.g. Alertmanager).
                 externalLabels:
                   cluster: '{{name}}'
+                # scrapeClasses is what actually makes `cluster` a real,
+                # queryable label on this instance's own locally-scraped
+                # series (unlike externalLabels above) - it's applied as
+                # a relabeling on every ServiceMonitor/PodMonitor target
+                # cluster-wide, without having to touch each one.
+                scrapeClasses:
+                  - name: default
+                    default: true
+                    relabelings:
+                      - targetLabel: cluster
+                        replacement: '{{name}}'
                 resources:
                   requests:
                     cpu: 250m
