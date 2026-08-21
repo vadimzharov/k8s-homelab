@@ -111,7 +111,21 @@ spec:
                 kind: Job
                 forceRename: "kagent-grafana-mcp-bootstrap"
                 annotations:
-                  argocd.argoproj.io/hook: PreSync
+                  # PreSync (the first attempt) deadlocked the whole
+                  # Application: a PreSync hook runs BEFORE the plain
+                  # ServiceAccount/RBAC resources above even apply (those
+                  # are ordinary Sync-phase resources), but this Job
+                  # references that ServiceAccount - it retried pod
+                  # creation forever ("serviceaccount ... not found"),
+                  # and ArgoCD won't proceed past a stuck PreSync hook to
+                  # apply anything else. Confirmed live 2026-08-20. Sync
+                  # (not PreSync) + an explicit later sync-wave than the
+                  # plain resources' default (0) guarantees the ordering
+                  # this Job actually needs, while hook-delete-policy still
+                  # gets it deleted+recreated fresh on every sync for the
+                  # self-healing behavior this was built for.
+                  argocd.argoproj.io/hook: Sync
+                  argocd.argoproj.io/sync-wave: "1"
                   argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
                 spec:
                   spec:
