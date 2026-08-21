@@ -80,7 +80,14 @@ spec:
                     k8s-dashboard-group: Monitoring
                     k8s-dashboard-appname: Prometheus
                   parentRefs:
-                    - name: cilium-gw
+                    # group/kind spelled out explicitly for the same
+                    # reason as the backendRef below - the apiserver
+                    # defaults these on write, and leaving them out here
+                    # makes ArgoCD's rendered manifest never match the
+                    # live object.
+                    - group: gateway.networking.k8s.io
+                      kind: Gateway
+                      name: cilium-gw
                       namespace: cilium-system
                       sectionName: https-gw
                   hostnames:
