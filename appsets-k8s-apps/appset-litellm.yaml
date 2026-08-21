@@ -386,6 +386,14 @@ spec:
                     name: "Hub ArgoCD kagent"
                     url: "https://kagent-a2a-k8s02.{{ domainname }}/api/a2a/kagent/kagent-hub-argocd/"
                     protocolVersion: "1.0"
+                # Reuses the already-whitelisted kagent-a2a-k8s02 hostname -
+                # same shared-hostname-per-cluster rule as the hub agents
+                # above. See appset-kagent.yaml's kagent-observability Agent.
+                - agent_name: kagent-observability-agent
+                  agent_card_params:
+                    name: "Prometheus metrics analyst"
+                    url: "https://kagent-a2a-k8s02.{{ domainname }}/api/a2a/kagent/kagent-observability/"
+                    protocolVersion: "1.0"
 
               general_settings:
                 master_key: os.environ/PROXY_MASTER_KEY
