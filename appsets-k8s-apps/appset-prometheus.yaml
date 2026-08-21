@@ -88,8 +88,17 @@ spec:
                     - "prometheus-write.{{ domainname }}"
                   additionalRules:
                     - backendRefs:
-                        - name: prometheus-kube-prometheus-prometheus
+                        # group/kind/weight spelled out explicitly - the
+                        # k8s apiserver defaults these onto every
+                        # backendRef on write, and without them here
+                        # ArgoCD's rendered manifest never matches the
+                        # live object, so this rule shows perpetually
+                        # OutOfSync.
+                        - group: ""
+                          kind: Service
+                          name: prometheus-kube-prometheus-prometheus
                           port: 9090
+                          weight: 1
                       matches:
                         - path:
                             type: PathPrefix
