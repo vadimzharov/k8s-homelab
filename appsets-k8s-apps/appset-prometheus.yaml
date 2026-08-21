@@ -79,7 +79,12 @@ spec:
                   - name: default
                     default: true
                     relabelings:
-                      - targetLabel: cluster
+                      # action spelled out explicitly - same apiserver
+                      # defaulting gotcha as the HTTPRoute backendRefs/
+                      # parentRefs above, otherwise this rule shows
+                      # perpetually OutOfSync too.
+                      - action: replace
+                        targetLabel: cluster
                         replacement: '{{name}}'
                 resources:
                   requests:
