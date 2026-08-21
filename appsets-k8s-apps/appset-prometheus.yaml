@@ -58,6 +58,14 @@ spec:
                 probeSelectorNilUsesHelmValues: false
                 ruleSelectorNilUsesHelmValues: false
                 scrapeConfigSelectorNilUsesHelmValues: false
+                # Same externalLabels convention as the spoke agents
+                # (appset-prometheus-agent.yaml) - without this, series
+                # scraped directly by this instance (on {{name}}) carry
+                # no cluster label, so they don't show up as a selectable
+                # cluster in dashboards that template on it, alongside
+                # the agent-forwarded clusters that do have the label.
+                externalLabels:
+                  cluster: '{{name}}'
                 resources:
                   requests:
                     cpu: 250m
