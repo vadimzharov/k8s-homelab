@@ -87,8 +87,16 @@ spec:
               grafana:
                 # Our Grafana runs in its own namespace via a separate
                 # appset (appset-grafana.yaml), not in kagent - the chart's
-                # default (grafana.kagent:3000/api) is wrong for this setup.
-                url: "http://grafana.grafana.svc.cluster.local/api"
+                # default (grafana.kagent:3000/api) is wrong for this
+                # setup on BOTH counts: wrong host, and upstream
+                # mcp-grafana's own docs are explicit that GRAFANA_URL
+                # should be the bare host with no /api suffix (its client
+                # appends that itself) - confirmed live 2026-08-22: with
+                # /api included, list_datasources 404'd ("GET /datasources"
+                # in the error - the client's own basePath logic doesn't
+                # expect a path segment already in the host), even though
+                # other tools (query_prometheus) tolerated it fine.
+                url: "http://grafana.grafana.svc.cluster.local"
                 # Populated by the bootstrap Job in
                 # appset-kagent-grafana-mcp-bootstrap.yaml - Grafana has no
                 # declarative way to create service-account tokens, so that
