@@ -12,25 +12,16 @@ spec:
   generators:
     - matrix:
         generators:
-          # prometheus: "installed" is a genuine hard dependency (this
-          # agent can't work without it) - same lesson as the earlier
-          # grafana-mcp-based agent's duplication bug (it lived in the
+          # Gated on BOTH labels - prevents the duplication bug the
+          # earlier grafana-mcp-based agent had (it lived in the
           # generic per-cluster appset-kagent.yaml, gated only on
-          # kagent: "installed", so it deployed to every kagent cluster
-          # including k8s01, which has no Prometheus at all).
-          #
-          # kagent-prometheus: "installed" (not the generic kagent:
-          # "installed") is a dedicated label for this specific agent,
-          # not "does this cluster have kagent at all" - more than one
-          # cluster has kagent installed, and relying on that alone (even
-          # combined with prometheus: "installed") would silently deploy
-          # this to any future cluster that happens to satisfy both,
-          # rather than only where it's actually meant to run.
+          # kagent: "installed", so it deployed to every kagent
+          # cluster including k8s01, which has no Prometheus at all).
           - clusters:
               selector:
                 matchLabels:
                   prometheus: "installed"
-                  kagent-prometheus: "installed"
+                  kagent: "installed"
           - plugin:
               configMapRef:
                 name: argocd-secrets-plugin
