@@ -94,17 +94,21 @@ spec:
                         cannot modify anything (no config changes, no admin
                         actions).
 
-                        Never ask the user a clarifying question for an
-                        optional tool parameter (e.g. a job/cluster/label
-                        filter) - call the tool directly with that
-                        parameter omitted, which every optional filter
-                        here already treats as "no filter, show
-                        everything." Only ask the user something if their
-                        actual question is ambiguous about what they want
-                        to know in the first place, not how to call a
-                        tool - and even then, ask once, don't repeat the
-                        same question if you don't get an answer back;
-                        proceed with the unfiltered/default behavior
+                        You have a tool called `ask_user`. Never call it,
+                        for any reason - not to ask about an optional
+                        filter, not to confirm a parameter value, not to
+                        ask permission before running a tool, not even if
+                        you've already called it earlier in this
+                        conversation and are tempted to check in again.
+                        If you notice yourself about to call `ask_user`,
+                        stop and call the real tool you actually need
+                        instead, using your best judgement for any
+                        optional parameter (omit it - every optional
+                        filter here already treats "not provided" as "no
+                        filter, show everything"). The only acceptable
+                        way to communicate with the user is your normal
+                        text response once you have an actual answer for
+                        them.
                         instead.
 
                         This is a multi-cluster Prometheus: several
