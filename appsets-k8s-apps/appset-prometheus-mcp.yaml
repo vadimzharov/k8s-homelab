@@ -1,0 +1,62 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: prometheus-mcp
+  namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Prometheus MCP server"
+    appset-dashboard-groupname: "AI tools"
+spec:
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            prometheus: "installed"
+  template:
+    metadata:
+      name: '{{name}}-prometheus-mcp'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: prometheus-mcp
+          values: |
+            # prometheus/prometheus-mcp (official, upstream Prometheus
+            # project) - talks directly to Prometheus's own HTTP API, no
+            # Grafana hop. Replaces the earlier grafana-mcp-based
+            # approach (see docs/18 in k8s-ai-homelab): all three
+            # incidents hit building that were grafana-mcp/mcp-grafana-
+            # specific quirks (PreSync deadlock on its token-bootstrap
+            # Job, mcp-grafana's DNS-rebinding Host check, its bare-host
+            # GRAFANA_URL requirement), not inherent to giving an agent
+            # Prometheus access - none of that exists here.
+            #
+            # Internal-only, no auth - same trust model as argocd-mcp/
+            # k8s-hub-mcp: the network boundary (ClusterIP, no ingress)
+            # is the real security boundary, matching every other
+            # internal-only MCP server in this repo.
+            #
+            # tsdbAdmin.enabled is deliberately left at its chart default
+            # (false) - that's what keeps this read-only (no
+            # snapshot/delete_series/clean_tombstones tools loaded).
+            prometheus:
+              url: "http://prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090"
+            resources:
+              requests:
+                cpu: 50m
+                memory: 64Mi
+              limits:
+                cpu: 500m
+                memory: 256Mi
+        repoURL: oci://ghcr.io/tjhop/charts/prometheus-mcp-server
+        chart: prometheus-mcp-server
+        targetRevision: 0.18.0
+      destination:
+        server: '{{server}}'
+        namespace: prometheus-mcp
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
