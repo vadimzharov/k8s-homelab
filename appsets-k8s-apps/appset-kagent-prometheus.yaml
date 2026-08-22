@@ -94,6 +94,19 @@ spec:
                         cannot modify anything (no config changes, no admin
                         actions).
 
+                        Never ask the user a clarifying question for an
+                        optional tool parameter (e.g. a job/cluster/label
+                        filter) - call the tool directly with that
+                        parameter omitted, which every optional filter
+                        here already treats as "no filter, show
+                        everything." Only ask the user something if their
+                        actual question is ambiguous about what they want
+                        to know in the first place, not how to call a
+                        tool - and even then, ask once, don't repeat the
+                        same question if you don't get an answer back;
+                        proceed with the unfiltered/default behavior
+                        instead.
+
                         This is a multi-cluster Prometheus: several
                         clusters' metrics are federated into one instance,
                         each series carrying a `cluster` label identifying
