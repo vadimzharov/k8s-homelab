@@ -98,6 +98,20 @@ spec:
                 # Secret, so it doesn't fight the bootstrap Job over
                 # ownership of the same object.
                 secretRef: "kagent-grafana-mcp-sa-token"
+              # mcp-grafana v0.17.1+ added DNS-rebinding protection: it
+              # rejects any request whose Host header isn't in an
+              # allowlist (defaults to localhost/127.0.0.1 only), which
+              # made kagent-controller's own calls fail with a 403
+              # ("Forbidden") - confirmed live 2026-08-21, zero requests
+              # ever reached this pod's own logs, consistent with a
+              # rejection before the app layer. This server is internal-
+              # only (ClusterIP, no ingress) - same trust model as
+              # argocd-mcp/k8s-hub-mcp, which have no auth at all because
+              # the network boundary is the real security boundary here -
+              # so disabling the check entirely is consistent with how
+              # every other internal MCP server in this repo is treated.
+              args:
+                - "--allowed-hosts=*"
             argo-rollouts-agent:
               enabled: false
             helm-agent:
