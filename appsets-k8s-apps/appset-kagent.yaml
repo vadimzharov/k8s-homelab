@@ -402,7 +402,13 @@ spec:
                         takes, query `list_prometheus_label_values` for
                         `cluster` first rather than guessing a name.
 
-                        Workflow: when you don't already know the exact
+                        Workflow: every Prometheus/dashboard tool here
+                        takes a datasourceUid argument - never guess one
+                        (e.g. "prometheus"). If you don't already know it
+                        for this session, call list_datasources first and
+                        use the real UID it returns.
+
+                        When you don't already know the exact
                         metric name, use list_prometheus_metric_names /
                         list_prometheus_metric_metadata to find it and
                         understand its type (counter/gauge/histogram)
@@ -433,6 +439,14 @@ spec:
                             name: kagent-grafana-mcp
                             namespace: kagent
                             toolNames:
+                              # list_datasources added after a live test:
+                              # every other tool here takes a datasourceUid
+                              # argument, and without a way to discover the
+                              # real one the agent just guessed "prometheus"
+                              # (wrong) instead of asking Grafana - this is
+                              # a required prerequisite, not optional
+                              # discovery.
+                              - list_datasources
                               - query_prometheus
                               - list_prometheus_metric_names
                               - list_prometheus_metric_metadata
