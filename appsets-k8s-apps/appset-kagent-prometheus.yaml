@@ -47,7 +47,7 @@ spec:
                 forceRename: "prometheus-mcp-server"
                 spec:
                   spec:
-                    description: Prometheus - PromQL queries, metric/label/series discovery, alerting rules and target health, built-in PromQL docs and runbooks
+                    description: Prometheus - PromQL queries, metric/label/series discovery, alerting rules, built-in PromQL docs and runbooks
                     protocol: STREAMABLE_HTTP
                     # Path not documented upstream - confirmed live against
                     # the same convention kagent-grafana-mcp used (also
@@ -63,7 +63,7 @@ spec:
                 spec:
                   spec:
                     type: Declarative
-                    description: "Read-only Prometheus metrics analysis - PromQL queries, metric/label discovery, alerting state, and target health, across all clusters this Prometheus instance monitors"
+                    description: "Read-only Prometheus metrics analysis - PromQL queries, metric/label discovery, and alerting state, across all clusters this Prometheus instance monitors"
                     declarative:
                       modelConfig: litellm-model
                       context:
@@ -75,7 +75,7 @@ spec:
                         skills:
                           - id: analyze-prometheus-metrics
                             name: Analyze Prometheus Metrics
-                            description: Query and analyze Prometheus metrics - execute PromQL, discover available metrics/labels/series, check alerting rules and target health.
+                            description: Query and analyze Prometheus metrics - execute PromQL, discover available metrics/labels/series, check alerting rules.
                             tags:
                               - prometheus
                               - promql
@@ -132,8 +132,11 @@ spec:
                         and runbooks_list/runbooks_read if a metric or
                         alert has an associated runbook, rather than
                         guessing at syntax. Use list_alerts/list_rules for
-                        alerting state, list_targets/targets_metadata for
-                        scrape target health.
+                        alerting state. You don't have a scrape-target-
+                        health tool - if asked about target/scrape
+                        health specifically, say so rather than guessing,
+                        and suggest checking the `up` metric via query
+                        instead (up == 0 means a target is down).
 
                         Tool usage - keep outputs small: choose a
                         reasonable time range and step for range_query

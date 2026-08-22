@@ -52,18 +52,27 @@ spec:
               # agent. Also excludes config/flags/wal_replay_status -
               # internal server admin/debug info, not needed for metrics
               # analysis.
+              # list_targets/targets_metadata dropped 2026-08-22: live
+              # testing showed the agent calling either of these
+              # consistently triggers kagent's built-in ask_user
+              # elicitation tool (a genuine kagent-side bug, not a
+              # prompt issue - reproduced across differently-worded
+              # prompts, an explicit cluster= filter, and even a proper
+              # A2A follow-up answering the question directly; the model
+              # states the right value and calls ask_user again anyway).
+              # See docs/18 in k8s-ai-homelab for the full incident.
+              # Every other tool tested clean (query, label_values,
+              # etc.) - narrower fix than dropping kagent altogether.
               tools:
                 - build_info
                 - healthy
                 - ready
                 - list_alerts
                 - list_rules
-                - list_targets
                 - tsdb_stats
                 - runtime_info
                 - alertmanagers
                 - exemplar_query
-                - targets_metadata
             resources:
               requests:
                 cpu: 50m
