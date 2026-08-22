@@ -41,6 +41,29 @@ spec:
             # snapshot/delete_series/clean_tombstones tools loaded).
             prometheus:
               url: "http://prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090"
+            mcp:
+              # 11 "core" tools (query, range_query, label_names/values,
+              # metric_metadata, series, docs_*, runbooks_*) always load
+              # regardless of this list - this only controls the optional
+              # ones. Explicitly excludes quit/reload: despite being
+              # labeled "read-only" upstream (they don't touch TSDB data),
+              # they're operational control actions (shut down / trigger
+              # a config reload) with no place being reachable from a chat
+              # agent. Also excludes config/flags/wal_replay_status -
+              # internal server admin/debug info, not needed for metrics
+              # analysis.
+              tools:
+                - build_info
+                - healthy
+                - ready
+                - list_alerts
+                - list_rules
+                - list_targets
+                - tsdb_stats
+                - runtime_info
+                - alertmanagers
+                - exemplar_query
+                - targets_metadata
             resources:
               requests:
                 cpu: 50m
