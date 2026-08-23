@@ -250,7 +250,7 @@ spec:
                     resources:
                       requests:
                         storage: 10Gi
-                    volumeName: n-tranarr-dedicated-movies-pv
+                    volumeName: tranarr-n-dedicated-movies-pv
         repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0
