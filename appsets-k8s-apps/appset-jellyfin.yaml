@@ -241,8 +241,8 @@ spec:
                       # make sure this value is unique for every share in the cluster
                       volumeHandle: "nfs-server#k8s-jellyfin#k8s-dedicated-share"
                       volumeAttributes:
-#                        server: {{ k8s-nfs-server-name }}
-#                        share: {{ k8s-tranarr-dedicated-share }}
+                        #server: {{ k8s-nfs-server-name }}
+                        #share: {{ k8s-tranarr-dedicated-share }}
                         server: {{ truenas-nfs-ip }}
                         share: "{{ truenas-arr-share }}/dedicated-movies"                        
               dedicated-movies-pvc:
