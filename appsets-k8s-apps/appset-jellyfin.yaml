@@ -79,7 +79,7 @@ spec:
               dedicated-movies:
                 enabled: true
                 type: persistentVolumeClaim
-                existingClaim: jellyfin-dedicated-movies-pvc
+                existingClaim: jellyfin-n-dedicated-movies-pvc
                 globalMounts: 
                   - path: /dedicated-movies/
               arr-d:
@@ -223,7 +223,7 @@ spec:
                       requests:
                         storage: 10Gi
                     volumeName: jellyfin-arr-pv
-              dedicated-movies-pv:
+              n-dedicated-movies-pv:
                 apiVersion: v1
                 kind: PersistentVolume
                 spec:
@@ -239,11 +239,11 @@ spec:
                       readOnly: false
                       # volumeHandle format: {nfs-server-address}#{sub-dir-name}#{share-name}
                       # make sure this value is unique for every share in the cluster
-                      volumeHandle: "nfs-server#k8s-jellyfin#k8s-dedicated-share"
+                      volumeHandle: "nfs-server#k8s-jellyfin#k8s-n-dedicated-share"
                       volumeAttributes:
-                        server: {{ k8s-nfs-server-name }}
+                        server: {{ truenas-nfs-ip }}
                         share: {{ k8s-tranarr-dedicated-share }}
-              dedicated-movies-pvc:
+              n-dedicated-movies-pvc:
                 apiVersion: v1
                 kind: PersistentVolumeClaim
                 spec:
@@ -254,7 +254,7 @@ spec:
                     resources:
                       requests:
                         storage: 10Gi
-                    volumeName: jellyfin-dedicated-movies-pv
+                    volumeName: jellyfin-n-dedicated-movies-pv
               arr-d-pv:
                 apiVersion: v1
                 kind: PersistentVolume
