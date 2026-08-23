@@ -135,7 +135,7 @@ spec:
                   PDBACKUP_TARGET_DIR: "/jellyfin-data"  
                   PDBACKUP_BACKUP_INTERVAL: "1h"
                   PDBACKUP_HOSTNAME: "jellyfin"
-                  PDBACKUP_RETENTION_KEEP_LATEST: "10"
+                  PDBACKUP_RETENTION_KEEP_LATEST: "5"
                   PDBACKUP_FORCE_RESTORE: "true"
             controllers:
               main:
@@ -241,8 +241,10 @@ spec:
                       # make sure this value is unique for every share in the cluster
                       volumeHandle: "nfs-server#k8s-jellyfin#k8s-dedicated-share"
                       volumeAttributes:
-                        server: {{ k8s-nfs-server-name }}
-                        share: {{ k8s-tranarr-dedicated-share }}
+#                        server: {{ k8s-nfs-server-name }}
+#                        share: {{ k8s-tranarr-dedicated-share }}
+                        server: {{ truenas-nfs-ip }}
+                        share: "{{ truenas-arr-share }}/dedicated-movies"                        
               dedicated-movies-pvc:
                 apiVersion: v1
                 kind: PersistentVolumeClaim
