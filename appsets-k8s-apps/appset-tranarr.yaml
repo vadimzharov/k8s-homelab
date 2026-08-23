@@ -152,22 +152,22 @@ spec:
                   PDBACKUP_TARGET_DIR: "/config"  
                   PDBACKUP_BACKUP_INTERVAL: "1h"
                   PDBACKUP_HOSTNAME: "tranarr"
-                  PDBACKUP_RETENTION_KEEP_LATEST: "10"
+                  PDBACKUP_RETENTION_KEEP_LATEST: "3"
                   PDBACKUP_FORCE_RESTORE: "true"
                   PDBACKUP_RESTORE_VERBOSE: "true"
-              b-r-settings:
-                enabled: true
-                data:
-                  AWS_BUCKET: "arr-bkp"
-                  S3_BUCKET_FOLDER: "tranarr-config"
-                  S3_FILE_PREFIX: "tranarr-config"
-                  BACKUP_INTERVAL: "1h"
-                  PRUNE_INTERVAL: "48h"
-                  COPIES_TO_KEEP: "15"
-                  FORCE_RESTORE: "true"
-                  DIR_TO_BACKUP: /config
-                  DIR_TO_RESTORE: /config
-                  ARCHIVE_TYPE: targz
+              #b-r-settings:
+              #  enabled: true
+              #  data:
+              #    AWS_BUCKET: "arr-bkp"
+              #    S3_BUCKET_FOLDER: "tranarr-config"
+              #    S3_FILE_PREFIX: "tranarr-config"
+              #    BACKUP_INTERVAL: "1h"
+              #    PRUNE_INTERVAL: "48h"
+              #    COPIES_TO_KEEP: "15"
+              #    FORCE_RESTORE: "true"
+              #    DIR_TO_BACKUP: /config
+              #    DIR_TO_RESTORE: /config
+              #    ARCHIVE_TYPE: targz
             secrets:
               pdbackup-secret:
                 enabled: true
@@ -178,14 +178,14 @@ spec:
                   PDBACKUP_S3_ACCESS_KEY: {{ miniokey }}
                   PDBACKUP_S3_SECRET_KEY: {{ miniosecretkey }}
                   PDBACKUP_KOPIA_PASSWORD: {{ encryptpassword }}            
-              b-r-creds:
-                enabled: true
-                labels: {}
-                annotations: {}
-                stringData:
-                  S3_ENDPOINT: {{ minioendpoint }}
-                  AWS_KEY: {{ miniokey }}
-                  AWS_SECRET_KEY: {{ miniosecretkey }}
+              #b-r-creds:
+              #  enabled: true
+              #  labels: {}
+              #  annotations: {}
+              #  stringData:
+              #    S3_ENDPOINT: {{ minioendpoint }}
+              #    AWS_KEY: {{ miniokey }}
+              #    AWS_SECRET_KEY: {{ miniosecretkey }}
             rawResources:
               complete-pv:
                 apiVersion: v1
@@ -238,7 +238,7 @@ spec:
                       volumeHandle: "nfs-server#k8s-tranarr#k8s-tranarr-n-dedicated-share"
                       volumeAttributes:
                         server: {{ truenas-nfs-ip }}
-                        share: {{ truenas-tranarr-dedicated-share }}
+                        share: "{{ truenas-arr-share }}/dedicated-movies"
               n-dedicated-movies-pvc:
                 apiVersion: v1
                 kind: PersistentVolumeClaim
