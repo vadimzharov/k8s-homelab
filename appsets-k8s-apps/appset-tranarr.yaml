@@ -237,7 +237,7 @@ spec:
                       # make sure this value is unique for every share in the cluster
                       volumeHandle: "nfs-server#k8s-tranarr#k8s-tranarr-n-dedicated-share"
                       volumeAttributes:
-                        server: {{ truenas-nfs-share-name }}
+                        server: {{ truenas-nfs-ip }}
                         share: {{ truenas-tranarr-dedicated-share }}
               n-dedicated-movies-pvc:
                 apiVersion: v1
