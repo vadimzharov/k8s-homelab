@@ -41,7 +41,7 @@ spec:
                     image: 
                       repository: ghcr.io/vadimzharov/pdbackup
                       pullPolicy: IfNotPresent
-                      tag: 0.0.3
+                      tag: 0.0.5
                     args: 
                       - restore
                     envFrom:
@@ -138,7 +138,7 @@ spec:
               dedicated-movies:
                 enabled: true
                 type: persistentVolumeClaim
-                existingClaim: tranarr-dedicated-movies-pvc
+                existingClaim: tranarr-n-dedicated-movies-pvc
                 globalMounts:
                   - path: /downloads/movies
                     readOnly: false                    
@@ -153,7 +153,8 @@ spec:
                   PDBACKUP_BACKUP_INTERVAL: "1h"
                   PDBACKUP_HOSTNAME: "tranarr"
                   PDBACKUP_RETENTION_KEEP_LATEST: "10"
-                  PDBACKUP_FORCE_RESTORE: "true"            
+                  PDBACKUP_FORCE_RESTORE: "true"
+                  PDBACKUP_RESTORE_VERBOSE: "true"
               b-r-settings:
                 enabled: true
                 data:
@@ -218,7 +219,7 @@ spec:
                       requests:
                         storage: 10Gi
                     volumeName: tranarr-complete-pv
-              dedicated-movies-pv:
+              n-dedicated-movies-pv:
                 apiVersion: v1
                 kind: PersistentVolume
                 spec:
@@ -234,11 +235,11 @@ spec:
                       readOnly: false
                       # volumeHandle format: {nfs-server-address}#{sub-dir-name}#{share-name}
                       # make sure this value is unique for every share in the cluster
-                      volumeHandle: "nfs-server#k8s-tranarr#k8s-tranarr-dedicated-share"
+                      volumeHandle: "nfs-server#k8s-tranarr#k8s-tranarr-n-dedicated-share"
                       volumeAttributes:
-                        server: {{ k8s-nfs-server-name }}
-                        share: {{ k8s-tranarr-dedicated-share }}
-              dedicated-movies-pvc:
+                        server: {{ truenas-nfs-share-name }}
+                        share: {{ truenas-tranarr-dedicated-share }}
+              n-dedicated-movies-pvc:
                 apiVersion: v1
                 kind: PersistentVolumeClaim
                 spec:
@@ -249,7 +250,7 @@ spec:
                     resources:
                       requests:
                         storage: 10Gi
-                    volumeName: tranarr-dedicated-movies-pv
+                    volumeName: n-tranarr-dedicated-movies-pv
         repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 3.4.0
