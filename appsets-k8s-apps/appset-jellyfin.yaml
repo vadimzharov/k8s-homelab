@@ -209,8 +209,10 @@ spec:
                       # make sure this value is unique for every share in the cluster
                       volumeHandle: "nfs-server#k8s-jellyfin#k8s-arr-share"
                       volumeAttributes:
-                        server: {{ k8s-nfs-server-name }}
-                        share: {{ k8s-arr-share }}
+                        #server: {{ k8s-nfs-server-name }}
+                        #share: {{ k8s-arr-share }}
+                        server: {{ truenas-nfs-ip }}
+                        share: "{{ truenas-arr-share }}/arr"
               arr-pvc:
                 apiVersion: v1
                 kind: PersistentVolumeClaim
