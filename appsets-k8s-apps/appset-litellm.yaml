@@ -386,6 +386,18 @@ spec:
                     name: "Hub ArgoCD kagent"
                     url: "https://kagent-a2a-k8s02.{{ domainname }}/api/a2a/kagent/kagent-hub-argocd/"
                     protocolVersion: "1.0"
+                # Standalone custom A2A server (not kagent - see
+                # k8s-ai-homelab docs/18-19 for why), replacing the
+                # earlier kagent-based Prometheus agent. Plain internal
+                # ClusterIP URL, no HTTPRoute - it runs on k8s02, the
+                # same cluster LiteLLM runs on, so no external exposure
+                # is needed at all (and no shared-hostname bug class to
+                # worry about, unlike the kagent agents above).
+                - agent_name: prometheus-agent
+                  agent_card_params:
+                    name: "Prometheus Agent"
+                    url: "http://prometheus-agent.prometheus-mcp.svc.cluster.local:8080/invoke"
+                    protocolVersion: "1.0"
 
               general_settings:
                 master_key: os.environ/PROXY_MASTER_KEY
@@ -401,6 +413,7 @@ spec:
                 user_url_allowed_hosts:
                   - "kagent-a2a-k8s02.{{ domainname }}"
                   - "kagent-a2a-k8s01.{{ domainname }}"
+                  - "prometheus-agent.prometheus-mcp.svc.cluster.local"
                 # Lets the Admin UI's Logs page show full request/response
                 # bodies per entry (previously "Request/Response Data Not
                 # Available" - also why debugging past incidents had to
