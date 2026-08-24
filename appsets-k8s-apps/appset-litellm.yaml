@@ -396,7 +396,14 @@ spec:
                 - agent_name: prometheus-agent
                   agent_card_params:
                     name: "Prometheus Agent"
-                    url: "http://prometheus-agent.prometheus-mcp.svc.cluster.local:8080/invoke"
+                    # Base URL only, no /invoke suffix - LiteLLM appends
+                    # .well-known/agent-card.json to THIS for discovery,
+                    # then follows the card's own self-declared url
+                    # (.../invoke) for the actual message/send calls.
+                    # Confirmed live 2026-08-24: registering /invoke
+                    # directly produced a literal .../invoke/.well-known/...
+                    # 404 on the discovery fetch.
+                    url: "http://prometheus-agent.prometheus-mcp.svc.cluster.local:8080"
                     protocolVersion: "1.0"
 
               general_settings:
