@@ -38,7 +38,7 @@ spec:
                     image: 
                       repository: ghcr.io/vadimzharov/pdbackup
                       pullPolicy: IfNotPresent
-                      tag: 0.0.3
+                      tag: 0.0.8
                     args: 
                       - restore
                     envFrom:
@@ -56,7 +56,7 @@ spec:
                     image: 
                       repository: ghcr.io/vadimzharov/pdbackup
                       pullPolicy: IfNotPresent
-                      tag: 0.0.3
+                      tag: 0.0.8
                     args:
                       - daemon
                     envFrom:
@@ -207,8 +207,10 @@ spec:
                       # make sure this value is unique for every share in the cluster
                       volumeHandle: "nfs-server#sonarr#sonarr-app"
                       volumeAttributes:
-                        server: {{ k8s-nfs-server-name }}
-                        share: {{ k8s-sonarr-share }}
+                        #server: {{ k8s-nfs-server-name }}
+                        #share: {{ k8s-sonarr-share }}
+                        server: {{ truenas-nfs-ip }}
+                        share: "{{ truenas-arr-share }}/arr/media/series"
               sonarr-pvc:
                 apiVersion: v1
                 kind: PersistentVolumeClaim
