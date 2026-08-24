@@ -186,8 +186,10 @@ spec:
                       # make sure this value is unique for every share in the cluster
                       volumeHandle: "nfs-server#radarr#radarr-app"
                       volumeAttributes:
-                        server: {{ k8s-nfs-server-name }}
-                        share: {{ k8s-radarr-share }}
+                        #server: {{ k8s-nfs-server-name }}
+                        #share: {{ k8s-radarr-share }}
+                        server: {{ truenas-nfs-ip }}
+                        share: "{{ truenas-arr-share }}/arr/media/movies"                        
               radarr-pvc:
                 apiVersion: v1
                 kind: PersistentVolumeClaim
