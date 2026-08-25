@@ -4,10 +4,10 @@ metadata:
   name: k8s-hub-mcp
   namespace: argocd
   annotations:
-    appset-dashboard-appname: "K8S Hub MCP server"
+    appset-dashboard-appname: "K8S Hub MCP server + agent"
     appset-dashboard-groupname: "AI tools"
     k8s-dashboard-group: "AI tools"
-    k8s-dashboard-appname: "K8S Hub MCP server"
+    k8s-dashboard-appname: "K8S Hub MCP server + agent"
 spec:
   generators:
     - matrix:
@@ -70,6 +70,42 @@ spec:
         repoURL: oci://ghcr.io/containers/charts/kubernetes-mcp-server
         targetRevision: 0.1.0
         path: .
+      # Standalone custom A2A agent for the hub cluster - replaces both
+      # kagent's hub-k8s-agent and hub-argocd-agent (kagent-controller no
+      # longer runs anywhere, see appset-litellm.yaml). Only covers k8s
+      # inspection via the k8s-hub-mcp server above, not ArgoCD - that
+      # capability has no replacement yet. Runs co-located with
+      # k8s-hub-mcp (both land on k8s02, the cluster carrying the
+      # k8s-hub-mcp: installed label), reaching it over internal
+      # ClusterIP. clusterName/hostname use the literal "hub" rather
+      # than {{name}} (which would resolve to "k8s02", the destination
+      # cluster, not the cluster this agent actually reports on) - this
+      # agent doesn't share kagent's a2aBaseUrl constraint that forced
+      # that workaround originally (see k8s-ai-homelab docs/16).
+      - helm:
+          releaseName: k8s-agent
+          values: |
+            litellm:
+              baseUrl: "https://litellm.{{ domainname }}/v1"
+              model: "qwen3.6-27b"
+              # Same Vault-backed token kagent used for its own ModelConfig.
+              apiKeySecretRef:
+                name: k8s-agent-litellm
+                key: api-key
+            k8sMcp:
+              url: "http://k8s-hub-mcp-kubernetes-mcp-server.k8s-hub-mcp.svc.cluster.local:8080/mcp"
+            agent:
+              clusterName: "hub"
+            route:
+              enabled: true
+              host: "k8s-agent-hub.{{ domainname }}"
+              parentRefs:
+                - name: cilium-gw
+                  namespace: cilium-system
+                  sectionName: https-gw
+        repoURL: oci://ghcr.io/vadimzharov/charts/k8s-agent
+        targetRevision: 0.0.4
+        path: .
       - helm:
           releaseName: k8s-hub-mcp-secrets
           values: |
@@ -84,6 +120,13 @@ spec:
                 spec:
                   data:
                     kubeconfig: {{k8s-hub-mcp-reader-token}}
+              k8s-agent-litellm:
+                apiVersion: v1
+                kind: Secret
+                forceRename: "k8s-agent-litellm"
+                spec:
+                  stringData:
+                    api-key: {{litellm-kagent-key}}
         repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 4.6.2

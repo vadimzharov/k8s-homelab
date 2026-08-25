@@ -337,10 +337,12 @@ spec:
               # kagent-controller no longer runs anywhere) - all four kagent-
               # based entries (k8s02-health-agent, k8s01-health-agent,
               # hub-k8s-agent, hub-argocd-agent) removed since their
-              # endpoints no longer exist. k8s01/k8s02 are replaced below by
-              # the standalone k8s-agent (see k8s-ai-homelab docs/20).
-              # hub-argocd-agent has no replacement yet - argocd-mcp itself
-              # is untouched, but nothing currently exposes it over A2A.
+              # endpoints no longer exist. k8s01/k8s02/hub are replaced
+              # below by the standalone k8s-agent (see k8s-ai-homelab
+              # docs/20). hub-agent only covers k8s inspection (via
+              # k8s-hub-mcp) - ArgoCD inspection (the old hub-argocd-agent's
+              # job) has no replacement yet; argocd-mcp itself is untouched,
+              # just nothing currently exposes it over A2A.
               agents:
                 # Standalone custom A2A server (not kagent - see
                 # k8s-ai-homelab docs/18-19 for why), replacing the
@@ -383,6 +385,16 @@ spec:
                     name: "Kubernetes Cluster Agent (k8s01)"
                     url: "https://k8s-agent-k8s01.{{ domainname }}"
                     protocolVersion: "1.0"
+                # Replaces both kagent's hub-k8s-agent and hub-argocd-agent
+                # (k8s inspection only - ArgoCD inspection has no
+                # replacement, see the comment above). Deployed via
+                # appset-k8s-hub-mcp.yaml (moved to appsets-k8s-ai/),
+                # co-located with k8s-hub-mcp on k8s02.
+                - agent_name: hub-agent
+                  agent_card_params:
+                    name: "Kubernetes Cluster Agent (hub)"
+                    url: "https://k8s-agent-hub.{{ domainname }}"
+                    protocolVersion: "1.0"
 
               general_settings:
                 master_key: os.environ/PROXY_MASTER_KEY
@@ -399,6 +411,7 @@ spec:
                   - "prometheus-agent.prometheus-mcp.svc.cluster.local"
                   - "k8s-agent-k8s02.{{ domainname }}"
                   - "k8s-agent-k8s01.{{ domainname }}"
+                  - "k8s-agent-hub.{{ domainname }}"
                 # Lets the Admin UI's Logs page show full request/response
                 # bodies per entry (previously "Request/Response Data Not
                 # Available" - also why debugging past incidents had to
