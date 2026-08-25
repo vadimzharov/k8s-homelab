@@ -4,14 +4,22 @@ metadata:
   name: prometheus-mcp
   namespace: argocd
   annotations:
-    appset-dashboard-appname: "Prometheus MCP server"
+    appset-dashboard-appname: "Prometheus MCP server + agent"
     appset-dashboard-groupname: "AI tools"
 spec:
   generators:
-    - clusters:
-        selector:
-          matchLabels:
-            prometheus: "installed"
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  prometheus: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
   template:
     metadata:
       name: '{{name}}-prometheus-mcp'
@@ -60,7 +68,9 @@ spec:
               # prompts, an explicit cluster= filter, and even a proper
               # A2A follow-up answering the question directly; the model
               # states the right value and calls ask_user again anyway).
-              # See docs/18 in k8s-ai-homelab for the full incident.
+              # See docs/18 in k8s-ai-homelab for the full incident. Not
+              # relevant to the standalone prometheus-agent below (no
+              # kagent involved), worth re-adding once confirmed clean.
               # Every other tool tested clean (query, label_values,
               # etc.) - narrower fix than dropping kagent altogether.
               tools:
@@ -83,6 +93,25 @@ spec:
         repoURL: oci://ghcr.io/tjhop/charts/prometheus-mcp-server
         chart: prometheus-mcp-server
         targetRevision: 0.18.0
+      # Standalone A2A agent (github.com/vadimzharov/prometheus-agent)
+      # replacing the manually-installed instance - see k8s-ai-homelab
+      # docs/19. Co-located with prometheus-mcp above and with LiteLLM
+      # (both on k8s02) - no HTTPRoute needed.
+      - helm:
+          releaseName: prometheus-agent
+          values: |
+            litellm:
+              baseUrl: "https://litellm.{{ domainname }}/v1"
+              model: "qwen3.6-27b"
+              # Inline key - the chart creates its own Secret from this
+              # value directly. Same Vault-backed token kagent used for
+              # its own ModelConfig, reused across all standalone agents.
+              apiKey: {{litellm-kagent-key}}
+            prometheusMcp:
+              url: "http://prometheus-mcp-prometheus-mcp-server.prometheus-mcp.svc.cluster.local:8080/mcp"
+        repoURL: oci://ghcr.io/vadimzharov/charts/prometheus-agent
+        targetRevision: 0.0.2
+        path: .
       destination:
         server: '{{server}}'
         namespace: prometheus-mcp
