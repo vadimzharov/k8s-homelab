@@ -42,6 +42,14 @@ spec:
                         value: "https://argocd.{{ domainname }}"
                       ARGOCD_API_TOKEN:
                         value: "{{ argocd-api-token }}"
+                      # Caps what any caller (including argocd-agent) can
+                      # do at the server level, independent of prompt
+                      # wording - the mutating tools (sync_application,
+                      # create_application, delete_application,
+                      # run_resource_action) were reachable without this.
+                      # See k8s-ai-homelab docs/21.
+                      MCP_READ_ONLY:
+                        value: "true"
                     # Was a top-level `resources:` key (sibling of controllers/service) -
                     # not a valid location in this chart's schema, so it was silently
                     # ignored (no error) and the container ran with no request/limit at
