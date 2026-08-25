@@ -52,9 +52,31 @@ spec:
   - clusters:
       selector:
         matchLabels:
+          appsets-apps: "installed"
+      values:
+        revision: '{{metadata.annotations.branch-name}}'
+      template:
+        metadata:
+          name: '{{name}}-appsets-ai'
+        spec:
+          project: k8s-homelab-apps
+          sources:
+          - repoURL: https://github.com/vadimzharov/k8s-homelab.git
+            path: "appsets-k8s-ai"
+            targetRevision: '{{ values.revision }}'
+          destination:
+            server: '{{ server }}'
+            namespace: argocd
+          syncPolicy:
+            automated:
+              prune: true
+              selfHeal: true
+  - clusters:
+      selector:
+        matchLabels:
           appsets-cluster: "installed"
       values:
-        revision: '{{metadata.annotations.branch-name}}' 
+        revision: '{{metadata.annotations.branch-name}}'
   template:
     metadata:
       name: '{{name}}-appsets-cluster'

@@ -1,0 +1,105 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: k8s-mcp
+  namespace: argocd
+  annotations:
+    appset-dashboard-appname: "K8S MCP server (in-cluster)"
+    appset-dashboard-groupname: "AI tools"
+    k8s-dashboard-group: "AI tools"
+    k8s-dashboard-appname: "K8S MCP server (in-cluster)"
+spec:
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            k8s-mcp: "installed"
+  template:
+    metadata:
+      name: '{{name}}-k8s-mcp'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: k8s-mcp
+          values: |
+            serviceAccount:
+              create: true
+              automountToken: true
+            rbac:
+              create: true
+              extraClusterRoles:
+                - name: reader
+                  rules:
+                    - apiGroups: [""]
+                      resources:
+                        - pods
+                        - pods/log
+                        - nodes
+                        - events
+                        - namespaces
+                        - services
+                        - configmaps
+                        - endpoints
+                        - persistentvolumes
+                        - persistentvolumeclaims
+                        - replicationcontrollers
+                        - resourcequotas
+                        - serviceaccounts
+                      verbs: ["get", "list", "watch"]
+                    - apiGroups: ["apps"]
+                      resources:
+                        - deployments
+                        - statefulsets
+                        - daemonsets
+                        - replicasets
+                      verbs: ["get", "list", "watch"]
+                    - apiGroups: ["metrics.k8s.io"]
+                      resources:
+                        - nodes
+                        - pods
+                      verbs: ["get", "list"]
+                    - apiGroups: ["batch"]
+                      resources: ["jobs", "cronjobs"]
+                      verbs: ["get", "list", "watch"]
+                    - apiGroups: ["networking.k8s.io"]
+                      resources: ["ingresses", "networkpolicies"]
+                      verbs: ["get", "list", "watch"]
+              extraClusterRoleBindings:
+                - name: reader
+                  roleRef:
+                    name: reader
+            extraArgs:
+              - --cluster-provider
+              - in-cluster
+              - --read-only
+            ingress:
+              enabled: false
+            httpRoute:
+              enabled: true
+              annotations:
+                k8s-dashboard-group: AI tools
+                k8s-dashboard-appname: K8S MCP server (in-cluster)
+              hostnames:
+                - "k8s-mcp-{{name}}.{{ domainname }}"
+              parentRefs:
+                - name: cilium-gw
+                  namespace: cilium-system
+                  sectionName: https-gw
+              rules:
+                - matches:
+                    - path:
+                        type: PathPrefix
+                        value: /
+        repoURL: oci://ghcr.io/containers/charts/kubernetes-mcp-server
+        targetRevision: 0.1.0
+        path: .
+      destination:
+        server: '{{server}}'
+        namespace: k8s-mcp
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
