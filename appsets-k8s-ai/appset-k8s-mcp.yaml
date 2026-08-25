@@ -136,7 +136,7 @@ spec:
                   namespace: cilium-system
                   sectionName: https-gw
         repoURL: oci://ghcr.io/vadimzharov/charts/k8s-agent
-        targetRevision: 0.0.4
+        targetRevision: 0.0.6
         path: .
       - helm:
           releaseName: k8s-agent-secrets
