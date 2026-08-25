@@ -74,6 +74,26 @@ spec:
         repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 4.6.2
+      # Standalone A2A agent (github.com/vadimzharov/argocd-agent)
+      # replacing kagent's hub-argocd-agent - see k8s-ai-homelab docs/21.
+      # Co-located with argocd-mcp above and with LiteLLM (both on k8s02)
+      # - no HTTPRoute needed, same reasoning as prometheus-agent.
+      - helm:
+          releaseName: argocd-agent
+          values: |
+            litellm:
+              baseUrl: "https://litellm.{{ domainname }}/v1"
+              model: "qwen3.6-27b"
+              # Inline key - the chart creates its own Secret from this
+              # value directly, no separate bjw-s rawResources source
+              # needed (unlike k8s-agent's setup). Same Vault-backed
+              # token kagent used for its own ModelConfig.
+              apiKey: {{litellm-kagent-key}}
+            argocdMcp:
+              url: "http://argocd-mcp.argocd-mcp.svc.cluster.local:3000/mcp"
+        repoURL: oci://ghcr.io/vadimzharov/charts/argocd-agent
+        targetRevision: 0.0.8
+        path: .
       destination:
         server: '{{server}}'
         namespace: argocd-mcp
