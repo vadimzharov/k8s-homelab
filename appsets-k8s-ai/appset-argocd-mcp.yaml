@@ -92,7 +92,7 @@ spec:
             argocdMcp:
               url: "http://argocd-mcp.argocd-mcp.svc.cluster.local:3000/mcp"
         repoURL: oci://ghcr.io/vadimzharov/charts/argocd-agent
-        targetRevision: 0.0.8
+        targetRevision: 0.0.9
         path: .
       destination:
         server: '{{server}}'
