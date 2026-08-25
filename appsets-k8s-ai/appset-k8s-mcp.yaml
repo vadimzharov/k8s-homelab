@@ -10,10 +10,18 @@ metadata:
     k8s-dashboard-appname: "K8S MCP server (in-cluster)"
 spec:
   generators:
-    - clusters:
-        selector:
-          matchLabels:
-            k8s-mcp: "installed"
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  k8s-mcp: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
   template:
     metadata:
       name: '{{name}}-k8s-mcp'
@@ -93,6 +101,60 @@ spec:
         repoURL: oci://ghcr.io/containers/charts/kubernetes-mcp-server
         targetRevision: 0.1.0
         path: .
+      # Standalone custom A2A agent (github.com/vadimzharov/kubernetes-agent)
+      # replacing kagent's per-cluster k8s-agent-litellm Agent, bundled into
+      # this same Application since it only ever makes sense alongside its
+      # own cluster's kubernetes-mcp-server above - see
+      # k8s-ai-homelab docs/20 for the full migration rationale.
+      - helm:
+          releaseName: k8s-agent
+          values: |
+            litellm:
+              baseUrl: "https://litellm.{{ domainname }}/v1"
+              model: "qwen3.6-27b"
+              # Same Vault-backed token kagent used for its own ModelConfig
+              # (litellm-creds/PROVIDER_API_KEY in appset-kagent.yaml) -
+              # reused here per explicit instruction, not a fresh key.
+              apiKeySecretRef:
+                name: k8s-agent-litellm
+                key: api-key
+            k8sMcp:
+              url: "http://k8s-mcp-kubernetes-mcp-server.k8s-mcp.svc.cluster.local:8080/mcp"
+            agent:
+              clusterName: "{{name}}"
+            # Exposed via HTTPRoute on every cluster (not just k8s01, which
+            # strictly needs it since it can't be co-located with LiteLLM) -
+            # a deliberate unified approach rather than branching per
+            # cluster. Distinct host per cluster via {{name}} - never a
+            # shared hostname across instances (that was kagent's
+            # a2aBaseUrl bug class).
+            route:
+              enabled: true
+              host: "k8s-agent-{{name}}.{{ domainname }}"
+              parentRefs:
+                - name: cilium-gw
+                  namespace: cilium-system
+                  sectionName: https-gw
+        repoURL: oci://ghcr.io/vadimzharov/charts/k8s-agent
+        targetRevision: 0.0.4
+        path: .
+      - helm:
+          releaseName: k8s-agent-secrets
+          values: |
+            controllers:
+              main:
+                enabled: false
+            rawResources:
+              k8s-agent-litellm:
+                apiVersion: v1
+                kind: Secret
+                forceRename: "k8s-agent-litellm"
+                spec:
+                  stringData:
+                    api-key: {{litellm-kagent-key}}
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.6.2
       destination:
         server: '{{server}}'
         namespace: k8s-mcp
