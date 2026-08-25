@@ -85,10 +85,16 @@ spec:
                     resources:
                       requests:
                         cpu: "250m"
-                        memory: 512Mi
+                        memory: 768Mi
                       limits:
                         cpu: "1"
-                        memory: 1Gi
+                        # Raised from 1Gi 2026-08-25 - Mnemosyne's
+                        # wrapper-mode memory plugin (embeddings profile)
+                        # runs in-process and has a stated footprint of
+                        # ~800MB-1.5GB on its own; the old 1Gi limit left
+                        # no headroom for Hermes's own baseline on top of
+                        # that. See k8s-ai-homelab docs/08 and docs/15.
+                        memory: 2Gi
                   hermes-backup-daemon:
                     image:
                       repository: ghcr.io/vadimzharov/pdbackup
