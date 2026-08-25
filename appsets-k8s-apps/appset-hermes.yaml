@@ -69,7 +69,7 @@ spec:
                   main:
                     image:
                       repository: docker.io/nousresearch/hermes-agent
-                      tag: v2026.8.13
+                      tag: v2026.8.19
                       pullPolicy: IfNotPresent
                     args:
                       - gateway
