@@ -117,7 +117,7 @@ spec:
               pdbackup-settings:
                 enabled: true
                 data:
-                  PDBACKUP_S3_BUCKET: "k8s-apps-pdbackup"                
+                  PDBACKUP_S3_BUCKET: "backup-sonarr" 
                   PDBACKUP_S3_PREFIX: "sonarr-pbbackup"
                   PDBACKUP_SOURCE_DIR: "/config"
                   PDBACKUP_TARGET_DIR: "/config"  
