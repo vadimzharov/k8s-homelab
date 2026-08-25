@@ -405,6 +405,21 @@ spec:
                     # 404 on the discovery fetch.
                     url: "http://prometheus-agent.prometheus-mcp.svc.cluster.local:8080"
                     protocolVersion: "1.0"
+                # Standalone custom A2A server replacing kagent's
+                # k8s02-health-agent (see k8s-ai-homelab docs/20). Runs
+                # in the k8s-mcp namespace alongside its own in-cluster
+                # kubernetes-mcp-server - plain internal ClusterIP URL,
+                # no HTTPRoute, same pattern as prometheus-agent above
+                # (base URL only, LiteLLM follows the card's own
+                # self-declared /invoke url for real calls). Both this
+                # and k8s02-health-agent are registered simultaneously
+                # for now, side by side, until the new agent is
+                # validated end-to-end - not yet a cutover.
+                - agent_name: k8s02-agent
+                  agent_card_params:
+                    name: "Kubernetes Cluster Agent (k8s02)"
+                    url: "http://k8s-agent.k8s-mcp.svc.cluster.local:8080"
+                    protocolVersion: "1.0"
 
               general_settings:
                 master_key: os.environ/PROXY_MASTER_KEY
@@ -421,6 +436,7 @@ spec:
                   - "kagent-a2a-k8s02.{{ domainname }}"
                   - "kagent-a2a-k8s01.{{ domainname }}"
                   - "prometheus-agent.prometheus-mcp.svc.cluster.local"
+                  - "k8s-agent.k8s-mcp.svc.cluster.local"
                 # Lets the Admin UI's Logs page show full request/response
                 # bodies per entry (previously "Request/Response Data Not
                 # Available" - also why debugging past incidents had to
