@@ -59,6 +59,19 @@ spec:
                         - nodes
                         - pods
                       verbs: ["get", "list"]
+                    # nodes_stats_summary hits the kubelet's stats/summary
+                    # endpoint via the API server's node proxy - needs this
+                    # subresource explicitly, plain "nodes" get/list/watch
+                    # above doesn't cover it. Discovered via a live 403
+                    # ("Permission denied - check RBAC permissions for
+                    # nodes_stats_summary") the same way nodes_top's
+                    # metrics.k8s.io requirement was found for k8s-hub-mcp
+                    # (see docs/16).
+                    - apiGroups: [""]
+                      resources:
+                        - nodes/proxy
+                        - nodes/stats
+                      verbs: ["get"]
                     - apiGroups: ["batch"]
                       resources: ["jobs", "cronjobs"]
                       verbs: ["get", "list", "watch"]
