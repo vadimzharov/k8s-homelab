@@ -76,21 +76,7 @@ spec:
             ingress:
               enabled: false
             httpRoute:
-              enabled: true
-              annotations:
-                k8s-dashboard-group: AI tools
-                k8s-dashboard-appname: K8S MCP server (in-cluster)
-              hostnames:
-                - "k8s-mcp-{{name}}.{{ domainname }}"
-              parentRefs:
-                - name: cilium-gw
-                  namespace: cilium-system
-                  sectionName: https-gw
-              rules:
-                - matches:
-                    - path:
-                        type: PathPrefix
-                        value: /
+              enabled: false
         repoURL: oci://ghcr.io/containers/charts/kubernetes-mcp-server
         targetRevision: 0.1.0
         path: .
