@@ -74,6 +74,17 @@ spec:
                     args:
                       - gateway
                       - run
+                      # Temporary DEBUG verbosity (2026-08-26) - chasing why
+                      # MemPalace never activates for the live gateway
+                      # process (works fine in short-lived `hermes -z` CLI
+                      # processes, but no "Memory provider 'mempalace'
+                      # activated" INFO log, no `# MemPalace context` system
+                      # prompt block, ever appears for real Telegram/dashboard
+                      # sessions). -vv = DEBUG, should surface the "not found
+                      # or not available" debug line if that's the branch
+                      # being hit. Revert once root-caused - see
+                      # k8s-ai-homelab docs/15.
+                      - "-vv"
                     env:
                       HERMES_UID: "10000"
                       HERMES_GID: "10000"
