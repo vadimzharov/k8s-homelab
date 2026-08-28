@@ -75,6 +75,17 @@ spec:
                     - apiGroups: ["argoproj.io"]
                       resources: ["applications", "applicationsets", "appprojects"]
                       verbs: ["get", "list", "watch"]
+                    # Added 2026-08-28 - same gap as k8s-mcp's reader
+                    # ClusterRole (appset-k8s-mcp.yaml): RBAC resource
+                    # listing failed 100% of the time on hub-agent during a
+                    # live security-audit request. See k8s-ai-homelab docs/20.
+                    - apiGroups: ["rbac.authorization.k8s.io"]
+                      resources:
+                        - roles
+                        - rolebindings
+                        - clusterroles
+                        - clusterrolebindings
+                      verbs: ["get", "list", "watch"]
               k8s-hub-mcp-reader-binding:
                 apiVersion: rbac.authorization.k8s.io/v1
                 kind: ClusterRoleBinding

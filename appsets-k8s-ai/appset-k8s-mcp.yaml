@@ -86,6 +86,20 @@ spec:
                     - apiGroups: ["networking.k8s.io"]
                       resources: ["ingresses", "networkpolicies"]
                       verbs: ["get", "list", "watch"]
+                    # Added 2026-08-28 - a live security-audit request showed
+                    # every resources_list call for Role/RoleBinding/
+                    # ClusterRole/ClusterRoleBinding failing 100% of the time
+                    # on both k8s02-agent and hub-agent, confirmed via
+                    # `kubectl auth can-i list clusterroles --as=...` -> no.
+                    # RBAC visibility is fundamental to a security review, so
+                    # this was the main blocker. See k8s-ai-homelab docs/20.
+                    - apiGroups: ["rbac.authorization.k8s.io"]
+                      resources:
+                        - roles
+                        - rolebindings
+                        - clusterroles
+                        - clusterrolebindings
+                      verbs: ["get", "list", "watch"]
               extraClusterRoleBindings:
                 - name: reader
                   roleRef:
