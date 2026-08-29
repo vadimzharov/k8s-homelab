@@ -129,7 +129,7 @@ spec:
               pdbackup-settings:
                 enabled: true
                 data:
-                  PDBACKUP_S3_BUCKET: "k8s-apps-pdbackup"                
+                  PDBACKUP_S3_BUCKET: "backup-jellyfin"                
                   PDBACKUP_S3_PREFIX: "jellyfin-pbbackup"
                   PDBACKUP_SOURCE_DIR: "/jellyfin-data"
                   PDBACKUP_TARGET_DIR: "/jellyfin-data"  
