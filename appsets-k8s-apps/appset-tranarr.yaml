@@ -146,7 +146,7 @@ spec:
               pdbackup-settings:
                 enabled: true
                 data:
-                  PDBACKUP_S3_BUCKET: "k8s-apps-pdbackup"                
+                  PDBACKUP_S3_BUCKET: "backup-tranarr"
                   PDBACKUP_S3_PREFIX: "tranarr-pbbackup"
                   PDBACKUP_SOURCE_DIR: "/config"
                   PDBACKUP_TARGET_DIR: "/config"  
