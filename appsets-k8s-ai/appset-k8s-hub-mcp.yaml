@@ -104,7 +104,7 @@ spec:
                   namespace: cilium-system
                   sectionName: https-gw
         repoURL: oci://ghcr.io/vadimzharov/charts/k8s-agent
-        targetRevision: 0.0.7
+        targetRevision: 0.0.8
         path: .
       - helm:
           releaseName: k8s-hub-mcp-secrets
