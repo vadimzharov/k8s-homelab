@@ -464,10 +464,29 @@ spec:
             #     cpu: "1"
             #     memory: 512Mi
 
-            # Single replica for now: cross-pod rate limiting / spend coordination isn't
-            # needed yet. Set redis.enabled: true if replicaCount is ever raised above 1.
+            # Bundled Bitnami redis subchart (standalone, single replica - matches our
+            # own single-replica LiteLLM deployment, no sentinel/replica needed).
+            # Enabled 2026-08-29 after upgrading to 1.98.0, which started warning
+            # about missing Redis (used for response caching / coordination, not
+            # just cross-pod rate limiting). Storage: Redis is in-memory - disk is
+            # only touched for periodic RDB snapshots, not the read/write hot path,
+            # so regular NAS-backed storage is fine, no NVMe/fast-tier needed. Sized
+            # small (1Gi) since this is a cache, not a durable store; synas-csi-delete
+            # (not -retain) since losing it on PVC deletion is an acceptable/expected
+            # outcome for cache data.
             redis:
-              enabled: false
+              enabled: true
+              master:
+                persistence:
+                  size: 1Gi
+                  storageClass: synas-csi-delete
+                resources:
+                  requests:
+                    cpu: 50m
+                    memory: 64Mi
+                  limits:
+                    cpu: 250m
+                    memory: 256Mi
 
             db:
               deployStandalone: false
