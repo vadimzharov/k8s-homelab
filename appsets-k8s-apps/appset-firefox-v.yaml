@@ -79,7 +79,7 @@ spec:
               b-r-settings:
                 enabled: true
                 data:
-                  PDBACKUP_S3_BUCKET: "k8s-apps-pdbackup"
+                  PDBACKUP_S3_BUCKET: "backup-firefox-v"
                   PDBACKUP_S3_PREFIX: "firefox-v-config"
                   PDBACKUP_BACKUP_INTERVAL: "1h"
                   PDBACKUP_RETENTION_KEEP_LATEST: "10"
