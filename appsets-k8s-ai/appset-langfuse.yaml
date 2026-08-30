@@ -66,6 +66,12 @@ spec:
               # repo.
               ingress:
                 enabled: false
+              # Default probe timing (initialDelaySeconds 20, failureThreshold
+              # 3 -> ~50s grace) is too tight for first boot: 46 ClickHouse
+              # migrations + init scripts + MCP feature registration took
+              # 60-90s here, well past the point the liveness probe kills the
+              # pod mid-startup (exitCode 137, confirmed NOT an OOM - memory
+              # stayed under 350Mi the whole time). Loosened for both probes.
               web:
                 resources:
                   requests:
@@ -74,6 +80,12 @@ spec:
                   limits:
                     cpu: 500m
                     memory: 1Gi
+                livenessProbe:
+                  initialDelaySeconds: 90
+                  failureThreshold: 10
+                readinessProbe:
+                  initialDelaySeconds: 90
+                  failureThreshold: 10
               worker:
                 resources:
                   requests:
@@ -82,6 +94,9 @@ spec:
                   limits:
                     cpu: 500m
                     memory: 1Gi
+                livenessProbe:
+                  initialDelaySeconds: 90
+                  failureThreshold: 10
 
             # Bundled groundhog2k/postgres sub-chart (OSS-licensed, not
             # Bitnami - unlike LiteLLM we're not routing this through CNPG,
