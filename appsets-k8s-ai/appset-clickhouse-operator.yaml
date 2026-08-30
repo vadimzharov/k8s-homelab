@@ -34,6 +34,7 @@ spec:
       # label gate above (already installed on k8s02).
       - repoURL: oci://ghcr.io/clickhouse/clickhouse-operator-helm
         targetRevision: 0.0.7
+        path: .
         helm:
           releaseName: clickhouse-operator
       destination:
