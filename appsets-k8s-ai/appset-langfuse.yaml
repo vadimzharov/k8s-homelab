@@ -93,7 +93,7 @@ spec:
                 password: {{langfuse-postgres-password}}
               storage:
                 requestedSize: 10Gi
-                className: synas-csi-delete
+                className: freenas-iscsi-csi
               resources:
                 requests:
                   cpu: 100m
@@ -111,7 +111,7 @@ spec:
                 password: {{langfuse-redis-password}}
               dataStorage:
                 requestedSize: 2Gi
-                className: synas-csi-delete
+                className: freenas-iscsi-csi
               resources:
                 requests:
                   cpu: 50m
@@ -135,7 +135,7 @@ spec:
                 replicas: 1
                 storage:
                   size: 50Gi
-                  className: synas-csi-delete
+                  className: freenas-iscsi-csi
                 resources:
                   requests:
                     cpu: "1"
@@ -155,7 +155,7 @@ spec:
                 replicas: 1
                 storage:
                   size: 10Gi
-                  className: synas-csi-delete
+                  className: freenas-iscsi-csi
 
             # Bundled SeaweedFS (allInOne mode) for S3-compatible blob
             # storage (large trace payloads, exports). Separate bucket/
@@ -169,7 +169,7 @@ spec:
               allInOne:
                 data:
                   size: 20Gi
-                  storageClass: synas-csi-delete
+                  storageClass: freenas-iscsi-csi
 
             extraManifests:
               - apiVersion: gateway.networking.k8s.io/v1
