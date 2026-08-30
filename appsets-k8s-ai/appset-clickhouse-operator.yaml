@@ -1,0 +1,47 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: clickhouse-operator
+  namespace: argocd
+  annotations:
+    appset-dashboard-appname: "ClickHouse Operator"
+    appset-dashboard-groupname: "AI tools"
+  labels:
+    appset-dashboard-locked: "true"
+    appset-dashboard-multicluster: "true"
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  clickhouse: "installed"
+                  cert-manager-standalone: "installed"
+  template:
+    metadata:
+      name: '{{name}}-clickhouse-operator'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      # Cluster-wide prerequisite for the Langfuse chart's ClickHouse
+      # deployment (appset-langfuse.yaml, same directory) - deploys
+      # ClickHouseCluster/KeeperCluster CRDs the langfuse chart renders
+      # directly. Install once per cluster, like cloudnative-pg or
+      # cert-manager. The operator creates its own cert-manager
+      # Certificate/Issuer for its webhook, hence the cert-manager-standalone
+      # label gate above (already installed on k8s02).
+      - repoURL: oci://ghcr.io/clickhouse/clickhouse-operator-helm
+        targetRevision: 0.0.7
+        helm:
+          releaseName: clickhouse-operator
+      destination:
+        server: '{{server}}'
+        namespace: clickhouse-operator
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true

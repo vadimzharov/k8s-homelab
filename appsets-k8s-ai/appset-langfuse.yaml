@@ -1,0 +1,211 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: langfuse
+  namespace: argocd
+  annotations:
+    appset-dashboard-appname: "Langfuse"
+    appset-dashboard-groupname: "AI tools"
+    k8s-dashboard-group: "AI tools"
+    k8s-dashboard-appname: "Langfuse"
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  langfuse: "installed"
+                  clickhouse: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-langfuse'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: langfuse
+          values: |
+            # LLM observability for the AI homelab - traces how Hermes and
+            # the standalone A2A agents (k8s-agent/prometheus-agent/
+            # argocd-agent) actually call the model and each other. See
+            # k8s-ai-homelab docs for the design writeup.
+            #
+            # All 6 required components (web, worker, Postgres, ClickHouse,
+            # Redis, S3) come from this one chart - Postgres/Redis/S3 via
+            # its own bundled non-Bitnami sub-charts (groundhog2k/postgres,
+            # valkey-io/valkey, seaweedfs), ClickHouse via the cluster-wide
+            # clickhouse-operator (appset-clickhouse-operator.yaml, same
+            # directory - must sync first).
+            #
+            # SECRETS: the chart auto-generates credentials via `lookup()` +
+            # `randAlphaNum`, which does NOT work under ArgoCD (renders via
+            # `helm template`, no live cluster access - see the chart's own
+            # README "GitOps / ArgoCD" note). Every credential below is
+            # pinned explicitly via the secrets plugin instead of left to
+            # auto-generate, or ArgoCD would mint a new one on every sync -
+            # rotating `salt` breaks all hashed API keys, rotating
+            # `encryptionKey` makes previously-encrypted data unreadable.
+            langfuse:
+              salt:
+                value: {{langfuse-salt}}
+              encryptionKey:
+                value: {{langfuse-encryption-key}}
+              nextauth:
+                url: "https://langfuse.{{ domainname }}"
+                secret:
+                  value: {{langfuse-nextauth-secret}}
+              # No Ingress - Gateway API HTTPRoute instead (extraManifests
+              # below), matching every other internally-exposed app in this
+              # repo.
+              ingress:
+                enabled: false
+              web:
+                resources:
+                  requests:
+                    cpu: 100m
+                    memory: 256Mi
+                  limits:
+                    cpu: 500m
+                    memory: 1Gi
+              worker:
+                resources:
+                  requests:
+                    cpu: 100m
+                    memory: 256Mi
+                  limits:
+                    cpu: 500m
+                    memory: 1Gi
+
+            # Bundled groundhog2k/postgres sub-chart (OSS-licensed, not
+            # Bitnami - unlike LiteLLM we're not routing this through CNPG,
+            # since Langfuse's own chart already ships a maintained non-
+            # Bitnami Postgres path end-to-end).
+            postgresql:
+              deploy: true
+              auth:
+                password: {{langfuse-postgres-password}}
+              storage:
+                requestedSize: 10Gi
+                className: synas-csi-delete
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+
+            # Bundled valkey-io/valkey sub-chart. Separate instance from
+            # LiteLLM's own bundled Redis (appset-litellm.yaml) - different
+            # failure domain, different data, not worth sharing.
+            redis:
+              deploy: true
+              auth:
+                password: {{langfuse-redis-password}}
+              dataStorage:
+                requestedSize: 2Gi
+                className: synas-csi-delete
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  cpu: 250m
+                  memory: 256Mi
+
+            # Deployed via the clickhouse-operator (ClickHouseCluster +
+            # KeeperCluster CRs) - see appset-clickhouse-operator.yaml.
+            # Resources match the chart's own tested defaults (its comment:
+            # "non-empty defaults avoid the operator's ~1Gi fallback that
+            # OOMs under load") rather than the more generic self-hosting
+            # docs' 8Gi minimum - this is the number tuned for this exact
+            # CRD-based path.
+            clickhouse:
+              deploy: true
+              auth:
+                password: {{langfuse-clickhouse-password}}
+              cluster:
+                replicas: 1
+                storage:
+                  size: 50Gi
+                  className: synas-csi-delete
+                resources:
+                  requests:
+                    cpu: "1"
+                    memory: 2Gi
+                  limits:
+                    memory: 4Gi
+                # No node pinning - confirmed live headroom on this cluster
+                # (2026-08-29, this repo's own conversation history/docs,
+                # not committed here) comfortably covers these requests on
+                # any node; the scheduler can place it. Avoid hardcoding a
+                # specific node's FQDN in this public repo.
+              keeper:
+                # Single instance, not upstream's HA-oriented default of 3 -
+                # no HA need in a homelab, and the ClickHouseCluster CRD
+                # requires a keeperClusterRef even for a single ClickHouse
+                # replica (keeper.enabled must stay true either way).
+                replicas: 1
+                storage:
+                  size: 10Gi
+                  className: synas-csi-delete
+
+            # Bundled SeaweedFS (allInOne mode) for S3-compatible blob
+            # storage (large trace payloads, exports). Separate bucket/
+            # instance from the existing MinIO (used by Hermes's pdbackup) -
+            # not worth cross-wiring credentials for what's a fairly small
+            # amount of data here.
+            s3:
+              deploy: true
+              auth:
+                rootPassword: {{langfuse-s3-root-password}}
+              allInOne:
+                data:
+                  size: 20Gi
+                  storageClass: synas-csi-delete
+
+            extraManifests:
+              - apiVersion: gateway.networking.k8s.io/v1
+                kind: HTTPRoute
+                metadata:
+                  name: langfuse
+                  annotations:
+                    k8s-dashboard-group: AI tools
+                    k8s-dashboard-appname: Langfuse
+                spec:
+                  parentRefs:
+                    - name: cilium-gw
+                      namespace: cilium-system
+                  hostnames:
+                    - langfuse.{{ domainname }}
+                  rules:
+                    - matches:
+                        - path:
+                            type: PathPrefix
+                            value: /
+                      backendRefs:
+                        # releaseName "langfuse" collapses into the chart's
+                        # own fullname template (contains chart name langfuse)
+                        # -> Service is literally "langfuse-web".
+                        - name: langfuse-web
+                          port: 3000
+        repoURL: https://langfuse.github.io/langfuse-k8s
+        chart: langfuse
+        targetRevision: 2.0.2
+      destination:
+        server: '{{server}}'
+        namespace: langfuse
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true
