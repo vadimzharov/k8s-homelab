@@ -66,20 +66,29 @@ spec:
               # repo.
               ingress:
                 enabled: false
-              # Default probe timing (initialDelaySeconds 20, failureThreshold
-              # 3 -> ~50s grace) is too tight for first boot: 46 ClickHouse
-              # migrations + init scripts + MCP feature registration took
-              # 60-90s here, well past the point the liveness probe kills the
-              # pod mid-startup (exitCode 137, confirmed NOT an OOM - memory
-              # stayed under 350Mi the whole time). Loosened for both probes.
+              # Two distinct first-boot failures found and fixed here:
+              # 1. Default probe timing (initialDelaySeconds 20,
+              #    failureThreshold 3 -> ~50s grace) is too tight: 46
+              #    ClickHouse migrations + init scripts + MCP feature
+              #    registration took 60-90s, well past the point the
+              #    liveness probe killed the pod mid-startup (exitCode 137).
+              #    Loosened for both probes.
+              # 2. Past the probe fix, it then hit a genuine Node.js V8 heap
+              #    OOM ("FATAL ERROR: Ineffective mark-compacts... JavaScript
+              #    heap out of memory") while registering MCP features -
+              #    V8 auto-sizes its heap ceiling off detected container
+              #    memory, and at the original 1Gi limit it capped around
+              #    ~512MB old-space, which this step blew through. Not a
+              #    container-cgroup OOM kill (no OOMKilled event) - raised
+              #    the limit so V8 sizes a bigger heap automatically.
               web:
                 resources:
                   requests:
                     cpu: 100m
-                    memory: 256Mi
+                    memory: 512Mi
                   limits:
                     cpu: 500m
-                    memory: 1Gi
+                    memory: 2Gi
                 livenessProbe:
                   initialDelaySeconds: 90
                   failureThreshold: 10
