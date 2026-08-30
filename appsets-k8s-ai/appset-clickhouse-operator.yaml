@@ -11,13 +11,14 @@ metadata:
     appset-dashboard-multicluster: "true"
 spec:
   generators:
-    - matrix:
-        generators:
-          - clusters:
-              selector:
-                matchLabels:
-                  clickhouse: "installed"
-                  cert-manager-standalone: "installed"
+    # No secrets-plugin values needed here (no {{ name }} placeholders in
+    # this appset), so a plain clusters generator - not matrix, which
+    # requires at least two sub-generators.
+    - clusters:
+        selector:
+          matchLabels:
+            clickhouse: "installed"
+            cert-manager-standalone: "installed"
   template:
     metadata:
       name: '{{name}}-clickhouse-operator'
