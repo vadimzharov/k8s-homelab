@@ -66,6 +66,19 @@ spec:
               # repo.
               ingress:
                 enabled: false
+              # LiteLLM's built-in `langfuse` callback still targets the
+              # legacy v3 /api/public/ingestion API. Langfuse v4 (this
+              # deployment, app version 4.17.0) runs in events_only mode by
+              # default and silently rejects legacy-format events ("Rejected
+              # N event(s)... this Langfuse v4 deployment runs in
+              # events_only mode" in the web pod's own logs) - confirmed via
+              # live testing after wiring up appset-litellm.yaml. This is
+              # Langfuse's own documented v3->v4 migration bridge, applies
+              # to all langfuse deployments (web + worker both need it per
+              # their docs). See k8s-ai-homelab docs/22.
+              additionalEnv:
+                - name: LANGFUSE_MIGRATION_V4_WRITE_MODE
+                  value: dual
               # Two distinct first-boot failures found and fixed here:
               # 1. Default probe timing (initialDelaySeconds 20,
               #    failureThreshold 3 -> ~50s grace) is too tight: 46
