@@ -110,7 +110,7 @@ spec:
             prometheusMcp:
               url: "http://prometheus-mcp-prometheus-mcp-server.prometheus-mcp.svc.cluster.local:8080/mcp"
         repoURL: oci://ghcr.io/vadimzharov/charts/prometheus-agent
-        targetRevision: 0.0.3
+        targetRevision: 0.0.4
         path: .
       destination:
         server: '{{server}}'
