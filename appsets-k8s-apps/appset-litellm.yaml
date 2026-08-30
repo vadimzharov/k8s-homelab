@@ -128,6 +128,21 @@ spec:
             masterkeySecretName: ""
             masterkeySecretKey: ""
 
+            # Langfuse tracing (docs/22 in k8s-ai-homelab) - project-level
+            # keys, not the deployment-level secrets appset-langfuse.yaml
+            # uses (salt/encryptionKey/DB passwords etc). Created in the
+            # Langfuse UI after sign-up: Settings > API Keys. Only a public+
+            # secret key pair is needed (both required - the secret key
+            # authenticates the ingestion API, the public key scopes events
+            # to the right project). Internal cluster DNS, not the public
+            # https://langfuse.{{ domainname }} hostname - both are
+            # co-located in the same cluster, no need to round-trip through
+            # the Gateway.
+            envVars:
+              LANGFUSE_PUBLIC_KEY: "{{langfuse-project-public-key}}"
+              LANGFUSE_SECRET_KEY: "{{langfuse-project-secret-key}}"
+              LANGFUSE_HOST: "http://langfuse-web.langfuse.svc.cluster.local:3000"
+
             # Provider API keys are NOT stored here. Create this Secret out-of-band
             # before installing:
             #   kubectl create secret generic litellm-provider-keys -n litellm \
@@ -455,6 +470,12 @@ spec:
               # volumes/volumeMounts below for why that path specifically).
               litellm_settings:
                 callbacks: custom_callbacks.proxy_handler_instance
+                # Traces every call (all agents + direct clients) into
+                # Langfuse - both success and failure, since a lot of this
+                # cluster's actual debugging need has been tracing WHY a
+                # call failed or looped, not just successful ones.
+                success_callback: ["langfuse"]
+                failure_callback: ["langfuse"]
 
             # resources:
             #   requests:
