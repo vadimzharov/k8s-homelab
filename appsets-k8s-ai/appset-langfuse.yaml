@@ -204,9 +204,18 @@ spec:
                     k8s-dashboard-group: AI tools
                     k8s-dashboard-appname: Langfuse
                 spec:
+                  # group/kind/weight below are spelled out explicitly (not
+                  # left to Gateway API defaulting) - unlike LiteLLM's
+                  # HTTPRoute (rendered by app-template's own purpose-built
+                  # templating, which already declares these), this one goes
+                  # through Langfuse's generic extraManifests passthrough
+                  # with no such awareness, so a sparser git spec perpetually
+                  # drifted from the server-defaulted live object.
                   parentRefs:
                     - name: cilium-gw
                       namespace: cilium-system
+                      group: gateway.networking.k8s.io
+                      kind: Gateway
                   hostnames:
                     - langfuse.{{ domainname }}
                   rules:
@@ -220,9 +229,23 @@ spec:
                         # -> Service is literally "langfuse-web".
                         - name: langfuse-web
                           port: 3000
+                          group: ""
+                          kind: Service
+                          weight: 1
         repoURL: https://langfuse.github.io/langfuse-k8s
         chart: langfuse
         targetRevision: 2.0.2
+      # Known, unfixable-from-our-side ArgoCD+StatefulSet quirk: the API
+      # server auto-populates volumeClaimTemplates[].spec.volumeMode and a
+      # .status.phase sub-field that the postgres sub-chart's own template
+      # never declares - a values override can't reach it (not an exposed
+      # knob), so it perpetually shows OutOfSync without this.
+      ignoreDifferences:
+        - group: apps
+          kind: StatefulSet
+          name: langfuse-postgresql
+          jsonPointers:
+            - /spec/volumeClaimTemplates
       destination:
         server: '{{server}}'
         namespace: langfuse
