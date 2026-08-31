@@ -35,12 +35,21 @@ spec:
               automountToken: false
             rbac:
               create: false
+            # OAuth passthrough: forwards the caller's own Authorization
+            # bearer token to the hub cluster's K8s API, overriding the
+            # kubeconfig's own baked-in k8s-hub-mcp-reader identity when a
+            # caller token is present. That baked identity stays as the
+            # config's cluster/CA source and an inert fallback - see
+            # kubernetes-agent#13 / appset-k8s-hub-mcp-argocd-rbac.yaml.
+            config:
+              require_oauth: true
+              skip_jwt_verification: true
+              cluster_auth_mode: passthrough
             extraArgs:
               - --kubeconfig
               - /etc/k8s-hub-mcp/kubeconfig
               - --cluster-provider
               - kubeconfig
-              - --read-only
             extraVolumes:
               - name: hub-kubeconfig
                 secret:
@@ -94,6 +103,16 @@ spec:
                 key: api-key
             k8sMcp:
               url: "http://k8s-hub-mcp-kubernetes-mcp-server.k8s-hub-mcp.svc.cluster.local:8080/mcp"
+              # This pod's own SA token is a k8s02 credential and meaningless
+              # against the remote hub cluster's API server - unlike the
+              # in-cluster agents, this can't use forwardServiceAccountToken.
+              # Instead it forwards a long-lived token minted on the hub
+              # cluster itself (same k8s-hub-mcp-reader identity/RBAC that
+              # already backs the kubeconfig - see
+              # appset-k8s-hub-mcp-argocd-rbac.yaml). Requires chart >=0.0.12
+              # (kubernetes-agent#13).
+              authToken:
+                value: "{{hub-k8s-caller-token}}"
             agent:
               clusterName: "hub"
             # Shared bearer token - see appset-k8s-mcp.yaml for the full
@@ -111,7 +130,7 @@ spec:
                 k8s-dashboard-group: AI tools
                 k8s-dashboard-appname: "K8S Agent (hub)"
         repoURL: oci://ghcr.io/vadimzharov/charts/k8s-agent
-        targetRevision: 0.0.11
+        targetRevision: 0.0.12
         path: .
       - helm:
           releaseName: k8s-hub-mcp-secrets
