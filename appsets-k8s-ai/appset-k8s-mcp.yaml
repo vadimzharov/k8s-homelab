@@ -136,6 +136,13 @@ spec:
               url: "http://k8s-mcp-kubernetes-mcp-server.k8s-mcp.svc.cluster.local:8080/mcp"
             agent:
               clusterName: "{{name}}"
+            # Shared bearer token, same value LiteLLM sends via static_headers
+            # on every call to this and the other two agents (prometheus-agent,
+            # argocd-agent) - see appset-litellm.yaml. Requires chart >=0.0.10
+            # (kubernetes-agent#9). One token for all agent communication, not
+            # per-agent - simpler secret management, matches the ask.
+            authToken:
+              value: "{{agents-comm-token}}"
             # Exposed via HTTPRoute on every cluster (not just k8s01, which
             # strictly needs it since it can't be co-located with LiteLLM) -
             # a deliberate unified approach rather than branching per
@@ -153,7 +160,7 @@ spec:
                 k8s-dashboard-group: AI tools
                 k8s-dashboard-appname: "K8S Agent ({{name}})"
         repoURL: oci://ghcr.io/vadimzharov/charts/k8s-agent
-        targetRevision: 0.0.9
+        targetRevision: 0.0.10
         path: .
       - helm:
           releaseName: k8s-agent-secrets

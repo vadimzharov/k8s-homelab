@@ -96,6 +96,10 @@ spec:
               url: "http://k8s-hub-mcp-kubernetes-mcp-server.k8s-hub-mcp.svc.cluster.local:8080/mcp"
             agent:
               clusterName: "hub"
+            # Shared bearer token - see appset-k8s-mcp.yaml for the full
+            # rationale (same token across all agent communication).
+            authToken:
+              value: "{{agents-comm-token}}"
             route:
               enabled: true
               host: "k8s-agent-hub.{{ domainname }}"
@@ -107,7 +111,7 @@ spec:
                 k8s-dashboard-group: AI tools
                 k8s-dashboard-appname: "K8S Agent (hub)"
         repoURL: oci://ghcr.io/vadimzharov/charts/k8s-agent
-        targetRevision: 0.0.9
+        targetRevision: 0.0.10
         path: .
       - helm:
           releaseName: k8s-hub-mcp-secrets

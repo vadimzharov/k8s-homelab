@@ -109,8 +109,12 @@ spec:
               apiKey: {{litellm-kagent-key}}
             prometheusMcp:
               url: "http://prometheus-mcp-prometheus-mcp-server.prometheus-mcp.svc.cluster.local:8080/mcp"
+            # Shared bearer token - see appset-k8s-mcp.yaml for the full
+            # rationale (same token across all agent communication).
+            authToken:
+              value: "{{agents-comm-token}}"
         repoURL: oci://ghcr.io/vadimzharov/charts/prometheus-agent
-        targetRevision: 0.0.4
+        targetRevision: 0.0.5
         path: .
       destination:
         server: '{{server}}'
