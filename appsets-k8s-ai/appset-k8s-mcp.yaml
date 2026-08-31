@@ -34,86 +34,11 @@ spec:
             serviceAccount:
               create: true
               automountToken: true
-            rbac:
-              create: true
-              extraClusterRoles:
-                - name: reader
-                  rules:
-                    - apiGroups: [""]
-                      resources:
-                        - pods
-                        - pods/log
-                        - nodes
-                        - events
-                        - namespaces
-                        - services
-                        - configmaps
-                        - endpoints
-                        - persistentvolumes
-                        - persistentvolumeclaims
-                        - replicationcontrollers
-                        - resourcequotas
-                        - serviceaccounts
-                      verbs: ["get", "list", "watch"]
-                    - apiGroups: ["apps"]
-                      resources:
-                        - deployments
-                        - statefulsets
-                        - daemonsets
-                        - replicasets
-                      verbs: ["get", "list", "watch"]
-                    - apiGroups: ["metrics.k8s.io"]
-                      resources:
-                        - nodes
-                        - pods
-                      verbs: ["get", "list"]
-                    # nodes_stats_summary hits the kubelet's stats/summary
-                    # endpoint via the API server's node proxy - needs this
-                    # subresource explicitly, plain "nodes" get/list/watch
-                    # above doesn't cover it. Discovered via a live 403
-                    # ("Permission denied - check RBAC permissions for
-                    # nodes_stats_summary") the same way nodes_top's
-                    # metrics.k8s.io requirement was found for k8s-hub-mcp
-                    # (see docs/16).
-                    - apiGroups: [""]
-                      resources:
-                        - nodes/proxy
-                        - nodes/stats
-                      verbs: ["get"]
-                    - apiGroups: ["batch"]
-                      resources: ["jobs", "cronjobs"]
-                      verbs: ["get", "list", "watch"]
-                    - apiGroups: ["networking.k8s.io"]
-                      resources: ["ingresses", "networkpolicies"]
-                      verbs: ["get", "list", "watch"]
-                    # Added 2026-08-28 - a live security-audit request showed
-                    # every resources_list call for Role/RoleBinding/
-                    # ClusterRole/ClusterRoleBinding failing 100% of the time
-                    # on both k8s02-agent and hub-agent, confirmed via
-                    # `kubectl auth can-i list clusterroles --as=...` -> no.
-                    # RBAC visibility is fundamental to a security review, so
-                    # this was the main blocker. See k8s-ai-homelab docs/20.
-                    - apiGroups: ["rbac.authorization.k8s.io"]
-                      resources:
-                        - roles
-                        - rolebindings
-                        - clusterroles
-                        - clusterrolebindings
-                      verbs: ["get", "list", "watch"]
-              # Bound to the k8s-agent's own ServiceAccount (below), not this
-              # chart's default (its own SA) - passthrough mode means the
-              # MCP server's own identity is never used for API calls, only
-              # whatever token the caller forwards. Same rule set as before,
-              # just re-pointed to the real caller's identity. See
-              # kubernetes-agent#13 for the design.
-              extraClusterRoleBindings:
-                - name: reader
-                  roleRef:
-                    name: reader
-                  subjects:
-                    - kind: ServiceAccount
-                      name: k8s-agent
-                      namespace: k8s-mcp
+            # No RBAC declared here anymore - passthrough mode means this
+            # server's own identity is never used for API calls, only
+            # whatever token the caller forwards. The permission set callers
+            # actually get now lives with the caller (k8s-agent's own
+            # rbac.clusterRole below), not here. See kubernetes-agent#15.
             # OAuth passthrough: forwards the caller's own Authorization
             # bearer token to the K8s API instead of using a fixed identity,
             # so RBAC is enforced per-caller rather than by a blanket
@@ -154,9 +79,80 @@ spec:
             k8sMcp:
               url: "http://k8s-mcp-kubernetes-mcp-server.k8s-mcp.svc.cluster.local:8080/mcp"
               # Forwards this pod's own mounted SA token to k8s-mcp as the
-              # Authorization bearer header - the identity that RBAC above
-              # is now bound to. Requires chart >=0.0.12 (kubernetes-agent#13).
+              # Authorization bearer header - the identity that rbac.clusterRole
+              # below grants permissions to. Requires chart >=0.0.12
+              # (kubernetes-agent#13).
               forwardServiceAccountToken: true
+            # This agent's own permission scope against k8s-mcp - moved here
+            # from k8s-mcp's rbac.extraClusterRoles (a hardcoded, cross-chart
+            # subject reference) now that the chart can bind RBAC to its own
+            # ServiceAccount directly. Same rule set as before, unchanged in
+            # effect - just declared where it belongs. Requires chart
+            # >=0.0.13 (kubernetes-agent#15).
+            rbac:
+              clusterRole:
+                rules:
+                  - apiGroups: [""]
+                    resources:
+                      - pods
+                      - pods/log
+                      - nodes
+                      - events
+                      - namespaces
+                      - services
+                      - configmaps
+                      - endpoints
+                      - persistentvolumes
+                      - persistentvolumeclaims
+                      - replicationcontrollers
+                      - resourcequotas
+                      - serviceaccounts
+                    verbs: ["get", "list", "watch"]
+                  - apiGroups: ["apps"]
+                    resources:
+                      - deployments
+                      - statefulsets
+                      - daemonsets
+                      - replicasets
+                    verbs: ["get", "list", "watch"]
+                  - apiGroups: ["metrics.k8s.io"]
+                    resources:
+                      - nodes
+                      - pods
+                    verbs: ["get", "list"]
+                  # nodes_stats_summary hits the kubelet's stats/summary
+                  # endpoint via the API server's node proxy - needs this
+                  # subresource explicitly, plain "nodes" get/list/watch
+                  # above doesn't cover it. Discovered via a live 403
+                  # ("Permission denied - check RBAC permissions for
+                  # nodes_stats_summary") the same way nodes_top's
+                  # metrics.k8s.io requirement was found for k8s-hub-mcp
+                  # (see docs/16).
+                  - apiGroups: [""]
+                    resources:
+                      - nodes/proxy
+                      - nodes/stats
+                    verbs: ["get"]
+                  - apiGroups: ["batch"]
+                    resources: ["jobs", "cronjobs"]
+                    verbs: ["get", "list", "watch"]
+                  - apiGroups: ["networking.k8s.io"]
+                    resources: ["ingresses", "networkpolicies"]
+                    verbs: ["get", "list", "watch"]
+                  # Added 2026-08-28 - a live security-audit request showed
+                  # every resources_list call for Role/RoleBinding/
+                  # ClusterRole/ClusterRoleBinding failing 100% of the time
+                  # on both k8s02-agent and hub-agent, confirmed via
+                  # `kubectl auth can-i list clusterroles --as=...` -> no.
+                  # RBAC visibility is fundamental to a security review, so
+                  # this was the main blocker. See k8s-ai-homelab docs/20.
+                  - apiGroups: ["rbac.authorization.k8s.io"]
+                    resources:
+                      - roles
+                      - rolebindings
+                      - clusterroles
+                      - clusterrolebindings
+                    verbs: ["get", "list", "watch"]
             agent:
               clusterName: "{{name}}"
             # Shared bearer token, same value LiteLLM sends via static_headers
@@ -183,7 +179,7 @@ spec:
                 k8s-dashboard-group: AI tools
                 k8s-dashboard-appname: "K8S Agent ({{name}})"
         repoURL: oci://ghcr.io/vadimzharov/charts/k8s-agent
-        targetRevision: 0.0.12
+        targetRevision: 0.0.13
         path: .
       - helm:
           releaseName: k8s-agent-secrets
