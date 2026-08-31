@@ -160,7 +160,7 @@ spec:
                 k8s-dashboard-group: AI tools
                 k8s-dashboard-appname: "K8S Agent ({{name}})"
         repoURL: oci://ghcr.io/vadimzharov/charts/k8s-agent
-        targetRevision: 0.0.10
+        targetRevision: 0.0.11
         path: .
       - helm:
           releaseName: k8s-agent-secrets
