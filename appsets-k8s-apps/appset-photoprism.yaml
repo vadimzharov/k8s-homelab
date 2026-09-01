@@ -4,6 +4,7 @@ metadata:
   name: photoprism
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "PhotoPrism"
     appset-dashboard-appname: "PhotoPrism (old photos)"
     appset-dashboard-groupname: "Photos"
 spec:

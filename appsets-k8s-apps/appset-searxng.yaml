@@ -4,6 +4,7 @@ metadata:
   name: searxng
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "SearXNG"
     appset-dashboard-appname: "SearxNG"
     appset-dashboard-groupname: "AI tools"
 spec:

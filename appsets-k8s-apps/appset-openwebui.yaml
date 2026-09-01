@@ -4,6 +4,7 @@ metadata:
   name: openwebui
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "Open WebUI"
     appset-dashboard-appname: "OpenWebUI"
     appset-dashboard-groupname: "AI tools"
 spec:

@@ -4,6 +4,7 @@ metadata:
   name: metube
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "MeTube"
     appset-dashboard-appname: "MeTube"
     appset-dashboard-groupname: "Media"
 spec:

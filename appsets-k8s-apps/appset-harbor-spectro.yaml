@@ -4,6 +4,7 @@ metadata:
   name: spectro-harbor
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "Spectro Harbor"
     appset-dashboard-appname: "Harbor registry (Spectro/Deprecated)"
     appset-dashboard-groupname: "K8S tools"
 spec:

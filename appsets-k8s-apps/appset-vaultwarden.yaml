@@ -4,6 +4,7 @@ metadata:
   name: vaultwarden
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "Vaultwarden (Bitwarden)"
     appset-dashboard-appname: "Vaultwarden (password manager)"
     appset-dashboard-groupname: "Cloud tools"
 spec:

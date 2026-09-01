@@ -4,6 +4,7 @@ metadata:
   name: hermes
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "Hermes Agent"
     appset-dashboard-appname: "Hermes Agent"
     appset-dashboard-groupname: "AI tools"
     k8s-dashboard-group: "AI tools"

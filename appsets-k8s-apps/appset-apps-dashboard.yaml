@@ -4,6 +4,7 @@ metadata:
   name: k8s-apps-dashboard
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "K8s Apps Dashboard"
     appset-dashboard-appname: "Applications Dashboard"
     appset-dashboard-groupname: "Dashboards"
     k8s-dashboard-group: "Dashboards"

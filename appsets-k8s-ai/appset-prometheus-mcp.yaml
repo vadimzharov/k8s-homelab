@@ -4,6 +4,7 @@ metadata:
   name: prometheus-mcp
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "Prometheus MCP Server"
     appset-dashboard-appname: "Prometheus MCP server + agent"
     appset-dashboard-groupname: "AI tools"
 spec:

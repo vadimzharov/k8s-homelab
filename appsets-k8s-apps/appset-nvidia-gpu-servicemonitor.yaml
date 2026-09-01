@@ -4,6 +4,7 @@ metadata:
   name: nvidia-gpu-servicemonitor
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "NVIDIA GPU Service Monitor"
     appset-dashboard-appname: "NVIDIA GPU - Prometheus ServiceMonitor"
     appset-dashboard-groupname: "Monitoring"
 spec:

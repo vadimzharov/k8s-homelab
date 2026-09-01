@@ -4,6 +4,7 @@ metadata:
   name: obsidian
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "Obsidian"
     appset-dashboard-appname: "Obsidian"
     appset-dashboard-groupname: "Cloud tools"
 spec:

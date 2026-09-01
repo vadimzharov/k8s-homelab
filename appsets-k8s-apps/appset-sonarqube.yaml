@@ -4,6 +4,7 @@ metadata:
   name: sonarqube
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "SonarQube"
     appset-dashboard-appname: "SonarQube"
     appset-dashboard-groupname: "K8S tools"
 spec:

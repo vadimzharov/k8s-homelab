@@ -4,6 +4,7 @@ metadata:
   name: palette-mcp
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "Palette MCP"
     appset-dashboard-appname: "Palette MCP server"
     appset-dashboard-groupname: "AI tools"
   labels:

@@ -4,6 +4,7 @@ metadata:
   name: jfrog-jcr
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "JFrog Artifactory"
     appset-dashboard-appname: "JFrog JCR"
     appset-dashboard-groupname: "K8S tools"  
 spec:

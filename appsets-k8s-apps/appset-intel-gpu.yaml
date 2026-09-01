@@ -4,6 +4,7 @@ metadata:
   name: gpu-plugin
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "Intel GPU Plugin"
     appset-dashboard-appname: "Intel GPU plugin"
     appset-dashboard-groupname: "K8S tools"
   labels:

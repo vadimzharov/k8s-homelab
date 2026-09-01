@@ -4,6 +4,7 @@ metadata:
   name: kagent-hub-k8s-cluster
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "KAgent Hub K8s Cluster"
     appset-dashboard-appname: "KAgent - Hub cluster agents"
     appset-dashboard-groupname: "AI tools"
     k8s-dashboard-group: "AI tools"

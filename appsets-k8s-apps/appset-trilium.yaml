@@ -4,6 +4,7 @@ metadata:
   name: trilium
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "Trilium Notes"
     appset-dashboard-appname: "Trilium"
     appset-dashboard-groupname: "Cloud tools"
 spec:

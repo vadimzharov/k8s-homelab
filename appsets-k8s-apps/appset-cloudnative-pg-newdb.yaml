@@ -4,6 +4,7 @@ metadata:
   name: cloudnative-pg-newdb
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "CloudNative PG (New DB Provisioner)"
     appset-dashboard-appname: "New Postgres DB"
     appset-dashboard-groupname: "K8S Tools"  
 spec:

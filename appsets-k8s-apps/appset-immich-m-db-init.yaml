@@ -3,6 +3,8 @@ kind: ApplicationSet
 metadata:
   name: immich-m-db-init
   namespace: argocd
+  annotations:
+    ai-agent-inventory-appname: "Immich"
 spec:
   generators:
   - matrix:

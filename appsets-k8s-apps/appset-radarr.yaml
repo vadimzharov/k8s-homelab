@@ -4,6 +4,7 @@ metadata:
   name: radarr
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "Radarr"
     appset-dashboard-appname: "Radarr media server"
     appset-dashboard-groupname: "Media"
 spec:

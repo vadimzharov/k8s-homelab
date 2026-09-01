@@ -4,6 +4,7 @@ metadata:
   name: hass
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "Home Assistant"
     appset-dashboard-appname: "Home Assistant"
     appset-dashboard-groupname: "Home automation"
     k8s-dashboard-group: "Home automation"

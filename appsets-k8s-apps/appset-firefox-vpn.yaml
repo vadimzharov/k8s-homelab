@@ -4,6 +4,7 @@ metadata:
   name: firefox-vpn
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "Firefox"
     appset-dashboard-appname: "Firefox browser via VPN"
     appset-dashboard-groupname: "Remote access"
     k8s-dashboard-group: "Remote work"

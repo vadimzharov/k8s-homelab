@@ -4,6 +4,7 @@ metadata:
   name: cloudnative-pg
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "CloudNative PG"
     appset-dashboard-appname: "CloudNativePG operator"
     appset-dashboard-groupname: "K8S tools"
   labels:

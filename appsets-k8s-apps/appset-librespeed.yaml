@@ -4,6 +4,7 @@ metadata:
   name: librespeed
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "LibreSpeed"
     appset-dashboard-appname: "Librespeed"
     appset-dashboard-groupname: "Tools"
   labels:

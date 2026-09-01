@@ -4,6 +4,7 @@ metadata:
   name: matrix-synapse
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "Matrix Synapse"
     appset-dashboard-appname: "Matrix Synapse"
     appset-dashboard-groupname: "Remote work"
 spec:

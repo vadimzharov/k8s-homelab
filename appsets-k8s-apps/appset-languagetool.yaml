@@ -4,6 +4,7 @@ metadata:
   name: languagetool
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "LanguageTool"
     appset-dashboard-appname: "LanguageTool"
     appset-dashboard-groupname: "Cloud tools"  
 spec:

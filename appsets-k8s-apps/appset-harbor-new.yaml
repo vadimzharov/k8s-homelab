@@ -4,6 +4,7 @@ metadata:
   name: harbor-new
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "Harbor (Registry)"
     appset-dashboard-appname: "Harbor registry"
     appset-dashboard-groupname: "K8S tools"
     k8s-dashboard-group: "Tools"

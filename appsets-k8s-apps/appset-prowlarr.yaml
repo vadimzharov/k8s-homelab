@@ -4,6 +4,7 @@ metadata:
   name: prowlarr
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "Prowlarr"
     appset-dashboard-appname: "Prowlarr media server"
     appset-dashboard-groupname: "Media"  
 spec:

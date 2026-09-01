@@ -4,6 +4,7 @@ metadata:
   name: grafana
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "Grafana"
     appset-dashboard-appname: "Grafana"
     appset-dashboard-groupname: "Monitoring"
 spec:

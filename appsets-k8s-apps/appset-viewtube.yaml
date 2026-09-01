@@ -4,6 +4,7 @@ metadata:
   name: viewtube
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "ViewTube"
     appset-dashboard-appname: "ViewTube (youtube self-hosted)"
     appset-dashboard-groupname: "Media"
 spec:

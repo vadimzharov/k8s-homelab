@@ -4,6 +4,7 @@ metadata:
   name: k8s-hub-mcp-argocd-rbac
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "K8s Hub MCP ArgoCD RBAC"
     appset-dashboard-appname: "K8S Hub MCP - ArgoCD cluster RBAC"
     appset-dashboard-groupname: "AI tools"
     k8s-dashboard-group: "AI tools"

@@ -4,6 +4,7 @@ metadata:
   name: prometheus-agent
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "Prometheus Agent"
     appset-dashboard-appname: "Prometheus Agent"
     appset-dashboard-groupname: "Monitoring"
   labels:

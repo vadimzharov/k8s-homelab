@@ -4,6 +4,7 @@ metadata:
   name: tranarr
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "Transmission"
     appset-dashboard-appname: "Transmission torrent client"
     appset-dashboard-groupname: "Media"
 spec:

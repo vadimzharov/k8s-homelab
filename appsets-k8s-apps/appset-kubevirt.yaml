@@ -4,6 +4,7 @@ metadata:
   name: kubevirt
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "KubeVirt"
     appset-dashboard-appname: "Kubevirt"
     appset-dashboard-groupname: "K8S tools"
   labels:

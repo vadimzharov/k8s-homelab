@@ -4,6 +4,7 @@ metadata:
   name: nfd
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "Node Feature Discovery"
     appset-dashboard-appname: "Node Feature Discovery"
     appset-dashboard-groupname: "K8S tools"
   labels:

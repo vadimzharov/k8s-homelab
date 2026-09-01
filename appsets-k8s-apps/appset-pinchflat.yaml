@@ -4,6 +4,7 @@ metadata:
   name: pinchflat
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "Pinchflat"
     appset-dashboard-appname: "Pinchflat (Youtube self-hosted)"
     appset-dashboard-groupname: "Media"  
 spec:

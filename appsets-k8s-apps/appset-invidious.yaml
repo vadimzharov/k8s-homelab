@@ -3,6 +3,8 @@ kind: ApplicationSet
 metadata:
   name: invidious
   namespace: argocd
+  annotations:
+    ai-agent-inventory-appname: "Invidious"
 spec:
   generators:
     - matrix:

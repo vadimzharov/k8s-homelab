@@ -4,6 +4,7 @@ metadata:
   name: sonarr
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "Sonarr"
     appset-dashboard-appname: "Sonarr media server"
     appset-dashboard-groupname: "Media"
 spec:

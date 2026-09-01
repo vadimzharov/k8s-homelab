@@ -4,6 +4,7 @@ metadata:
   name: ollama
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "Ollama"
     appset-dashboard-appname: "Ollama"
     appset-dashboard-groupname: "AI tools"
     k8s-dashboard-group: "AI tools"

@@ -4,6 +4,7 @@ metadata:
   name: argocd-mcp
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "ArgoCD MCP Server"
     appset-dashboard-appname: "ArgoCD MCP Server"
     appset-dashboard-groupname: "AI tools"
 spec:

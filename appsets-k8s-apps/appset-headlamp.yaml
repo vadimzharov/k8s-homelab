@@ -4,6 +4,7 @@ metadata:
   name: headlamp
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "Headlamp"
     appset-dashboard-appname: "Headlamp Kubernetes dashboard"
     appset-dashboard-groupname: "K8S tools"
         

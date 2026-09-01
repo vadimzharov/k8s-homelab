@@ -4,6 +4,7 @@ metadata:
   name: litellm
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "LiteLLM"
     appset-dashboard-appname: "LiteLLM"
     appset-dashboard-groupname: "AI tools"
 spec:

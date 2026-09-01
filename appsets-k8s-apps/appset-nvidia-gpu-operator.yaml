@@ -4,6 +4,7 @@ metadata:
   name: nvidia-gpu
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "NVIDIA GPU Operator"
     appset-dashboard-appname: "NVIDIA GPU Operator"
     appset-dashboard-groupname: "K8S tools"
   labels:

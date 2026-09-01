@@ -4,6 +4,7 @@ metadata:
   name: immich-vn
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "Immich"
     appset-dashboard-appname: "Immich-V - Immich with external DB"
     appset-dashboard-groupname: "Photos"
 spec:

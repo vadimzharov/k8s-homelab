@@ -4,6 +4,7 @@ metadata:
   name: k8s-mcp
   namespace: argocd
   annotations:
+    ai-agent-inventory-appname: "K8s MCP Server"
     appset-dashboard-appname: "K8S MCP server (in-cluster)"
     appset-dashboard-groupname: "AI tools"
     k8s-dashboard-group: "AI tools"
