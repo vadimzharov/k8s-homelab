@@ -1,0 +1,121 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: trilium-notes
+  namespace: argocd
+  annotations:
+    ai-agent-inventory-appname: "Trilium Notes"
+    appset-dashboard-appname: "Trilium Notes"
+    appset-dashboard-groupname: "Cloud tools"
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  trilium-notes: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-trilium-notes'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: trilium-notes
+          values: |
+            persistence:
+              data:
+                storageClass: synas-csi-retain
+            route:
+              main:
+                enabled: true
+                kind: HTTPRoute
+                annotations:
+                  k8s-dashboard-group: Remote work
+                  k8s-dashboard-appname: Trilium Notes
+                parentRefs:
+                  - name: cilium-gw
+                    namespace: cilium-system
+                hostnames:
+                  - trilium-notes.{{ domainname }}
+                rules:
+                - matches:
+                  - path:
+                      type: PathPrefix
+                      value: /
+                  backendRefs:
+                  - name: trilium-notes
+                    port: 8080
+            secrets:
+              pdbackup-secret:
+                enabled: true
+                labels: {}
+                annotations: {}
+                stringData:
+                  PDBACKUP_S3_BUCKET: {{ awsbucket }}
+                  PDBACKUP_S3_ACCESS_KEY: {{ awskey }}
+                  PDBACKUP_S3_SECRET_KEY: {{ awssecretkey }}
+                  PDBACKUP_KOPIA_PASSWORD: {{ encryptpassword }}
+            configMaps:
+              pdbackup-settings:
+                enabled: true
+                data:
+                  PDBACKUP_S3_PREFIX: "trilium-notes-pdbackup"
+                  PDBACKUP_SOURCE_DIR: "/home/node/trilium-data"
+                  PDBACKUP_TARGET_DIR: "/home/node/trilium-data"
+                  PDBACKUP_BACKUP_INTERVAL: "1h"
+                  PDBACKUP_HOSTNAME: "trilium-notes"
+                  PDBACKUP_RETENTION_KEEP_LATEST: "5"
+                  PDBACKUP_FORCE_RESTORE: "false"
+                  PDBACKUP_RESTORE_PVC_MODE: "true"
+            controllers:
+              main:
+                initContainers:
+                  # Name sorts before the chart's own "fixperms" init container
+                  # (Helm/Go templates range over map keys in alphabetical order),
+                  # so data is restored first and fixperms then chowns whatever
+                  # pdbackup wrote, on every pod start.
+                  data-restore:
+                    image:
+                      repository: ghcr.io/vadimzharov/pdbackup
+                      pullPolicy: IfNotPresent
+                      tag: 0.0.8
+                    args:
+                      - restore
+                    envFrom:
+                    - secretRef:
+                        name: trilium-notes-pdbackup-secret
+                    - configMapRef:
+                        name: trilium-notes-pdbackup-settings
+                containers:
+                  backup-daemon:
+                    image:
+                      repository: ghcr.io/vadimzharov/pdbackup
+                      pullPolicy: IfNotPresent
+                      tag: 0.0.8
+                    args:
+                      - daemon
+                    envFrom:
+                    - secretRef:
+                        name: trilium-notes-pdbackup-secret
+                    - configMapRef:
+                        name: trilium-notes-pdbackup-settings
+        repoURL: https://triliumnext.github.io/helm-charts
+        chart: trilium
+        targetRevision: 2.0.0
+      destination:
+        server: '{{server}}'
+        namespace: trilium-notes
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
