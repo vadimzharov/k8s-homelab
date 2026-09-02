@@ -1,0 +1,82 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: trilium-mcp
+  namespace: argocd
+  annotations:
+    ai-agent-inventory-appname: "Trilium MCP Server"
+    appset-dashboard-appname: "Trilium MCP Server"
+    appset-dashboard-groupname: "AI tools"
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  trilium-mcp: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-trilium-mcp'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: trilium-mcp
+          values: |
+            controllers:
+              main:
+                type: deployment
+                containers:
+                  main:
+                    image:
+                      repository: ghcr.io/perfectra1n/triliumnext-mcp
+                      tag: "0.3.1"
+                    env:
+                      # Fixed single-tenant credentials (LiteLLM is the only
+                      # caller, registered as one shared mcp_servers entry -
+                      # no per-caller X-Trilium-Url/X-Trilium-Token headers
+                      # needed, so multi-tenant mode is unnecessary here).
+                      TRILIUM_TRANSPORT:
+                        value: "http"
+                      TRILIUM_HTTP_PORT:
+                        value: "3000"
+                      TRILIUM_URL:
+                        value: "https://trilium-notes.{{ domainname }}/etapi"
+                      TRILIUM_TOKEN:
+                        value: "{{ trilium-notes-etapi-token }}"
+                      TRILIUM_PUBLIC_URL:
+                        value: "https://trilium-notes.{{ domainname }}"
+                    resources:
+                      requests:
+                        cpu: 50m
+                        memory: 64Mi
+                      limits:
+                        cpu: 500m
+                        memory: 256Mi
+            service:
+              main:
+                primary: true
+                enabled: true
+                controller: main
+                ports:
+                  http:
+                    port: 3000
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.6.2
+      destination:
+        server: '{{server}}'
+        namespace: trilium-mcp
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
