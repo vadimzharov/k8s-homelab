@@ -348,6 +348,18 @@ spec:
                   url: "http://argocd-mcp.argocd-mcp.svc.cluster.local:3000/mcp"
                   description: "ArgoCD - list/get/sync applications, inspect resources, view workload logs and events"
 
+                # perfectra1n/triliumnext-mcp (see appset-trilium-mcp.yaml in
+                # appsets-k8s-ai/), same native-StreamableHTTP shape as argocd
+                # above. In-cluster Service, no HTTPRoute - runs on k8s02
+                # alongside LiteLLM. No api_key: LiteLLM only talks to this
+                # internal, unauthenticated endpoint; the real Trilium ETAPI
+                # token is configured inside the server itself (TRILIUM_TOKEN
+                # env var), same pattern as ArgoCD's ARGOCD_API_TOKEN.
+                trilium:
+                  transport: "http"
+                  url: "http://trilium-mcp.trilium-mcp.svc.cluster.local:3000/mcp"
+                  description: "Trilium Notes - create/read/update notes for the K8s software inventory Hermes maintains"
+
               # A2A agent gateway. kagent is fully decommissioned as of
               # 2026-08-25 (kagent: installed label removed from k8s01/k8s02,
               # kagent-controller no longer runs anywhere) - all four kagent-
