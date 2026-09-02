@@ -358,7 +358,7 @@ spec:
                 trilium:
                   transport: "http"
                   url: "http://trilium-mcp.trilium-mcp.svc.cluster.local:3000/mcp"
-                  description: "Trilium Notes - create/read/update notes for the K8s software inventory Hermes maintains"
+                  description: "Trilium Notes - create/read/update notes, e.g. for the K8s software inventory wiki"
 
               # A2A agent gateway. kagent is fully decommissioned as of
               # 2026-08-25 (kagent: installed label removed from k8s01/k8s02,
