@@ -39,6 +39,7 @@ spec:
                 k8s-dashboard-group: "Tools"
                 k8s-dashboard-appname: "Pi-hole - {{name}}"
                 k8s-dashboard-searchname: "Pi-hole"
+                k8s-dashboard-subpath: "admin"
               labels:
                 k8s-dashboard-group: Tools
               hosts:
