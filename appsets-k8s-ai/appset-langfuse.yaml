@@ -178,12 +178,25 @@ spec:
                     cpu: "1"
                     memory: 2Gi
                   limits:
+                    cpu: "2"
                     memory: 4Gi
                 # No node pinning - confirmed live headroom on this cluster
                 # (2026-08-29, this repo's own conversation history/docs,
                 # not committed here) comfortably covers these requests on
                 # any node; the scheduler can place it. Avoid hardcoding a
                 # specific node's FQDN in this public repo.
+                #
+                # CPU limit added 2026-09-03: no limit meant a stuck logger
+                # (Poco log-rotation error loop against the iSCSI-backed log
+                # volume, level: trace by operator default = high call
+                # volume feeding the loop) burned ~1.4 cores continuously for
+                # ~6h with zero real query/merge activity - unbounded on a
+                # Burstable pod. `settings.logger.level` below lowers the
+                # verbosity that made the loop this hot; the cpu limit caps
+                # the blast radius if it (or something else) recurs.
+                settings:
+                  logger:
+                    level: information
               keeper:
                 # Single instance, not upstream's HA-oriented default of 3 -
                 # no HA need in a homelab, and the ClickHouseCluster CRD
