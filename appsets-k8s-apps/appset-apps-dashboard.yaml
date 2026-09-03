@@ -39,7 +39,7 @@ spec:
             image:
               repository: quay.io/vadimzharov/homelab-k8s-dashboard
               pullPolicy: Always
-              tag: "v0.1.6"
+              tag: "v0.1.7"
             ingress:
               enabled: true
               pathType: Prefix
@@ -57,8 +57,8 @@ spec:
             ui:
               header: "My Homelab Dashboard"
               subheader: "Applications deployed across all my Kubernetes clusters"                    
-        repoURL: oci://ghcr.io/vadimzharov/homelab-k8s-dashboard/homelab-k8s-dashboard:0.1.6
-        targetRevision: 0.1.6
+        repoURL: oci://ghcr.io/vadimzharov/homelab-k8s-dashboard/homelab-k8s-dashboard:0.1.7
+        targetRevision: 0.1.7
         path: .
       destination:
         server: '{{server}}' 

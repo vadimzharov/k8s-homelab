@@ -720,7 +720,8 @@ spec:
                   namespace: litellm
                   annotations:
                     k8s-dashboard-group: AI tools
-                    k8s-dashboard-appname: LiteLLM  
+                    k8s-dashboard-appname: LiteLLM
+                    k8s-dashboard-subpath: "ui"
                 spec:
                   parentRefs:
                     - name: "cilium-gw"
