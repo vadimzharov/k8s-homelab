@@ -525,8 +525,17 @@ spec:
             # small (1Gi) since this is a cache, not a durable store; synas-csi-delete
             # (not -retain) since losing it on PVC deletion is an acceptable/expected
             # outcome for cache data.
+            #
+            # auth.password pinned 2026-09-04: left unset originally, so the
+            # Bitnami subchart's lookup()-based password preservation (a no-op
+            # under ArgoCD's helm-template rendering, no live cluster access -
+            # same footgun as Langfuse's chart, see the SECRETS comment above)
+            # minted a fresh random password on every sync, silently breaking
+            # auth for any already-running LiteLLM pod each time it happened.
             redis:
               enabled: true
+              auth:
+                password: {{litellm-redis-password}}
               master:
                 persistence:
                   size: 1Gi
