@@ -57,7 +57,7 @@ spec:
             ui:
               header: "My Homelab Dashboard"
               subheader: "Applications deployed across all my Kubernetes clusters"                    
-        repoURL: oci://ghcr.io/vadimzharov/homelab-k8s-dashboard/homelab-k8s-dashboard:0.1.7
+        repoURL: oci://ghcr.io/vadimzharov/homelab-k8s-dashboard/homelab-k8s-dashboard:0.1.6
         targetRevision: 0.1.7
         path: .
       destination:
