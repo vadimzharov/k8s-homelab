@@ -194,9 +194,36 @@ spec:
                 # Burstable pod. `settings.logger.level` below lowers the
                 # verbosity that made the loop this hot; the cpu limit caps
                 # the blast radius if it (or something else) recurs.
+                #
+                # log/errorlog paths added 2026-09-05 after the loop recurred
+                # a second time even at level: information - the CPU cap and
+                # lower verbosity only shrank the blast radius, they didn't
+                # stop it. Root cause: the operator mounts the single
+                # iSCSI-backed data PVC a second time at
+                # /var/log/clickhouse-server (confirmed live - same
+                # underlying block device as /var/lib/clickhouse, not a
+                # separate volume), so any transient iSCSI hiccup during
+                # Poco's log-rotation check can wedge the file logger into a
+                # microsecond-tight retry loop that never self-heals (only a
+                # pod restart clears it, confirmed live). Redirecting log/
+                # errorlog to /tmp moves file logging onto the container's
+                # local-node overlay filesystem instead, decoupling it from
+                # the network storage entirely. A real emptyDir volume would
+                # be the more conventional fix, but this chart doesn't expose
+                # the operator's podTemplate.volumes/containerTemplate.
+                # volumeMounts CRD fields via values, and their merge
+                # semantics with the operator's own default mount are
+                # undocumented - not worth the risk for a homelab log
+                # volume. size/count lowered from the operator's 1000M/50
+                # default (up to 50Gi, sized for the old network volume) to
+                # bound local overlay disk use now that it's node-local.
                 settings:
                   logger:
                     level: information
+                    log: /tmp/clickhouse-server.log
+                    errorlog: /tmp/clickhouse-server.err.log
+                    size: 100M
+                    count: 5
               keeper:
                 # Single instance, not upstream's HA-oriented default of 3 -
                 # no HA need in a homelab, and the ClickHouseCluster CRD
