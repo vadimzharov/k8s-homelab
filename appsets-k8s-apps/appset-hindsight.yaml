@@ -126,15 +126,6 @@ spec:
                     method: plugin
                     pluginConfiguration:
                       name: barman-cloud.cloudnative-pg.io
-              pgvectorcatalog:
-                apiVersion: postgresql.cnpg.io/v1
-                kind: ImageCatalog
-                forceRename: "hindsight-pgvector"
-                spec:
-                  spec:
-                    images:
-                    - major: 16
-                      image: pgvector/pgvector:0.8.6-pg16-bookworm
               pgsqlcluster:
                 apiVersion: postgresql.cnpg.io/v1
                 kind: Cluster
@@ -175,39 +166,70 @@ spec:
                         secret:
                           name: hindsight-secrets
 
-                    # Not the plain ghcr.io/cloudnative-pg/postgresql image
-                    # (what litellm-db uses) - Hindsight requires the
-                    # pgvector extension (confirmed live: API pod crashed
-                    # on first boot with "pgvector extension is required
-                    # but not installed"), which that image doesn't
-                    # include. pgvector/pgvector:pg16 is built FROM
-                    # postgres:16-bookworm (same official Debian base
-                    # CNPG's own images use, confirmed from its
-                    # Dockerfile), so it's layout-compatible - just with
-                    # pgvector compiled in.
-                    #
-                    # imageCatalogRef, not a plain imageName: also
-                    # confirmed live - CNPG's admission webhook rejects
-                    # "pgvector/pgvector:0.8.6-pg16-bookworm" as an
-                    # imageName ("can't downgrade from major 16 to 0"),
-                    # because its version-detection heuristic parses the
-                    # tag's leading "0.8.6" (pgvector's own version) as
-                    # the PostgreSQL major version instead of the
-                    # embedded "pg16". The ImageCatalog rawResource above
-                    # sidesteps that entirely by declaring the major
-                    # version explicitly instead of asking CNPG to infer
-                    # it from the tag string.
-                    imageCatalogRef:
-                      apiGroup: postgresql.cnpg.io
-                      kind: ImageCatalog
-                      name: hindsight-pgvector
-                      major: 16
+                    # PG18, not 16 (unlike litellm-db) - see the
+                    # postgresql.extensions block below for why.
+                    imageName: ghcr.io/cloudnative-pg/postgresql:18.6-standard-bookworm
+
+                    # Two earlier attempts at pgvector both failed live
+                    # before landing on this:
+                    #   1. Plain ghcr.io/cloudnative-pg/postgresql image
+                    #      (what litellm-db uses, no pgvector) - API pod
+                    #      crashed on first boot: "pgvector extension is
+                    #      required but not installed".
+                    #   2. pgvector/pgvector:0.8.6-pg16-bookworm as
+                    #      imageName (even via imageCatalogRef to dodge
+                    #      CNPG's tag-version-parsing rejection) - initdb
+                    #      crashed: "could not look up effective user ID
+                    #      26: user does not exist". CNPG's instance
+                    #      manager hardcodes UID 26 for the postgres
+                    #      process; that image is built FROM Debian's
+                    #      official postgres:16-bookworm, whose postgres
+                    #      user is UID 999, not 26 - so it's layout-
+                    #      compatible for a plain container but not
+                    #      CNPG-compatible specifically.
+                    # This is CNPG's own official mechanism instead:
+                    # ghcr.io/cloudnative-pg/pgvector, from
+                    # github.com/cloudnative-pg/postgres-extensions-containers,
+                    # mounted into the (UID-26-correct) base image via
+                    # Kubernetes' ImageVolume feature - no custom base
+                    # image, no UID mismatch possible. Only published for
+                    # major 18, not 16 (checked the registry directly,
+                    # no -16- tag exists) - fine here since this is a
+                    # brand new, independent database with no version
+                    # tie to litellm-db.
+                    postgresql:
+                      extensions:
+                      - name: pgvector
+                        image:
+                          reference: ghcr.io/cloudnative-pg/pgvector:0.8.6-18-bookworm
 
                     plugins:
                     - name: barman-cloud.cloudnative-pg.io
                       isWALArchiver: true
                       parameters:
                         barmanObjectName: hindsight-db-backup
+              hindsightdatabase:
+                # Declarative counterpart to the postgresql.extensions
+                # image above: that mounts the pgvector .so/control files
+                # into the instance, this actually runs `CREATE EXTENSION
+                # vector` inside the target database. Same database name
+                # bootstrap.initdb already created - confirmed this is
+                # the documented pattern (cloudnative-pg/
+                # postgres-extensions-containers' own pgvector README
+                # example does the same against its bootstrap-created
+                # "app" database), not a conflicting second creation.
+                apiVersion: postgresql.cnpg.io/v1
+                kind: Database
+                forceRename: "hindsight-db-app"
+                spec:
+                  spec:
+                    name: hindsight
+                    owner: hindsight
+                    cluster:
+                      name: hindsight-db
+                    extensions:
+                    - name: vector
+                      version: "0.8.6"
         repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 4.4.0
