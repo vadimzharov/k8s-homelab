@@ -97,7 +97,12 @@ spec:
                   spec:
                     retentionPolicy: "5d"
                     configuration:
-                      destinationPath: s3://cloudnative-pg-backups/hindsight-db
+                      # Dedicated bucket, not a shared-bucket subpath like
+                      # litellm-db uses (s3://cloudnative-pg-backups/
+                      # litellm-db) - user created
+                      # cloudnative-pg-hindsight-backup specifically for
+                      # this.
+                      destinationPath: s3://cloudnative-pg-hindsight-backup
                       endpointURL: http://{{ minioendpoint }}
                       s3Credentials:
                         accessKeyId:
