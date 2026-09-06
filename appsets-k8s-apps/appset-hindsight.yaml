@@ -27,12 +27,12 @@ spec:
     spec:
       project: k8s-homelab-apps
       sources:
-      # CNPG Postgres + backup infra for Hindsight. PHASE 1 (this file, as
-      # committed): bootstrap.initdb, backup plugin wired from the start.
-      # See k8s-ai-homelab docs/24 for the full rollout sequence - once a
-      # verified backup exists and this Cluster object is deleted, this
-      # block gets hand-edited to bootstrap.recovery (PHASE 2), same
-      # cluster name, before the label is re-applied.
+      # CNPG Postgres + backup infra for Hindsight. Now in PHASE 2:
+      # bootstrap.recovery, restoring from the barman-cloud backups
+      # written during phase 1's bootstrap.initdb run. See k8s-ai-homelab
+      # docs/24 for the full rollout sequence and why the flip needed
+      # deleting and recreating this Cluster object rather than an
+      # in-place edit.
       - helm:
           releaseName: hindsight-db
           values: |
@@ -140,31 +140,30 @@ spec:
                       size: 8Gi
                       storageClass: synas-csi-delete
 
-                    # PHASE 1: fresh DB. PHASE 2 (after a verified backup
-                    # and deleting this Cluster object): replace this
-                    # bootstrap block with
-                    #   bootstrap:
-                    #     recovery:
-                    #       source: origin
-                    #       database: hindsight
-                    #       owner: hindsight
-                    #   externalClusters:
-                    #     - name: origin
-                    #       plugin:
-                    #         name: barman-cloud.cloudnative-pg.io
-                    #         parameters:
-                    #           barmanObjectName: hindsight-db-backup
-                    #           serverName: hindsight-db
-                    # (same shape as litellm-db's live Cluster in this
-                    # same repo - self-referential serverName because the
-                    # backups being restored were archived under this
-                    # same cluster name.)
+                    # PHASE 2 (flipped 2026-09-06, after 24 consecutive
+                    # completed ScheduledBackups over ~11h with zero
+                    # failures - see docs/24's rollout-sequence status).
+                    # This Cluster object was deleted first (CNPG's
+                    # spec.bootstrap is immutable on a live object) and
+                    # recreated fresh with this block - same shape as
+                    # litellm-db's live Cluster in this same repo,
+                    # self-referential serverName because the backups
+                    # being restored were archived under this same
+                    # cluster name. Every future label-off/label-on
+                    # cycle now restores from the latest backup instead
+                    # of bootstrapping empty.
                     bootstrap:
-                      initdb:
+                      recovery:
+                        source: origin
                         database: hindsight
                         owner: hindsight
-                        secret:
-                          name: hindsight-secrets
+                    externalClusters:
+                      - name: origin
+                        plugin:
+                          name: barman-cloud.cloudnative-pg.io
+                          parameters:
+                            barmanObjectName: hindsight-db-backup
+                            serverName: hindsight-db
 
                     # PG18, not 16 (unlike litellm-db) - see the
                     # postgresql.extensions block below for why.
