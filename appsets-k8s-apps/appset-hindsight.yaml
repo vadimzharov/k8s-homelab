@@ -268,6 +268,14 @@ spec:
                 # above) is then required as `Authorization: Bearer
                 # <key>` on every request, 401 otherwise.
                 HINDSIGHT_API_TENANT_EXTENSION: "hindsight_api.extensions.builtin.tenant:ApiKeyTenantExtension"
+                # Confirmed live: without this, the worker id defaults to
+                # the pod hostname, which changes on every pod
+                # recreation - any task still "processing" under a dead
+                # worker id at that point never gets reclaimed. A fixed
+                # string is fine since api.replicaCount stays at 1
+                # (worker.enabled: false, no dedicated worker pods to
+                # collide with).
+                HINDSIGHT_API_WORKER_ID: "hindsight-api"
 
             # No Ingress, no HTTPRoute. Hermes (k8s02, same cluster) is
             # the only consumer and is the sole reason this exists -
