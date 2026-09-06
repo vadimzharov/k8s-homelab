@@ -121,6 +121,15 @@ spec:
                     method: plugin
                     pluginConfiguration:
                       name: barman-cloud.cloudnative-pg.io
+              pgvectorcatalog:
+                apiVersion: postgresql.cnpg.io/v1
+                kind: ImageCatalog
+                forceRename: "hindsight-pgvector"
+                spec:
+                  spec:
+                    images:
+                    - major: 16
+                      image: pgvector/pgvector:0.8.6-pg16-bookworm
               pgsqlcluster:
                 apiVersion: postgresql.cnpg.io/v1
                 kind: Cluster
@@ -170,9 +179,24 @@ spec:
                     # postgres:16-bookworm (same official Debian base
                     # CNPG's own images use, confirmed from its
                     # Dockerfile), so it's layout-compatible - just with
-                    # pgvector compiled in. Pinned to the exact current
-                    # tag rather than the floating "pg16" alias.
-                    imageName: pgvector/pgvector:0.8.6-pg16-bookworm
+                    # pgvector compiled in.
+                    #
+                    # imageCatalogRef, not a plain imageName: also
+                    # confirmed live - CNPG's admission webhook rejects
+                    # "pgvector/pgvector:0.8.6-pg16-bookworm" as an
+                    # imageName ("can't downgrade from major 16 to 0"),
+                    # because its version-detection heuristic parses the
+                    # tag's leading "0.8.6" (pgvector's own version) as
+                    # the PostgreSQL major version instead of the
+                    # embedded "pg16". The ImageCatalog rawResource above
+                    # sidesteps that entirely by declaring the major
+                    # version explicitly instead of asking CNPG to infer
+                    # it from the tag string.
+                    imageCatalogRef:
+                      apiGroup: postgresql.cnpg.io
+                      kind: ImageCatalog
+                      name: hindsight-pgvector
+                      major: 16
 
                     plugins:
                     - name: barman-cloud.cloudnative-pg.io
