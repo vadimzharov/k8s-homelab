@@ -250,15 +250,16 @@ spec:
                   k8s-dashboard-group: AI tools
                   k8s-dashboard-appname: Hindsight
                 spec:
-                  parentRefs:
-                    - name: "cilium-gw"
-                      namespace: "cilium-system"
-                  hostnames:
-                    - "hindsight.{{ domainname }}"
-                  rules:
-                    - backendRefs:
-                        - name: hindsight-control-plane
-                          port: 3000
+                  spec:
+                    parentRefs:
+                      - name: "cilium-gw"
+                        namespace: "cilium-system"
+                    hostnames:
+                      - "hindsight.{{ domainname }}"
+                    rules:
+                      - backendRefs:
+                          - name: hindsight-control-plane
+                            port: 3000
         repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 4.4.0
