@@ -161,7 +161,18 @@ spec:
                         secret:
                           name: hindsight-secrets
 
-                    imageName: ghcr.io/cloudnative-pg/postgresql:16.9-standard-bookworm
+                    # Not the plain ghcr.io/cloudnative-pg/postgresql image
+                    # (what litellm-db uses) - Hindsight requires the
+                    # pgvector extension (confirmed live: API pod crashed
+                    # on first boot with "pgvector extension is required
+                    # but not installed"), which that image doesn't
+                    # include. pgvector/pgvector:pg16 is built FROM
+                    # postgres:16-bookworm (same official Debian base
+                    # CNPG's own images use, confirmed from its
+                    # Dockerfile), so it's layout-compatible - just with
+                    # pgvector compiled in. Pinned to the exact current
+                    # tag rather than the floating "pg16" alias.
+                    imageName: pgvector/pgvector:0.8.6-pg16-bookworm
 
                     plugins:
                     - name: barman-cloud.cloudnative-pg.io
