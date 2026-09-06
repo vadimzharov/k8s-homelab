@@ -89,6 +89,12 @@ spec:
                     # Plane sends to the now-protected API.
                     HINDSIGHT_API_TENANT_API_KEY: {{ hindsight-api-key }}
                     HINDSIGHT_CP_DATAPLANE_API_KEY: {{ hindsight-api-key }}
+                    # Gates the Control Plane's own login (separate from
+                    # the API's tenant key above) - needed now that the
+                    # dashboard has an external HTTPRoute (see
+                    # extraResources-equivalent rawResource below), since
+                    # this key defaults to unset/disabled otherwise.
+                    HINDSIGHT_CP_ACCESS_KEY: {{ hindsight-cp-access-key }}
               backupobjectstore:
                 apiVersion: barmancloud.cnpg.io/v1
                 kind: ObjectStore
@@ -229,6 +235,30 @@ spec:
                     extensions:
                     - name: vector
                       version: "0.8.6"
+              controlplaneroute:
+                # Temporary, for-testing exposure of the dashboard only -
+                # the api Service stays ClusterIP-only (see the ingress:
+                # enabled: false comment in the hindsight release's own
+                # values below for why). Not a chart-native
+                # extraResources field like litellm-helm has (Hindsight's
+                # chart doesn't offer one) - added here via app-template
+                # instead, same trick as the CNPG resources above.
+                apiVersion: gateway.networking.k8s.io/v1
+                kind: HTTPRoute
+                forceRename: "hindsight"
+                annotations:
+                  k8s-dashboard-group: AI tools
+                  k8s-dashboard-appname: Hindsight
+                spec:
+                  parentRefs:
+                    - name: "cilium-gw"
+                      namespace: "cilium-system"
+                  hostnames:
+                    - "hindsight.{{ domainname }}"
+                  rules:
+                    - backendRefs:
+                        - name: hindsight-control-plane
+                          port: 3000
         repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 4.4.0
@@ -276,17 +306,16 @@ spec:
                 # collide with).
                 HINDSIGHT_API_WORKER_ID: "hindsight-api"
 
-            # No Ingress, no HTTPRoute. Hermes (k8s02, same cluster) is
-            # the only consumer and is the sole reason this exists -
-            # its native Hindsight memory provider (REST API + pre/
-            # post_llm_call hooks for auto-recall/auto-retain) talks to
-            # the api Service directly, in-cluster. Confirmed Hermes has
-            # no MCP-based Hindsight integration to weigh against this -
-            # the native provider is REST-only, and is what gives the
-            # automatic hooks (a generic MCP connection would only
-            # expose the three explicit tools, no auto-recall/retain).
-            # Revisit exposure only if a concrete non-Hermes consumer
-            # shows up - see docs/24.
+            # No chart-native Ingress - the dashboard's temporary,
+            # for-testing HTTPRoute is added via the app-template
+            # rawResource above instead (controlplaneroute), same reason
+            # litellm uses a hand-rolled HTTPRoute over this chart's own
+            # ingress.yaml. api stays ClusterIP-only regardless: Hermes
+            # (k8s02, same cluster) is the only API consumer, via its
+            # native REST-only memory provider (pre/post_llm_call hooks
+            # for auto-recall/auto-retain) - confirmed no MCP-based
+            # Hermes+Hindsight integration exists to weigh against this,
+            # and MCP wouldn't get the automatic hooks anyway. See docs/24.
             ingress:
               enabled: false
         repoURL: oci://ghcr.io/vectorize-io/charts/hindsight
