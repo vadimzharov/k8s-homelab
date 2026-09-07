@@ -30,6 +30,10 @@ spec:
       - helm:
           releaseName: searxng
           values: |
+            secret:
+              create: false
+              existingSecret: searxng-secret-fixed
+              existingSecretKey: SEARXNG_SECRET
             ingress:
               enabled: false
             gateway:
