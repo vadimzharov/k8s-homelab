@@ -1,0 +1,112 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: flaresolverr
+  namespace: argocd
+  annotations:
+    ai-agent-inventory-appname: "FlareSolverr"
+    appset-dashboard-appname: "FlareSolverr proxy"
+    appset-dashboard-groupname: "Media"
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  flaresolverr: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-flaresolverr'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: flaresolverr
+          values: |
+            controllers:
+              main:
+                type: deployment
+                pod:
+                  labels:
+                    vpn: required
+                containers:
+                  main:
+                    image:
+                      repository: ghcr.io/flaresolverr/flaresolverr
+                      pullPolicy: IfNotPresent
+                      tag: latest
+                    env:
+                      LOG_LEVEL: info
+                      CAPTCHA_SOLVER: none
+                    probes:
+                      liveness:
+                        enabled: true
+                        type: HTTP
+                        path: /health
+                        port: 8191
+                        spec:
+                          initialDelaySeconds: 20
+                          periodSeconds: 15
+                          timeoutSeconds: 10
+                      readiness:
+                        enabled: true
+                        type: HTTP
+                        path: /health
+                        port: 8191
+                        spec:
+                          initialDelaySeconds: 20
+                          periodSeconds: 15
+                          timeoutSeconds: 10
+                    resources:
+                      requests:
+                        cpu: 250m
+                        memory: 512Mi
+                      limits:
+                        memory: 1Gi
+            service:
+              main:
+                primary: true
+                enabled: true
+                controller: main
+                ports:
+                  http:
+                    port: 8191
+            route:
+              main:
+                enabled: true
+                kind: HTTPRoute
+                labels:
+                  k8s-dashboard-group: Media
+                  k8s-dashboard-appname: FlareSolverr
+                parentRefs:
+                  - name: cilium-gw
+                    namespace: cilium-system
+                hostnames:
+                  - flaresolverr.{{ domainname }}
+                rules:
+                - matches:
+                  - path:
+                      type: PathPrefix
+                      value: /
+                  backendRefs:
+                  - name: flaresolverr
+                    port: 8191
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 3.4.0
+      destination:
+        server: '{{server}}'
+        namespace: flaresolverr
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
