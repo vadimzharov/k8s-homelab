@@ -170,7 +170,12 @@ spec:
                 - model_name: gpt-5.6-luna
                   litellm_params:
                     model: openai/gpt-5.6-luna
-                    api_key: os.environ/OPENAI_API_KEY                    
+                    api_key: os.environ/OPENAI_API_KEY
+
+                - model_name: gpt-5.6-terra
+                  litellm_params:
+                    model: openai/gpt-5.6-terra
+                    api_key: os.environ/OPENAI_API_KEY
 
                 #- model_name: claude-sonnet
                 #  litellm_params:
