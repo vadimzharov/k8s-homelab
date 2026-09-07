@@ -94,6 +94,23 @@ spec:
                     # dashboard has an external HTTPRoute (see
                     # extraResources-equivalent rawResource below), since
                     # this key defaults to unset/disabled otherwise.
+                    #
+                    # GOTCHA (confirmed live): changing ANY value in this
+                    # secret does NOT restart either pod. The chart only
+                    # adds its checksum/secret pod-template annotation
+                    # (the usual "changed Secret -> new pod-template-hash
+                    # -> rolling restart" mechanism) when it creates its
+                    # OWN Secret from values - guarded
+                    # `{{- if not .Values.existingSecret }}` in the chart
+                    # source. Since we set existingSecret (for
+                    # postgres-password), that annotation is never added,
+                    # so ArgoCD sees no Deployment diff and never
+                    # restarts anything. Confirmed live: adding this key
+                    # sat unused on control-plane for 22h across several
+                    # unrelated syncs until manually deleting the pod.
+                    # Applies to every key in this secret, not just this
+                    # one - a manual `kubectl delete pod` is required
+                    # after any future secret-value change here.
                     HINDSIGHT_CP_ACCESS_KEY: {{ hindsight-cp-access-key }}
               backupobjectstore:
                 apiVersion: barmancloud.cnpg.io/v1
