@@ -115,7 +115,7 @@ spec:
             authToken:
               value: "{{agents-comm-token}}"
         repoURL: oci://ghcr.io/vadimzharov/charts/prometheus-agent
-        targetRevision: 0.0.5
+        targetRevision: 0.0.6
         path: .
       destination:
         server: '{{server}}'
