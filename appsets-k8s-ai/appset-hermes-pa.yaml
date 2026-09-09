@@ -168,7 +168,7 @@ spec:
                   PDBACKUP_S3_PREFIX: "hermes-pa-data"
                   PDBACKUP_BACKUP_INTERVAL: "1h"
                   PDBACKUP_RETENTION_KEEP_LATEST: "5"
-                  PDBACKUP_FORCE_RESTORE: "true"
+                  PDBACKUP_FORCE_RESTORE: "false"
                   PDBACKUP_RESTORE_PVC_MODE: "true"
                   PDBACKUP_SOURCE_DIR: /opt/data
                   PDBACKUP_TARGET_DIR: /opt/data
