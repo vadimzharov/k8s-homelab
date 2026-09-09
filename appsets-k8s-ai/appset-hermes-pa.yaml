@@ -1,0 +1,211 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: hermes-pa
+  namespace: argocd
+  annotations:
+    ai-agent-inventory-appname: "Hermes Personal Assistant"
+    appset-dashboard-appname: "Hermes Personal Assistant"
+    appset-dashboard-groupname: "AI tools"
+    k8s-dashboard-group: "AI tools"
+    k8s-dashboard-appname: "Hermes Personal Assistant"
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  hermes-pa: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-hermes-pa'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: hermes-pa
+          values: |
+            controllers:
+              main:
+                type: deployment
+                strategy: Recreate
+                replicas: 1
+                pod:
+                  securityContext:
+                    fsGroup: 10000
+                initContainers:
+                  hermes-restore:
+                    image:
+                      repository: ghcr.io/vadimzharov/pdbackup
+                      pullPolicy: IfNotPresent
+                      tag: 0.0.8
+                    args:
+                      - restore
+                    envFrom:
+                      - secretRef:
+                          name: hermes-pa-b-r-secret
+                      - configMapRef:
+                          name: hermes-pa-b-r-settings
+                    env:
+                      POD_NAME:
+                        valueFrom:
+                          fieldRef:
+                            fieldPath: metadata.name
+                      POD_NAMESPACE:
+                        valueFrom:
+                          fieldRef:
+                            fieldPath: metadata.namespace
+                      POD_UID:
+                        valueFrom:
+                          fieldRef:
+                            fieldPath: metadata.uid
+                containers:
+                  main:
+                    image:
+                      repository: docker.io/nousresearch/hermes-agent
+                      tag: v2026.8.31
+                      pullPolicy: IfNotPresent
+                    args:
+                      - gateway
+                      - run
+                    env:
+                      HERMES_UID: "10000"
+                      HERMES_GID: "10000"
+                      TELEGRAM_BOT_TOKEN: "{{hermes-pa-telegram-bot-token}}"
+                      TELEGRAM_ALLOWED_USERS: "{{hermes-pa-telegram-user-id}}"
+                      LITELLM_API_KEY: "{{litellm-hermes-pa-key}}"
+                      HERMES_DASHBOARD: "true"
+                      HERMES_DASHBOARD_PUBLIC_URL: "https://hermes-pa.{{ domainname }}"
+                    resources:
+                      requests:
+                        cpu: "250m"
+                        memory: 768Mi
+                      limits:
+                        cpu: "1"
+                        memory: 2Gi
+                  hermes-backup-daemon:
+                    image:
+                      repository: ghcr.io/vadimzharov/pdbackup
+                      pullPolicy: IfNotPresent
+                      tag: 0.0.8
+                    args:
+                      - daemon
+                    envFrom:
+                      - secretRef:
+                          name: hermes-pa-b-r-secret
+                      - configMapRef:
+                          name: hermes-pa-b-r-settings
+                    env:
+                      POD_NAME:
+                        valueFrom:
+                          fieldRef:
+                            fieldPath: metadata.name
+                      POD_NAMESPACE:
+                        valueFrom:
+                          fieldRef:
+                            fieldPath: metadata.namespace
+                      POD_UID:
+                        valueFrom:
+                          fieldRef:
+                            fieldPath: metadata.uid
+            service:
+              main:
+                primary: true
+                enabled: true
+                controller: main
+                ports:
+                  http:
+                    port: 9119
+            route:
+              main:
+                enabled: true
+                kind: HTTPRoute
+                annotations:
+                  k8s-dashboard-group: AI tools
+                  k8s-dashboard-appname: Hermes Personal Assistant
+                parentRefs:
+                  - name: cilium-gw
+                    namespace: cilium-system
+                hostnames:
+                  - hermes-pa.{{ domainname }}
+                rules:
+                  - matches:
+                      - path:
+                          type: PathPrefix
+                          value: /
+                    backendRefs:
+                      - name: hermes-pa
+                        port: 9119
+            persistence:
+              data:
+                type: persistentVolumeClaim
+                forceRename: "hermes-pa-data"
+                accessMode: ReadWriteOnce
+                size: 5Gi
+                storageClass: synas-csi-retain
+                globalMounts:
+                  - path: /opt/data
+            secrets:
+              b-r-secret:
+                enabled: true
+                forceRename: "hermes-pa-b-r-secret"
+                stringData:
+                  PDBACKUP_S3_ENDPOINT: "http://{{ minioendpoint }}"
+                  PDBACKUP_S3_ACCESS_KEY: {{ miniokey }}
+                  PDBACKUP_S3_SECRET_KEY: {{ miniosecretkey }}
+            configMaps:
+              b-r-settings:
+                forceRename: "hermes-pa-b-r-settings"
+                data:
+                  PDBACKUP_S3_BUCKET: "hermes-pa-k8s-backups"
+                  PDBACKUP_S3_PREFIX: "hermes-pa-data"
+                  PDBACKUP_BACKUP_INTERVAL: "1h"
+                  PDBACKUP_RETENTION_KEEP_LATEST: "5"
+                  PDBACKUP_FORCE_RESTORE: "true"
+                  PDBACKUP_RESTORE_PVC_MODE: "true"
+                  PDBACKUP_SOURCE_DIR: /opt/data
+                  PDBACKUP_TARGET_DIR: /opt/data
+                  PDBACKUP_KOPIA_PASSWORD: {{ encryptpassword }}
+                  PDBACKUP_HOSTNAME: hermes-pa-data
+            rawResources:
+              hermes-pa-pdbackup-events:
+                apiVersion: rbac.authorization.k8s.io/v1
+                kind: Role
+                forceRename: "hermes-pa-pdbackup-events"
+                spec:
+                  rules:
+                    - apiGroups: [""]
+                      resources: ["events"]
+                      verbs: ["create"]
+              hermes-pa-pdbackup-events-binding:
+                apiVersion: rbac.authorization.k8s.io/v1
+                kind: RoleBinding
+                forceRename: "hermes-pa-pdbackup-events-binding"
+                spec:
+                  subjects:
+                    - kind: ServiceAccount
+                      name: default
+                      namespace: hermes-pa
+                  roleRef:
+                    apiGroup: rbac.authorization.k8s.io
+                    kind: Role
+                    name: hermes-pa-pdbackup-events
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.6.2
+      destination:
+        server: '{{server}}'
+        namespace: hermes-pa
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
