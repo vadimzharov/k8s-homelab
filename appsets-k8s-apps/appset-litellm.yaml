@@ -752,7 +752,7 @@ spec:
                         - name: litellm
                           port: 4000
         repoURL: oci://ghcr.io/berriai/litellm-helm
-        targetRevision: 1.98.0
+        targetRevision: 1.100.1
         path: .    
       destination:
         server: '{{server}}' 
