@@ -516,6 +516,32 @@ spec:
                 # call failed or looped, not just successful ones.
                 success_callback: ["langfuse"]
                 failure_callback: ["langfuse"]
+                # Redis-backed exact-match response cache (hash of
+                # model+messages+params -> cached completion). Proxy-wide,
+                # not scoped to a model_list entry - there's no reliable
+                # per-deployment cache toggle in LiteLLM's config schema, and
+                # it wouldn't matter here anyway: the onprem/frontier/hybrid
+                # auto-routers are UI/DB-created (store_model_in_db above),
+                # not present in this file, but they still resolve down to
+                # concrete models (qwen3.6-27b, gpt-5.6-terra, etc, confirmed
+                # via LiteLLM_ProxyModelTable) through the same completion()
+                # call path as qwen3.6-27b below - one proxy-wide setting
+                # covers all of them. Reuses the same Redis instance as
+                # coordination_redis (auto-injected by the chart from the
+                # bundled subchart below) via the same auto-wired
+                # REDIS_HOST/REDIS_PORT/REDIS_PASSWORD env vars - separate
+                # keyspace, no conflict with the pub/sub coordination usage.
+                # ttl in seconds - 1h chosen as a starting point; tool-loop
+                # agent calls naturally avoid stale hits since each turn's
+                # message history (including fresh tool results) changes the
+                # cache key, so this mainly targets repeated one-shot prompts.
+                cache: true
+                cache_params:
+                  type: redis
+                  host: os.environ/REDIS_HOST
+                  port: os.environ/REDIS_PORT
+                  password: os.environ/REDIS_PASSWORD
+                  ttl: 3600
 
             # resources:
             #   requests:
