@@ -1,0 +1,120 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: buildkit
+  namespace: argocd
+  annotations:
+    ai-agent-inventory-appname: "BuildKit"
+    appset-dashboard-appname: "BuildKit (in-cluster docker builds)"
+    appset-dashboard-groupname: "Tools"
+    k8s-dashboard-group: "Tools"
+    k8s-dashboard-appname: "BuildKit (in-cluster docker builds)"
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  buildkit: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-buildkit'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: buildkit
+          values: |
+            controllers:
+              main:
+                type: deployment
+                replicas: 1
+                pod:
+                  # Rootless buildkitd needs its own user/mount namespaces
+                  # (rootlesskit) inside the container - the default
+                  # seccomp/AppArmor profiles block the syscalls it needs.
+                  securityContext:
+                    runAsUser: 1000
+                    runAsGroup: 1000
+                    seccompProfile:
+                      type: Unconfined
+                  annotations:
+                    container.apparmor.security.beta.kubernetes.io/main: unconfined
+                containers:
+                  main:
+                    image:
+                      # rootless build of moby/buildkit - check
+                      # https://github.com/moby/buildkit/releases for the
+                      # current stable tag before deploying.
+                      repository: moby/buildkit
+                      tag: v0.20.2-rootless
+                      pullPolicy: IfNotPresent
+                    args:
+                      - --addr=unix:///run/user/1000/buildkit/buildkitd.sock
+                      - --addr=tcp://0.0.0.0:1234
+                    securityContext:
+                      runAsUser: 1000
+                      runAsGroup: 1000
+                      seccompProfile:
+                        type: Unconfined
+                    probes:
+                      liveness:
+                        enabled: true
+                        custom: true
+                        spec:
+                          exec:
+                            command: ["buildctl", "debug", "workers"]
+                          initialDelaySeconds: 5
+                          periodSeconds: 30
+                          failureThreshold: 3
+                      readiness:
+                        enabled: true
+                        custom: true
+                        spec:
+                          exec:
+                            command: ["buildctl", "debug", "workers"]
+                          initialDelaySeconds: 5
+                          periodSeconds: 10
+                      startup:
+                        enabled: false
+                    resources:
+                      requests:
+                        cpu: "500m"
+                        memory: 1Gi
+                      limits:
+                        cpu: "4"
+                        memory: 8Gi
+            service:
+              main:
+                controller: main
+                type: LoadBalancer
+                ports:
+                  grpc:
+                    port: 1234
+            persistence:
+              cache:
+                type: persistentVolumeClaim
+                accessMode: ReadWriteOnce
+                size: 30Gi
+                storageClass: synas-csi-delete
+                globalMounts:
+                  - path: /home/user/.local/share/buildkit
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.6.2
+      destination:
+        server: '{{server}}'
+        namespace: buildkit
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
