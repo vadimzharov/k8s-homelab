@@ -103,7 +103,7 @@ spec:
                 type: persistentVolumeClaim
                 accessMode: ReadWriteOnce
                 size: 30Gi
-                storageClass: synas-csi-delete
+                storageClass: freenas-iscsi-csi
                 globalMounts:
                   - path: /home/user/.local/share/buildkit
         repoURL: https://bjw-s-labs.github.io/helm-charts
