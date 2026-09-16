@@ -60,6 +60,17 @@ spec:
                     args:
                       - --addr=unix:///run/user/1000/buildkit/buildkitd.sock
                       - --addr=tcp://0.0.0.0:1234
+                      # Plain K8s containers can't get the equivalent of
+                      # docker's `--security-opt systempaths=unconfined`
+                      # (that needs procMount: Unmasked + hostUsers: false,
+                      # which breaks rootlesskit's own newuidmap on this
+                      # cluster - tested). This flag skips buildkitd's
+                      # per-RUN-step process sandbox (its own nested
+                      # pid-ns + fresh /proc mount) instead, which is what
+                      # was failing with "error mounting proc ... operation
+                      # not permitted". Documented tradeoff: slightly less
+                      # isolation between build steps.
+                      - --oci-worker-no-process-sandbox
                     securityContext:
                       runAsUser: 1000
                       runAsGroup: 1000
