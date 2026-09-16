@@ -48,6 +48,30 @@ spec:
                       type: Unconfined
                   annotations:
                     container.apparmor.security.beta.kubernetes.io/main: unconfined
+                  # binfmt_misc registration is a host-wide (not per-pod)
+                  # kernel facility, and hostPID is required for the
+                  # tonistiigi/binfmt installer to reach it from inside a
+                  # container.
+                  hostPID: true
+                initContainers:
+                  qemu-binfmt:
+                    image:
+                      # Standard image for registering QEMU user-mode
+                      # emulation handlers - same one docker buildx / GitHub
+                      # Actions runners use for cross-arch builds.
+                      repository: tonistiigi/binfmt
+                      tag: latest
+                      pullPolicy: IfNotPresent
+                    args:
+                      - --install
+                      - all
+                    securityContext:
+                      # Required for the binfmt_misc registration syscalls.
+                      # Real permission expansion on the node, but scoped to
+                      # this initContainer only - it exits before buildkitd's
+                      # own (rootless, unprivileged) container starts, and
+                      # buildkitd's own securityContext is unchanged.
+                      privileged: true
                 containers:
                   main:
                     image:
