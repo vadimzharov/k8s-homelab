@@ -79,17 +79,23 @@ spec:
                       - --install
                       - all
                     securityContext:
-                      # privileged alone was not sufficient on this cluster's
-                      # nodes - confirmed by testing: even with the AppArmor
-                      # annotation above, mounting binfmt_misc still failed
-                      # with "operation not permitted" until seccomp was
-                      # also explicitly unconfined here, matching what
-                      # buildkitd's own container needed. Real permission
-                      # expansion on the node, but scoped to this
+                      # runAsUser/runAsGroup MUST be overridden to 0 here -
+                      # confirmed by testing to be the actual root cause of
+                      # "cannot mount binfmt_misc filesystem: operation not
+                      # permitted". Without this override, the initContainer
+                      # inherits the pod-level runAsUser: 1000/runAsGroup:
+                      # 1000 set below for buildkitd's rootless main
+                      # container. privileged: true puts CAP_SYS_ADMIN etc.
+                      # in the capability bounding set regardless of UID,
+                      # but they only land in the *effective* set for a
+                      # UID-0 process - as a non-root UID the mount() syscall
+                      # fails despite "privileged". Scoped to this
                       # initContainer only - it exits before buildkitd's own
                       # (rootless, unprivileged) container starts, and that
                       # container's securityContext is unchanged.
                       privileged: true
+                      runAsUser: 0
+                      runAsGroup: 0
                       seccompProfile:
                         type: Unconfined
                 containers:
