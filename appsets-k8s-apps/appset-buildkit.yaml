@@ -48,6 +48,12 @@ spec:
                       type: Unconfined
                   annotations:
                     container.apparmor.security.beta.kubernetes.io/main: unconfined
+                    # Same AppArmor requirement as the main container applies
+                    # to the qemu-binfmt initContainer - without this,
+                    # privileged: true alone isn't enough on this cluster's
+                    # nodes and it fails to mount binfmt_misc (silently,
+                    # exits 0 anyway - check its logs, not just its status).
+                    container.apparmor.security.beta.kubernetes.io/qemu-binfmt: unconfined
                   # binfmt_misc registration is a host-wide (not per-pod)
                   # kernel facility, and hostPID is required for the
                   # tonistiigi/binfmt installer to reach it from inside a
