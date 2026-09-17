@@ -48,17 +48,24 @@ spec:
                       type: Unconfined
                   annotations:
                     container.apparmor.security.beta.kubernetes.io/main: unconfined
-                    # Same AppArmor requirement as the main container applies
-                    # to the qemu-binfmt initContainer - without this,
-                    # privileged: true alone isn't enough on this cluster's
-                    # nodes and it fails to mount binfmt_misc (silently,
-                    # exits 0 anyway - check its logs, not just its status).
+                    # Harmless belt-and-suspenders for qemu-binfmt (verified
+                    # working with these set), but NOT what actually fixes
+                    # registration - see initContainer comment below for the
+                    # real fix and why hostPID must stay off.
                     container.apparmor.security.beta.kubernetes.io/qemu-binfmt: unconfined
-                  # binfmt_misc registration is a host-wide (not per-pod)
-                  # kernel facility, and hostPID is required for the
-                  # tonistiigi/binfmt installer to reach it from inside a
-                  # container.
-                  hostPID: true
+                  # Deliberately NOT hostPID: true. Counterintuitively, that
+                  # breaks binfmt_misc registration on this cluster: a
+                  # hostPID container gets its own fresh /proc instance for
+                  # the (shared) host pid namespace, which does NOT include
+                  # the separate binfmt_misc mount already stacked onto the
+                  # host's own procfs instance - so it never sees "already
+                  # registered" and its own mount attempt fails with
+                  # "operation not permitted". Confirmed by testing: the
+                  # exact same install succeeds immediately without hostPID.
+                  # tonistiigi/binfmt registers interpreters with the F(ix)
+                  # flag, which the kernel caches globally regardless of the
+                  # registering process's own mount namespace afterward -
+                  # host-wide reach doesn't require hostPID at all.
                 initContainers:
                   qemu-binfmt:
                     image:
