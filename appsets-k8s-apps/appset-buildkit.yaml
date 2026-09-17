@@ -72,12 +72,19 @@ spec:
                       - --install
                       - all
                     securityContext:
-                      # Required for the binfmt_misc registration syscalls.
-                      # Real permission expansion on the node, but scoped to
-                      # this initContainer only - it exits before buildkitd's
-                      # own (rootless, unprivileged) container starts, and
-                      # buildkitd's own securityContext is unchanged.
+                      # privileged alone was not sufficient on this cluster's
+                      # nodes - confirmed by testing: even with the AppArmor
+                      # annotation above, mounting binfmt_misc still failed
+                      # with "operation not permitted" until seccomp was
+                      # also explicitly unconfined here, matching what
+                      # buildkitd's own container needed. Real permission
+                      # expansion on the node, but scoped to this
+                      # initContainer only - it exits before buildkitd's own
+                      # (rootless, unprivileged) container starts, and that
+                      # container's securityContext is unchanged.
                       privileged: true
+                      seccompProfile:
+                        type: Unconfined
                 containers:
                   main:
                     image:
