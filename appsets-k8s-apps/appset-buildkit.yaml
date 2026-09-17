@@ -98,6 +98,13 @@ spec:
                       runAsGroup: 0
                       seccompProfile:
                         type: Unconfined
+                    resources:
+                      requests:
+                        cpu: "50m"
+                        memory: 64Mi
+                      limits:
+                        cpu: "500m"
+                        memory: 256Mi
                 containers:
                   main:
                     image:
@@ -151,7 +158,13 @@ spec:
                         cpu: "500m"
                         memory: 1Gi
                       limits:
-                        cpu: "4"
+                        # k8s02-worker-01 and k8s02-cp-01 only have 4
+                        # allocatable cores total - a 4-core limit equals
+                        # the *entire* node, so a runaway build (or a
+                        # buildkitd bug, e.g. a stuck retry loop) can still
+                        # starve the whole node despite a limit existing.
+                        # Capped below the smallest node's capacity instead.
+                        cpu: "2"
                         memory: 8Gi
             service:
               main:
