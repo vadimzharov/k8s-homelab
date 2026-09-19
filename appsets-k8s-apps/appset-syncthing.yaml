@@ -1,0 +1,165 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: syncthing
+  namespace: argocd
+  annotations:
+    ai-agent-inventory-appname: "Syncthing"
+    appset-dashboard-appname: "Syncthing"
+    appset-dashboard-groupname: "Cloud tools"
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  syncthing: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-syncthing'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: syncthing
+          values: |
+            service:
+              main:
+                primary: true
+                enabled: true
+                controller: main
+                ports:
+                  http:
+                    port: 8384
+              sync:
+                enabled: true
+                controller: main
+                type: LoadBalancer
+                ports:
+                  tcp:
+                    port: 22000
+                    protocol: TCP
+                  quic:
+                    port: 22000
+                    protocol: UDP
+                  discovery:
+                    port: 21027
+                    protocol: UDP
+            route:
+              main:
+                enabled: true
+                kind: HTTPRoute
+                annotations:
+                  k8s-dashboard-group: Cloud tools
+                  k8s-dashboard-appname: Syncthing
+                parentRefs:
+                  - name: cilium-gw
+                    namespace: cilium-system
+                hostnames:
+                  - syncthing.{{ domainname }}
+                rules:
+                - matches:
+                  - path:
+                      type: PathPrefix
+                      value: /
+                  backendRefs:
+                  - name: syncthing
+                    port: 8384
+            persistence:
+              # NFS-backed (not iSCSI) so both config (device identity, folder
+              # pairing, certs) and data survive a redeploy onto a different
+              # k8s cluster - all clusters share the same NFS server.
+              config:
+                enabled: true
+                type: persistentVolumeClaim
+                accessMode: ReadWriteOnce
+                size: 1Gi
+                storageClass: sc-nfs-default
+                globalMounts:
+                  - path: /config
+                    readOnly: false
+              data:
+                enabled: true
+                type: persistentVolumeClaim
+                accessMode: ReadWriteOnce
+                size: 20Gi
+                storageClass: sc-nfs-default
+                globalMounts:
+                  - path: /data
+                    readOnly: false
+            secrets:
+              pdbackup-secret:
+                enabled: true
+                labels: {}
+                annotations: {}
+                stringData:
+                  PDBACKUP_S3_BUCKET: {{ awsbucket }}
+                  PDBACKUP_S3_ACCESS_KEY: {{ awskey }}
+                  PDBACKUP_S3_SECRET_KEY: {{ awssecretkey }}
+                  PDBACKUP_KOPIA_PASSWORD: {{ encryptpassword }}
+            configMaps:
+              pdbackup-settings:
+                enabled: true
+                data:
+                  PDBACKUP_S3_PREFIX: "syncthing-pdbackup"
+                  PDBACKUP_SOURCE_DIR: "/config"
+                  PDBACKUP_TARGET_DIR: "/config"
+                  PDBACKUP_BACKUP_INTERVAL: "1h"
+                  PDBACKUP_HOSTNAME: "syncthing"
+                  PDBACKUP_RETENTION_KEEP_LATEST: "35"
+                  PDBACKUP_FORCE_RESTORE: "false"
+                  PDBACKUP_RESTORE_PVC_MODE: "true"
+            controllers:
+              main:
+                type: deployment
+                enabled: true
+                initContainers:
+                  syncthing-restore:
+                    image:
+                      repository: ghcr.io/vadimzharov/pdbackup
+                      pullPolicy: IfNotPresent
+                      tag: 0.0.8
+                    args:
+                      - restore
+                    envFrom:
+                    - secretRef:
+                        name: syncthing-pdbackup-secret
+                    - configMapRef:
+                        name: syncthing-pdbackup-settings
+                containers:
+                  main:
+                    image:
+                      repository: lscr.io/linuxserver/syncthing
+                      pullPolicy: IfNotPresent
+                      tag: latest
+                  syncthing-backup-daemon:
+                    image:
+                      repository: ghcr.io/vadimzharov/pdbackup
+                      pullPolicy: IfNotPresent
+                      tag: 0.0.8
+                    args:
+                      - daemon
+                    envFrom:
+                    - secretRef:
+                        name: syncthing-pdbackup-secret
+                    - configMapRef:
+                        name: syncthing-pdbackup-settings
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.6.2
+      destination:
+        server: '{{server}}'
+        namespace: syncthing
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
