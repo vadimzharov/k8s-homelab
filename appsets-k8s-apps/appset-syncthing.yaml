@@ -70,7 +70,7 @@ spec:
                       type: PathPrefix
                       value: /
                   backendRefs:
-                  - name: syncthing
+                  - name: syncthing-main
                     port: 8384
             persistence:
               # NFS-backed (not iSCSI) so both config (device identity, folder
