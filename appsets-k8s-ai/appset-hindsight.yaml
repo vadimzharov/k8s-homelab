@@ -277,6 +277,36 @@ spec:
                       - backendRefs:
                           - name: hindsight-control-plane
                             port: 3000
+              apiroute:
+                # Separate hostname, not a path split on the same host as
+                # the dashboard (hindsight.{{ domainname }}/api/...) -
+                # confirmed the chart's own bundled ingress.yaml example
+                # does exactly that split, but our real API paths
+                # (/v1/default/banks/...) don't start with /api at all,
+                # so a shared-host path-based split would just be wrong
+                # without adding rewrite rules. Plain host-based routing
+                # instead, matching how every other app in this fleet
+                # exposes a service externally. Safe to expose now that
+                # HINDSIGHT_API_TENANT_API_KEY auth is enforced (see
+                # docs/24) - added for a second, non-Hermes agent to
+                # reach the API directly.
+                apiVersion: gateway.networking.k8s.io/v1
+                kind: HTTPRoute
+                forceRename: "hindsight-api"
+                annotations:
+                  k8s-dashboard-group: AI tools
+                  k8s-dashboard-appname: Hindsight API
+                spec:
+                  spec:
+                    parentRefs:
+                      - name: "cilium-gw"
+                        namespace: "cilium-system"
+                    hostnames:
+                      - "hindsight-api.{{ domainname }}"
+                    rules:
+                      - backendRefs:
+                          - name: hindsight-api
+                            port: 8888
         repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
         targetRevision: 4.4.0
@@ -324,16 +354,15 @@ spec:
                 # collide with).
                 HINDSIGHT_API_WORKER_ID: "hindsight-api"
 
-            # No chart-native Ingress - the dashboard's temporary,
-            # for-testing HTTPRoute is added via the app-template
-            # rawResource above instead (controlplaneroute), same reason
+            # No chart-native Ingress - both the dashboard's HTTPRoute
+            # (controlplaneroute) and the api's own (apiroute) are added
+            # via app-template rawResources above instead, same reason
             # litellm uses a hand-rolled HTTPRoute over this chart's own
-            # ingress.yaml. api stays ClusterIP-only regardless: Hermes
-            # (k8s02, same cluster) is the only API consumer, via its
-            # native REST-only memory provider (pre/post_llm_call hooks
-            # for auto-recall/auto-retain) - confirmed no MCP-based
-            # Hermes+Hindsight integration exists to weigh against this,
-            # and MCP wouldn't get the automatic hooks anyway. See docs/24.
+            # ingress.yaml. Hermes (k8s02, same cluster) still reaches
+            # the api Service directly in-cluster via its native
+            # REST-only memory provider - apiroute exists for other,
+            # non-Hermes agents that need external access. Safe since
+            # HINDSIGHT_API_TENANT_API_KEY auth is enforced. See docs/24.
             ingress:
               enabled: false
         repoURL: oci://ghcr.io/vectorize-io/charts/hindsight
