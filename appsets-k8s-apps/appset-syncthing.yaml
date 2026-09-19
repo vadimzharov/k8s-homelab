@@ -97,6 +97,7 @@ spec:
             secrets:
               pdbackup-secret:
                 enabled: true
+                suffix: pdbackup-secret
                 labels: {}
                 annotations: {}
                 stringData:
@@ -107,6 +108,7 @@ spec:
             configMaps:
               pdbackup-settings:
                 enabled: true
+                suffix: pdbackup-settings
                 data:
                   PDBACKUP_S3_PREFIX: "syncthing-pdbackup"
                   PDBACKUP_SOURCE_DIR: "/config"
