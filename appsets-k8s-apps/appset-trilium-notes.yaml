@@ -97,6 +97,12 @@ spec:
                     - configMapRef:
                         name: trilium-notes-pdbackup-settings
                 containers:
+                  trilium:
+                    env:
+                      TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHBASEURL: "https://trilium-notes.{{ domainname }}"
+                      TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHISSUERBASEURL: "https://pocket-id.{{ domainname }}"
+                      TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHCLIENTID: "{{ trilium-oidc-client-id }}"
+                      TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHCLIENTSECRET: "{{ trilium-oidc-client-secret }}"
                   backup-daemon:
                     image:
                       repository: ghcr.io/vadimzharov/pdbackup
