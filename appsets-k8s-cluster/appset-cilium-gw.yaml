@@ -40,18 +40,28 @@ spec:
               enabled: true
             bpf:
               masquerade: true
-            # Fixes multi-second TLS handshake stalls on pod egress to other
-            # nodes/clusters (observed: ~6.5s stuck at secureConnect, DNS/TCP
-            # both fast). Default "blackhole" mode drops ICMP fragmentation-
-            # needed replies for masqueraded/tunneled connections instead of
-            # relaying them, so the pod's kernel only recovers via its own
-            # slow black-hole detection. enabled:true makes Cilium's datapath
-            # relay those ICMP replies properly; "always" additionally makes
-            # the kernel proactively probe path MTU (RFC4821) per connection
-            # rather than waiting for a stall to detect one.
+            # Kept as a secondary safety net - see MTU override below for the
+            # actual fix. This ConfigMap-level setting affects host-level
+            # sysctls Cilium manages; verified via tcpdump that it does NOT
+            # propagate into individual pod network namespaces, so it alone
+            # didn't fix the issue described below.
             pmtuDiscovery:
               enabled: true
               packetizationLayerPMTUDMode: "always"
+            # Root fix for multi-second TLS handshake stalls on pod egress to
+            # other nodes/clusters. tcpdump during a stalled handshake showed
+            # ~1398-1399 byte TCP segments (the TLS ClientHello) silently
+            # dropped and retried for ~6.3s via slow kernel black-hole
+            # detection, until the segment shrank to 1024 bytes and succeeded
+            # instantly - textbook PMTU black hole. 1398 is right at
+            # 1500 (physical MTU) - 50 (VXLAN overhead) - ~52 (inner IP/TCP
+            # headers w/ timestamps): routing-mode is "tunnel"/vxlan (see
+            # cilium-config) but pod MTU was left at the chart's auto-detect
+            # default (1500, i.e. not reduced for the encapsulation
+            # overhead). Setting MTU explicitly below 1500 minus overhead
+            # means pods never generate a segment that can hit this black
+            # hole in the first place, independent of PMTUD/probing settings.
+            MTU: 1450
             tls:
               ca:
                 cert: {{ cilium-ca }}
