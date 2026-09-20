@@ -40,6 +40,18 @@ spec:
               enabled: true
             bpf:
               masquerade: true
+            # Fixes multi-second TLS handshake stalls on pod egress to other
+            # nodes/clusters (observed: ~6.5s stuck at secureConnect, DNS/TCP
+            # both fast). Default "blackhole" mode drops ICMP fragmentation-
+            # needed replies for masqueraded/tunneled connections instead of
+            # relaying them, so the pod's kernel only recovers via its own
+            # slow black-hole detection. enabled:true makes Cilium's datapath
+            # relay those ICMP replies properly; "always" additionally makes
+            # the kernel proactively probe path MTU (RFC4821) per connection
+            # rather than waiting for a stall to detect one.
+            pmtuDiscovery:
+              enabled: true
+              packetizationLayerPMTUDMode: "always"
             tls:
               ca:
                 cert: {{ cilium-ca }}
