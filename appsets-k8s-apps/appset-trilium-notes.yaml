@@ -75,7 +75,7 @@ spec:
                   PDBACKUP_BACKUP_INTERVAL: "1h"
                   PDBACKUP_HOSTNAME: "trilium-notes"
                   PDBACKUP_RETENTION_KEEP_LATEST: "5"
-                  PDBACKUP_FORCE_RESTORE: "false"
+                  PDBACKUP_FORCE_RESTORE: "true"
                   PDBACKUP_RESTORE_PVC_MODE: "true"
             controllers:
               main:
