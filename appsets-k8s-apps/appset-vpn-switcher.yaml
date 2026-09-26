@@ -31,72 +31,23 @@ spec:
       - helm:
           releaseName: vpnswitcher
           values: |
-            controllers: 
-              main:
-               enabled: false
-            rawResources:
-              vpnswitcher-config:
-                apiVersion: v1
-                kind: Secret
-                nameOverride: config
-                spec:
-                  data:
-                    config.yaml: {{ .vpnswitcherconfig | b64enc }}
-        repoURL: https://bjw-s-labs.github.io/helm-charts
-        chart: app-template
-        targetRevision: 3.4.0
-      - helm:
-          releaseName: vpnswitcher-app
-          values: |
-            controllers:            
-              main:
-                type: deployment             
-                containers:
-                  main:
-                    image: 
-                      repository: quay.io/vadimzharov/vpnswitcher
-                      pullPolicy: IfNotPresent
-                      tag: latest
-            service:
-              main:
-                primary: true
-                enabled: true
-                controller: main
-                ports:
-                  http:
-                    port: 8080
-            route:
-              main:
-                enabled: true
-                kind: HTTPRoute
-                annotations:
-                  k8s-dashboard-group: Tools
-                  k8s-dashboard-appname: VPN switcher
-                  k8s-dashboard-searchname: VPN                  
-                parentRefs:
-                  - name: cilium-gw
-                    namespace: cilium-system
-                hostnames:
-                  - vpn.{{ .domainname }}
-                rules:  
-                - matches:
-                  - path:
-                      type: PathPrefix
-                      value: /
-                  backendRefs:
-                  - name: vpnswitcher-app
-                    port: 8080
-            persistence:
-              vpnswitcher-config:
-                enabled: true
-                type: secret
-                name: vpnswitcher-config
-                globalMounts:
-                  - path: /etc/vpnswitcher/config.yaml
-                    subPath: config.yaml
-        repoURL: https://bjw-s-labs.github.io/helm-charts
-        chart: app-template
-        targetRevision: 3.4.0                
+            image:
+              repository: ghcr.io/vadimzharov/vpn-switcher
+              pullPolicy: IfNotPresent
+              tag: latest
+            httpRoute:
+              hostname: vpn.{{ .domainname }}
+              gatewayName: cilium-gw
+              gatewayNamespace: cilium-system
+              annotations:
+                k8s-dashboard-group: Tools
+                k8s-dashboard-appname: VPN switcher
+                k8s-dashboard-searchname: VPN
+            config:
+            {{ .vpnswitcherconfig | indent 14 }}
+        repoURL: oci://ghcr.io/vadimzharov/charts/vpn-switcher
+        targetRevision: 0.1.0
+        path: .
       destination:
         server: '{{ .server }}'
         namespace: vpn-switcher
