@@ -34,7 +34,7 @@ spec:
             image:
               repository: ghcr.io/vadimzharov/vpn-switcher
               pullPolicy: IfNotPresent
-              tag: latest
+              tag: "0.0.1"
             httpRoute:
               hostname: vpn.{{ .domainname }}
               gatewayName: cilium-gw
@@ -46,7 +46,7 @@ spec:
             config:
             {{ .vpnswitcherconfig | indent 14 }}
         repoURL: oci://ghcr.io/vadimzharov/charts/vpn-switcher
-        targetRevision: 0.1.0
+        targetRevision: 0.1.1
         path: .
       destination:
         server: '{{ .server }}'
