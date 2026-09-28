@@ -34,7 +34,9 @@ spec:
             image:
               repository: ghcr.io/vadimzharov/vpn-switcher
               pullPolicy: IfNotPresent
-              tag: "1.1.1"
+              tag: "1.2.0"
+            persistence:
+              size: 1Gi
             httpRoute:
               hostname: vpn.{{ .domainname }}
               gatewayName: cilium-gw
