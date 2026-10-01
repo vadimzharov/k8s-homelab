@@ -1,0 +1,91 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: opencode
+  namespace: argocd
+  annotations:
+    appset-dashboard-appname: "OpenCode"
+    appset-dashboard-groupname: "AI tools"
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  opencode: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-opencode'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      # Chart is published publicly from the opencode-docker repo's own CI
+      # (oci://ghcr.io/vadimzharov/opencode-container/charts/opencode),
+      # triggered by the v0.2.0 tag -- image and chart both published at
+      # 0.2.0 together.
+      - helm:
+          releaseName: opencode
+          values: |
+            image:
+              tag: "0.2.0"
+            serverPassword: "{{ password }}"
+            # Secret holding env vars the opencode process reads directly:
+            # GH_TOKEN (picked up automatically by the `gh` CLI, no
+            # browser/TTY available here to `gh auth login`) and
+            # LITELLM_API_KEY (for the custom/self-hosted provider entry in
+            # opencode.json, referenced there as {env:LITELLM_API_KEY}).
+            rawResources:
+              - apiVersion: v1
+                kind: Secret
+                metadata:
+                  name: opencode-env
+                  namespace: opencode
+                type: Opaque
+                stringData:
+                  GH_TOKEN: "{{ opencode-gh-token }}"
+                  LITELLM_API_KEY: "{{ opencode-litellm-api-key }}"
+              # Dedicated SSH deploy keypair for opencode's own git
+              # clone/push over ssh (NOT the user's real ~/.ssh, since
+              # opencode runs git autonomously). Values from the plugin are
+              # already base64-encoded, so `data` here, not `stringData`.
+              - apiVersion: v1
+                kind: Secret
+                metadata:
+                  name: opencode-ssh
+                  namespace: opencode
+                type: Opaque
+                data:
+                  id_ed25519: "{{ opencode-ssh-privatekey }}"
+                  id_ed25519.pub: "{{ opencode-ssh-publickey }}"
+                  known_hosts: "{{ github-known-hosts }}"
+            envSecretName: opencode-env
+            sshSecretName: opencode-ssh
+            httpRoute:
+              enabled: true
+              host: "opencode.{{ domainname }}"
+              parentRefs:
+                - name: cilium-gw
+                  namespace: cilium-system
+                  sectionName: https-gw
+              annotations:
+                k8s-dashboard-group: AI tools
+                k8s-dashboard-appname: OpenCode
+        repoURL: oci://ghcr.io/vadimzharov/opencode-container/charts/opencode
+        targetRevision: 0.2.0
+        path: .
+      destination:
+        server: '{{server}}'
+        namespace: opencode
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
