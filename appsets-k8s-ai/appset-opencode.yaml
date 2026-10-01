@@ -26,21 +26,14 @@ spec:
     spec:
       project: k8s-homelab-apps
       sources:
-      # Chart is published publicly from the opencode-docker repo's own CI
-      # (oci://ghcr.io/vadimzharov/opencode-container/charts/opencode),
-      # triggered by the v0.2.0 tag -- image and chart both published at
-      # 0.2.0 together.
       - helm:
           releaseName: opencode
           values: |
             image:
               tag: "0.2.0"
             serverPassword: "{{ password }}"
-            # Secret holding env vars the opencode process reads directly:
-            # GH_TOKEN (picked up automatically by the `gh` CLI, no
-            # browser/TTY available here to `gh auth login`) and
-            # LITELLM_API_KEY (for the custom/self-hosted provider entry in
-            # opencode.json, referenced there as {env:LITELLM_API_KEY}).
+            buildkit:
+              enabled: true
             rawResources:
               - apiVersion: v1
                 kind: Secret
@@ -51,10 +44,6 @@ spec:
                 stringData:
                   GH_TOKEN: "{{ opencode-gh-token }}"
                   LITELLM_API_KEY: "{{ opencode-litellm-api-key }}"
-              # Dedicated SSH deploy keypair for opencode's own git
-              # clone/push over ssh (NOT the user's real ~/.ssh, since
-              # opencode runs git autonomously). Values from the plugin are
-              # already base64-encoded, so `data` here, not `stringData`.
               - apiVersion: v1
                 kind: Secret
                 metadata:
