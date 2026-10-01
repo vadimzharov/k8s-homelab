@@ -61,6 +61,22 @@ spec:
                     disabled: true
                   - name: ahmia
                     disabled: true
+                  - name: bing
+                    disabled: false
+                  - name: mojeek
+                    disabled: false
+                  - name: mojeek images
+                    disabled: false
+                  - name: mojeek news
+                    disabled: false
+                  - name: qwant
+                    disabled: false
+                  - name: qwant images
+                    disabled: false
+                  - name: qwant videos
+                    disabled: false
+                  - name: yahoo
+                    disabled: false
                 search:
                   formats:
                     - html
