@@ -1,0 +1,112 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: degoog
+  namespace: argocd
+  annotations:
+    ai-agent-inventory-appname: "Degoog"
+    appset-dashboard-appname: "Degoog"
+    appset-dashboard-groupname: "AI tools"
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  degoog: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-degoog'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: degoog
+          values: |
+            # Evaluation deployment - no upstream chart exists, so this
+            # drives the plain ghcr.io/degoog-org/degoog image directly via
+            # app-template, same shape as metube/vaultwarden in this repo.
+            #
+            # Deliberately NOT wiring DEGOOG_DEFAULT_ENGINES_FILE yet (see
+            # k8s-ai-homelab docs for why - engine *installation* from the
+            # Store is UI-only with no known declarative path, so a
+            # default-engines.json would only cover enable/disable state
+            # for engines already pulled in by hand anyway). Until that's
+            # revisited, which engines are installed/enabled lives ONLY in
+            # the persistence PVC below - losing it means redoing the Store
+            # setup through the UI.
+            service:
+              main:
+                primary: true
+                enabled: true
+                controller: main
+                ports:
+                  http:
+                    port: 4444
+            route:
+              main:
+                enabled: true
+                kind: HTTPRoute
+                annotations:
+                  k8s-dashboard-group: AI tools
+                  k8s-dashboard-appname: Degoog
+                parentRefs:
+                  - name: cilium-gw
+                    namespace: cilium-system
+                hostnames:
+                  - degoog.{{ domainname }}
+                rules:
+                - matches:
+                  - path:
+                      type: PathPrefix
+                      value: /
+                  backendRefs:
+                  - name: degoog
+                    port: 4444
+            persistence:
+              data:
+                enabled: true
+                type: persistentVolumeClaim
+                size: 2Gi
+                accessMode: ReadWriteOnce
+                storageClass: synas-csi-delete
+                globalMounts:
+                  - path: /app/data
+                    readOnly: false
+            controllers:
+              main:
+                type: deployment
+                enabled: true
+                containers:
+                  main:
+                    image:
+                      repository: ghcr.io/degoog-org/degoog
+                      pullPolicy: IfNotPresent
+                      tag: latest
+                    env:
+                      # No DEGOOG_SETTINGS_PASSWORDS - this HTTPRoute hangs
+                      # off the default cilium-gw, which (per this repo's
+                      # convention) isn't internet-exposed, same trust
+                      # model SearXNG's own public_instance: false relies
+                      # on. Revisit if this ever moves to a
+                      # non-default/external gateway.
+                      DEGOOG_PUBLIC_INSTANCE: "false"
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.4.0
+      destination:
+        server: '{{server}}'
+        namespace: degoog
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
