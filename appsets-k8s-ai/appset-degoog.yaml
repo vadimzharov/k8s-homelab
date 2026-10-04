@@ -97,6 +97,15 @@ spec:
                       # model SearXNG's own public_instance: false relies
                       # on. Revisit if this ever moves to a
                       # non-default/external gateway.
+                      #
+                      # Without a password OR this flag, Degoog generates a
+                      # random one per pod start and only logs it to stdout
+                      # - confirmed live (2026-10-04), settings were
+                      # unreachable without digging it out of pod logs.
+                      # This explicitly opts into the no-password gate
+                      # instead, matching the "not internet-exposed, no
+                      # gate needed" reasoning above.
+                      DEGOOG_DANGEROUSLY_NO_PASSWORD: "true"
                       DEGOOG_PUBLIC_INSTANCE: "false"
         repoURL: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
