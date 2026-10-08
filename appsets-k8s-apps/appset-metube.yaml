@@ -77,7 +77,7 @@ spec:
                     image:
                       repository: ghcr.io/alexta69/metube
                       pullPolicy: IfNotPresent
-                      tag: latest
+                      tag: "2026.09.29"
                     env:
                       DEFAULT_THEME: auto
         repoURL: https://bjw-s-labs.github.io/helm-charts
