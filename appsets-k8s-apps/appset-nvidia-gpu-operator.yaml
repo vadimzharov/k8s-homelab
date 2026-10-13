@@ -35,6 +35,15 @@ spec:
             driver:
               enabed: true
               version: "590.48.01"
+            daemonsets:
+              tolerations:
+                - key: nvidia.com/gpu
+                  operator: Exists
+                  effect: NoSchedule
+                - key: dedicated
+                  operator: Equal
+                  value: gpu-inference
+                  effect: NoSchedule
         repoURL: https://helm.ngc.nvidia.com/nvidia
         chart: gpu-operator
         targetRevision: v25.3.4
