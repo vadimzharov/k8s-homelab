@@ -144,6 +144,28 @@ spec:
               LANGFUSE_SECRET_KEY: "{{langfuse-project-secret-key}}"
               LANGFUSE_HOST: "http://langfuse-web.langfuse.svc.cluster.local:3000"
 
+              # ChatGPT provider (https://docs.litellm.ai/docs/providers/chatgpt)
+              # - OAuth device-code login against a personal ChatGPT
+              # subscription, NOT an API key. Points litellm's Authenticator
+              # at the RWX-backed chatgpt-token volume below instead of its
+              # default ~/.config/litellm/chatgpt, so both replicas share one
+              # auth.json. Needs a one-time, interactive device-code login
+              # (kubectl exec into a pod, run litellm's Authenticator,
+              # complete the browser step) before the model works - not
+              # something a sync can do. After that, the access token
+              # refreshes automatically on expiry (~10d) using the stored
+              # refresh_token, EXCEPT if the ChatGPT session itself gets
+              # signed out remotely - that surfaces as a 401 that does NOT
+              # trigger a refresh, failing chatgpt/* calls with HTTP 400
+              # "ChatGPT device-code login needs a human" until the same
+              # manual device-code login is redone. Each refresh_token is
+              # also single-use (rotates on every refresh) - with 2 replicas
+              # sharing one auth.json, a refresh race between them is
+              # possible (one wins, one's call fails) but self-heals on the
+              # next request since the winner's refresh already updated the
+              # shared file.
+              CHATGPT_TOKEN_DIR: "/data/chatgpt-token"
+
             # Provider API keys are NOT stored here. Create this Secret out-of-band
             # before installing:
             #   kubectl create secret generic litellm-provider-keys -n litellm \
@@ -186,6 +208,16 @@ spec:
                 #  litellm_params:
                 #    model: anthropic/claude-sonnet-4-5
                 #    api_key: os.environ/ANTHROPIC_API_KEY
+
+                # ChatGPT provider - see the CHATGPT_TOKEN_DIR comment under
+                # envVars above for the OAuth login this needs and its
+                # failure mode. No api_key: auth is entirely via the shared
+                # auth.json the Authenticator manages.
+                - model_name: chatgpt/gpt-5.4
+                  model_info:
+                    mode: responses
+                  litellm_params:
+                    model: chatgpt/gpt-5.4
 
                 # --- Self-hosted backend ---
                 # vLLM decommissioned 2026-08-03: the single RTX 3090 now runs
@@ -637,16 +669,40 @@ spec:
               - name: custom-callbacks
                 configMap:
                   name: litellm-custom-callbacks
+              # RWX so both replicas share the same ChatGPT OAuth
+              # auth.json - see the CHATGPT_TOKEN_DIR comment under envVars.
+              - name: chatgpt-token
+                persistentVolumeClaim:
+                  claimName: litellm-chatgpt-token
             volumeMounts:
               - name: custom-callbacks
                 mountPath: /etc/litellm/custom_callbacks.py
                 subPath: custom_callbacks.py
+              - name: chatgpt-token
+                mountPath: /data/chatgpt-token
 
             # Gateway API HTTPRoute, shipped as part of this release instead of Ingress.
             # FILL IN before installing:
             #   - parentRefs[0].name / namespace: your existing Gateway resource
             #   - hostnames[0]: the hostname you want to route to LiteLLM
             extraResources:
+              # RWX (not the usual synas-csi-* block storage, which is
+              # ReadWriteOnce-only) so both litellm replicas can mount the
+              # same ChatGPT OAuth auth.json - see the CHATGPT_TOKEN_DIR
+              # comment under envVars above. sc-nfs-default is the cluster's
+              # NFS-backed StorageClass, the only one here supporting RWX.
+              - apiVersion: v1
+                kind: PersistentVolumeClaim
+                metadata:
+                  name: litellm-chatgpt-token
+                  namespace: litellm
+                spec:
+                  accessModes:
+                    - ReadWriteMany
+                  storageClassName: sc-nfs-default
+                  resources:
+                    requests:
+                      storage: 1Gi
               - apiVersion: v1
                 kind: Secret
                 metadata:
