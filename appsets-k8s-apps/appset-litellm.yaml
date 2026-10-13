@@ -212,12 +212,15 @@ spec:
                 # ChatGPT provider - see the CHATGPT_TOKEN_DIR comment under
                 # envVars above for the OAuth login this needs and its
                 # failure mode. No api_key: auth is entirely via the shared
-                # auth.json the Authenticator manages.
-                - model_name: chatgpt/gpt-5.4
+                # auth.json the Authenticator manages. gpt-5.4 tried first,
+                # rejected live by the backend ("not supported when using
+                # Codex with a ChatGPT account") - plan/entitlement issue,
+                # not a config one. Trying gpt-5.3-codex instead.
+                - model_name: chatgpt/gpt-5.3-codex
                   model_info:
                     mode: responses
                   litellm_params:
-                    model: chatgpt/gpt-5.4
+                    model: chatgpt/gpt-5.3-codex
 
                 # --- Self-hosted backend ---
                 # vLLM decommissioned 2026-08-03: the single RTX 3090 now runs
