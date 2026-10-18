@@ -34,7 +34,7 @@ spec:
             image:
               repository: ghcr.io/vadimzharov/vpn-switcher
               pullPolicy: IfNotPresent
-              tag: "1.2.0"
+              tag: "1.4.0"
             persistence:
               size: 1Gi
             httpRoute:
@@ -48,7 +48,7 @@ spec:
             config:
             {{ .vpnswitcherconfig | indent 14 }}
         repoURL: oci://ghcr.io/vadimzharov/charts/vpn-switcher
-        targetRevision: 0.1.1
+        targetRevision: 0.2.0
         path: .
       destination:
         server: '{{ .server }}'
