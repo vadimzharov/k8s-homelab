@@ -70,7 +70,7 @@ spec:
                   main:
                     image:
                       repository: docker.io/nousresearch/hermes-agent
-                      tag: v2026.8.31
+                      tag: v0.22.5
                       pullPolicy: IfNotPresent
                     args:
                       - gateway
@@ -154,7 +154,7 @@ spec:
                 type: persistentVolumeClaim
                 forceRename: "hermes-data"
                 accessMode: ReadWriteOnce
-                size: 5Gi
+                size: 10Gi
                 storageClass: synas-csi-retain
                 globalMounts:
                   - path: /opt/data
