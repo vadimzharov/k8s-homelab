@@ -148,7 +148,7 @@ spec:
                 type: persistentVolumeClaim
                 forceRename: "hermes-pa-data"
                 accessMode: ReadWriteOnce
-                size: 5Gi
+                size: 10Gi
                 storageClass: synas-csi-retain
                 globalMounts:
                   - path: /opt/data
