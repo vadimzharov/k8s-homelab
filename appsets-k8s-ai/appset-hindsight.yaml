@@ -353,6 +353,13 @@ spec:
                 # (worker.enabled: false, no dedicated worker pods to
                 # collide with).
                 HINDSIGHT_API_WORKER_ID: "hindsight-api"
+                # Default is uncapped (max_tokens -1). Caps reflect's final
+                # synthesis call only - its tool-call iterations are always
+                # sent uncapped and rely on ik-llama's --n-predict instead
+                # (a looping reflect tool call held the single GPU slot for
+                # ~40 min, 2026-10-29). 8192 leaves room for reasoning tokens
+                # if "onprem" is ever routed to a thinking model.
+                HINDSIGHT_API_REFLECT_MAX_COMPLETION_TOKENS: "8192"
 
             # No chart-native Ingress - both the dashboard's HTTPRoute
             # (controlplaneroute) and the api's own (apiroute) are added
