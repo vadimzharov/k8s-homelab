@@ -199,6 +199,13 @@ spec:
                       - "0.0"
                       - --repeat-penalty
                       - "1.0"
+                      # Server-wide output cap. Requests sent with max_tokens -1
+                      # (e.g. Hindsight reflect) otherwise run to the context limit:
+                      # one looped for ~139K tokens and held the only slot (-np 1),
+                      # 429ing every other client. 32768 still fits Claude Code's
+                      # default 32000 max_tokens.
+                      - --n-predict
+                      - "32768"
                     # timeoutSeconds explicitly set on all three probes below - the
                     # k8s default (1s) is too aggressive for this server. Confirmed via
                     # real production incident (2026-08-08): under actual inference
