@@ -51,6 +51,32 @@ spec:
               limits:
                 cpu: "1"
                 memory: 2Gi
+            # 2026-10-30: 0.11.0 leaked SQLite connections (pages closed mid-load
+            # never returned theirs) until PID 1 hit its 1024 open-file limit -
+            # ~990 fds on webui.db/-wal, every request failed "unable to open
+            # database file" while the pod stayed Ready. Fixed upstream in
+            # 0.12.4 (open-webui#32617). /health/db does a real pool ping, so
+            # this liveness probe restarts the pod if it ever wedges like that
+            # again; the startup probe covers the first-boot DB migrations.
+            startupProbe:
+              httpGet:
+                path: /health
+                port: http
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 60
+            livenessProbe:
+              httpGet:
+                path: /health/db
+                port: http
+              periodSeconds: 30
+              timeoutSeconds: 10
+              failureThreshold: 5
+            # Chart 17.x derives WEBUI_URL from the route as http://; the
+            # gateway serves https.
+            extraEnvVars:
+              - name: WEBUI_URL
+                value: "https://chat.{{ domainname }}"
             route:
               enabled: true
               annotations:
@@ -80,7 +106,7 @@ spec:
             #  value: "true"
         repoURL: https://helm.openwebui.com/
         chart: open-webui
-        targetRevision: 16.0.0
+        targetRevision: 17.4.0
       destination:
         server: '{{server}}' 
         namespace: openwebui
