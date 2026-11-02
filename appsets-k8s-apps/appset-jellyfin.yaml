@@ -164,7 +164,7 @@ spec:
                     image:
                       repository: docker.io/jellyfin/jellyfin
                       pullPolicy: IfNotPresent
-                      tag: latest
+                      tag: "12.4"
                     env:
                       JELLYFIN_DATA_DIR: "/jellyfin-data"
                       JELLYFIN_CONFIG_DIR: "/jellyfin-data/config"
