@@ -63,6 +63,13 @@ spec:
                     disabled: true
                   - name: bing
                     disabled: false
+                  # bing's own time_range filter returns nothing, and most other
+                  # engines that support time_range are blocked for this IP
+                  # (CAPTCHA / rate limit). Putting bing news in "general" keeps
+                  # time-filtered searches (e.g. ai-feed's time_range=month) working.
+                  - name: bing news
+                    disabled: false
+                    categories: [general, news]
                   - name: mojeek
                     disabled: false
                   - name: mojeek images
