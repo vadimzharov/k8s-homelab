@@ -61,7 +61,7 @@ spec:
                       image:
                         repository: ghcr.io/immich-app/immich-server
                         pullPolicy: IfNotPresent
-                        tag: v3.0.0
+                        tag: v3.3.5
                       env:
                         DB_HOSTNAME:
                           valueFrom:
@@ -104,6 +104,15 @@ spec:
                     backendRefs:
                     - name: immich-v-server
                       port: 2283               
+            machine-learning:
+              controllers:
+                main:
+                  containers:
+                    main:
+                      image:
+                        repository: ghcr.io/immich-app/immich-machine-learning
+                        pullPolicy: IfNotPresent
+                        tag: v3.3.5
             valkey:
               enabled: true
 
