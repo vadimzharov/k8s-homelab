@@ -99,6 +99,34 @@ spec:
                       WHISPER__CPU_THREADS: "8"
                       ENABLE_UI: "false"
                       LOG_LEVEL: info
+                    # Speaches loads models lazily, so the first request after a
+                    # restart took ~8-12s. Load it as soon as the server is up
+                    # (201 = loaded, 409 = already loaded). Probes don't start
+                    # until postStart returns, so the pod only goes Ready (and
+                    # LiteLLM only gets routed to it) once the model is in
+                    # memory; a failed hook restarts the container.
+                    lifecycle:
+                      postStart:
+                        exec:
+                          command:
+                            - python
+                            - -c
+                            - |
+                              import time, urllib.request, urllib.error
+                              base = "http://localhost:8000"
+                              for _ in range(120):
+                                  try:
+                                      urllib.request.urlopen(base + "/health", timeout=2)
+                                      break
+                                  except Exception:
+                                      time.sleep(1)
+                              req = urllib.request.Request(
+                                  base + "/api/ps/Systran/faster-whisper-small.en", method="POST")
+                              try:
+                                  urllib.request.urlopen(req, timeout=120)
+                              except urllib.error.HTTPError as e:
+                                  if e.code != 409:
+                                      raise
                     ports:
                       - name: http
                         containerPort: 8000
