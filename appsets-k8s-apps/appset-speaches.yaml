@@ -1,0 +1,136 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: speaches
+  namespace: argocd
+  annotations:
+    ai-agent-inventory-appname: "Speaches (STT)"
+    appset-dashboard-appname: "Speaches (STT)"
+    appset-dashboard-groupname: "AI tools"
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  speaches: "installed"
+          - plugin:
+              configMapRef:
+                name: argocd-secrets-plugin
+              input:
+                parameters:
+                  secretName: "k8s-clusters-apps-secrets"
+  template:
+    metadata:
+      name: '{{name}}-speaches'
+    spec:
+      project: k8s-homelab-apps
+      sources:
+      - helm:
+          releaseName: speaches
+          values: |
+            # Speaches: OpenAI-compatible speech-to-text (faster-whisper), CPU
+            # only. Backs LiteLLM's "robot-stt" model (see appset-litellm.yaml)
+            # for the voice assistant robot, so audio stays in the house.
+            #
+            # No API key and no HTTPRoute: only reachable in-cluster, and the
+            # only client is LiteLLM, which does its own virtual-key auth -
+            # same setup as ik-llama and Ollama.
+            controllers:
+              main:
+                type: deployment
+                # RWO model cache PVC - avoid two pods fighting over it on rollout.
+                strategy: Recreate
+                pod:
+                  # Image runs as ubuntu (uid 1000); the Synology CSI volume is
+                  # root-owned by default.
+                  securityContext:
+                    fsGroup: 1000
+                initContainers:
+                  # Speaches v0.8.x doesn't download models on request (a
+                  # transcription for a model that isn't in the HF cache just
+                  # fails), so fetch it into the cache PVC up front. Same image,
+                  # so huggingface_hub and HF_HOME match the server.
+                  fetch-model:
+                    image:
+                      repository: ghcr.io/speaches-ai/speaches
+                      pullPolicy: IfNotPresent
+                      tag: 0.8.3-cpu
+                    command:
+                      - python
+                      - -c
+                      - |
+                        from huggingface_hub import snapshot_download
+                        snapshot_download("Systran/faster-whisper-small.en")
+                containers:
+                  main:
+                    image:
+                      repository: ghcr.io/speaches-ai/speaches
+                      pullPolicy: IfNotPresent
+                      tag: 0.8.3-cpu
+                    env:
+                      WHISPER__INFERENCE_DEVICE: cpu
+                      WHISPER__COMPUTE_TYPE: int8
+                      # Default 300s unloads the model after 5 idle minutes, so
+                      # the first command after a quiet spell pays a cold load.
+                      # -1 keeps it resident.
+                      STT_MODEL_TTL: "-1"
+                      ENABLE_UI: "false"
+                      LOG_LEVEL: info
+                    ports:
+                      - name: http
+                        containerPort: 8000
+                        protocol: TCP
+                    probes:
+                      liveness:
+                        enabled: true
+                        type: HTTP
+                        path: /health
+                        port: 8000
+                        spec:
+                          periodSeconds: 15
+                          timeoutSeconds: 5
+                      readiness:
+                        enabled: true
+                        type: HTTP
+                        path: /health
+                        port: 8000
+                        spec:
+                          periodSeconds: 10
+                          timeoutSeconds: 5
+                    resources:
+                      requests:
+                        cpu: 500m
+                        memory: 1Gi
+                      limits:
+                        cpu: "2"
+                        memory: 2Gi
+            persistence:
+              hf-cache:
+                type: persistentVolumeClaim
+                accessMode: ReadWriteOnce
+                size: 2Gi
+                storageClass: synas-csi-delete
+                globalMounts:
+                  - path: /home/ubuntu/.cache/huggingface
+            service:
+              main:
+                primary: true
+                enabled: true
+                controller: main
+                ports:
+                  http:
+                    port: 8000
+        repoURL: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        targetRevision: 4.6.2
+      destination:
+        server: '{{server}}'
+        namespace: speaches
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

@@ -310,6 +310,29 @@ spec:
                     input_cost_per_token: 0
                     output_cost_per_token: 0
 
+                # --- Speech-to-text for the voice assistant robot ---
+                # robot -> /v1/audio/transcriptions, model "robot-stt". Primary is
+                # Speaches (faster-whisper small.en, CPU, see appset-speaches.yaml) -
+                # in-cluster, no auth, same as ik-llama/Ollama. If it errors, the
+                # router falls back to robot-stt-cloud (fallbacks under
+                # litellm_settings below).
+                - model_name: robot-stt
+                  litellm_params:
+                    model: openai/Systran/faster-whisper-small.en
+                    api_base: http://speaches.speaches.svc.cluster.local:8000/v1
+                    api_key: "not-needed"
+                  model_info:
+                    mode: audio_transcription
+                    input_cost_per_second: 0
+                    output_cost_per_second: 0
+
+                - model_name: robot-stt-cloud
+                  litellm_params:
+                    model: openai/gpt-4o-mini-transcribe
+                    api_key: os.environ/OPENAI_API_KEY
+                  model_info:
+                    mode: audio_transcription
+
                 # --- Auto Router: complexity_router with an LLM classifier (qwen2.5-1.5b
                 # above) instead of the default zero-API-call heuristic scorer.
                 # Was llama3.2-1b - confirmed misclassifying a plain factual question
@@ -557,6 +580,9 @@ spec:
                 # call failed or looped, not just successful ones.
                 success_callback: ["langfuse"]
                 failure_callback: ["langfuse"]
+                # Local STT first, OpenAI only if Speaches is down/erroring.
+                fallbacks:
+                  - robot-stt: ["robot-stt-cloud"]
                 # Redis-backed exact-match response cache (hash of
                 # model+messages+params -> cached completion). Proxy-wide,
                 # not scoped to a model_list entry - there's no reliable
