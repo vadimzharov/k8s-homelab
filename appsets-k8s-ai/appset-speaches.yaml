@@ -47,15 +47,24 @@ spec:
                   # root-owned by default.
                   securityContext:
                     fsGroup: 1000
-                  # Pinned off worker-01 (i5-6400T, 4 cores @ 2.2GHz, already
-                  # busy): there a 5s clip took ~7-8s to transcribe, with heavy
-                  # CPU throttling. worker-03 has 6 faster cores and is mostly idle.
-                  # Selected by NFD CPU model (158 = Coffee Lake, only worker-03)
-                  # rather than kubernetes.io/hostname: hostnames carry the domain,
-                  # and {{ domainname }} resolves to "apps.<domain>", not the
-                  # node suffix.
+                  # Pinned to worker-02 (24-thread AMD Zen 5, AVX-512) for
+                  # latency. 5s test clip, model warm: worker-01 (i5-6400T)
+                  # ~7-8s with heavy throttling, worker-03 (i5-8500T) ~2.5s.
+                  # CPU only - the GPU stays ik-llama's. Selected by NFD vendor
+                  # label (worker-02 is the only AMD node) rather than
+                  # kubernetes.io/hostname: hostnames carry the domain, and
+                  # {{ domainname }} resolves to "apps.<domain>", not the node
+                  # suffix.
                   nodeSelector:
-                    feature.node.kubernetes.io/cpu-model.id: "158"
+                    feature.node.kubernetes.io/cpu-model.vendor_id: AMD
+                  # worker-02 is tainted to keep general workloads off it after
+                  # the 2026-08-09 node-hang (global OOM). Speaches is allowed
+                  # on only because its memory is small and hard-capped below.
+                  tolerations:
+                    - key: dedicated
+                      operator: Equal
+                      value: gpu-inference
+                      effect: NoSchedule
                 initContainers:
                   # Speaches v0.8.x doesn't download models on request (a
                   # transcription for a model that isn't in the HF cache just
@@ -87,7 +96,7 @@ spec:
                       # STT_MODEL_TTL name only exists in later versions.)
                       WHISPER__TTL: "-1"
                       # Match the CPU limit below.
-                      WHISPER__CPU_THREADS: "4"
+                      WHISPER__CPU_THREADS: "8"
                       ENABLE_UI: "false"
                       LOG_LEVEL: info
                     ports:
@@ -111,17 +120,19 @@ spec:
                         spec:
                           periodSeconds: 10
                           timeoutSeconds: 5
-                    # Request kept tiny: idle between commands, bursts only
-                    # while transcribing (the 4-CPU limit is what matters).
-                    # worker-03's CPU requests are already ~96% booked even
-                    # though real usage is low, so 500m didn't fit.
+                    # CPU request tiny: idle between commands, bursts only while
+                    # transcribing (the limit is what matters).
+                    # Memory measured on worker-03 under 3 concurrent requests:
+                    # ~595Mi anon + ~420Mi reclaimable page cache. 1Gi limit
+                    # keeps worker-02's worst case (ik-llama 24Gi + this + system
+                    # pods) under the node's ~30Gi.
                     resources:
                       requests:
                         cpu: 100m
-                        memory: 1Gi
+                        memory: 768Mi
                       limits:
-                        cpu: "4"
-                        memory: 2Gi
+                        cpu: "8"
+                        memory: 1Gi
             persistence:
               hf-cache:
                 type: persistentVolumeClaim
