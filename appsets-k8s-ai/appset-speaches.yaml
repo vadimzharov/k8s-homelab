@@ -47,6 +47,11 @@ spec:
                   # root-owned by default.
                   securityContext:
                     fsGroup: 1000
+                  # Pinned off worker-01 (i5-6400T, 4 cores @ 2.2GHz, already
+                  # busy): there a 5s clip took ~7-8s to transcribe, with heavy
+                  # CPU throttling. worker-03 has 6 faster cores and is mostly idle.
+                  nodeSelector:
+                    kubernetes.io/hostname: k8s02-worker-03.{{ domainname }}
                 initContainers:
                   # Speaches v0.8.x doesn't download models on request (a
                   # transcription for a model that isn't in the HF cache just
@@ -74,8 +79,11 @@ spec:
                       WHISPER__COMPUTE_TYPE: int8
                       # Default 300s unloads the model after 5 idle minutes, so
                       # the first command after a quiet spell pays a cold load.
-                      # -1 keeps it resident.
-                      STT_MODEL_TTL: "-1"
+                      # -1 keeps it resident. (0.8.3 reads WHISPER__TTL; the
+                      # STT_MODEL_TTL name only exists in later versions.)
+                      WHISPER__TTL: "-1"
+                      # Match the CPU limit below.
+                      WHISPER__CPU_THREADS: "4"
                       ENABLE_UI: "false"
                       LOG_LEVEL: info
                     ports:
@@ -104,7 +112,7 @@ spec:
                         cpu: 500m
                         memory: 1Gi
                       limits:
-                        cpu: "2"
+                        cpu: "4"
                         memory: 2Gi
             persistence:
               hf-cache:
