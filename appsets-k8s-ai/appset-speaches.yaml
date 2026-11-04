@@ -50,8 +50,12 @@ spec:
                   # Pinned off worker-01 (i5-6400T, 4 cores @ 2.2GHz, already
                   # busy): there a 5s clip took ~7-8s to transcribe, with heavy
                   # CPU throttling. worker-03 has 6 faster cores and is mostly idle.
+                  # Selected by NFD CPU model (158 = Coffee Lake, only worker-03)
+                  # rather than kubernetes.io/hostname: hostnames carry the domain,
+                  # and {{ domainname }} resolves to "apps.<domain>", not the
+                  # node suffix.
                   nodeSelector:
-                    kubernetes.io/hostname: k8s02-worker-03.{{ domainname }}
+                    feature.node.kubernetes.io/cpu-model.id: "158"
                 initContainers:
                   # Speaches v0.8.x doesn't download models on request (a
                   # transcription for a model that isn't in the HF cache just
