@@ -142,7 +142,13 @@ spec:
                 forceRename: hindsight-db-backup
                 spec:
                   spec:
-                    schedule: "0 0/30 * * * *"
+                    # Daily base backup; WAL archiving is continuous, so PITR
+                    # still covers the whole 5-day retention window. Was every
+                    # 30 min: ~500 entries piled up under base/ on the MinIO,
+                    # listing them took 80-180s, and barman-cloud-backup-show /
+                    # retention's backup-delete (60s read timeout, not
+                    # configurable via the ObjectStore) timed out every run.
+                    schedule: "0 0 3 * * *"
                     backupOwnerReference: self
                     cluster:
                       name: hindsight-db
