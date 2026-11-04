@@ -134,7 +134,12 @@ spec:
                 forceRename: harbor-db-backup
                 spec:
                   spec:
-                    schedule: "0 0 * * * *" 
+                    # Daily base backup (WAL archiving keeps PITR across the 5-day
+                    # window). Was hourly: ~120 entries under base/ on the MinIO
+                    # took ~27s to list, close to barman's 60s read timeout that
+                    # broke litellm/hindsight backups. 03:30 to stay clear of their
+                    # 03:00 runs.
+                    schedule: "0 30 3 * * *"
                     backupOwnerReference: self
                     cluster:
                       name: harbor-database-restored
