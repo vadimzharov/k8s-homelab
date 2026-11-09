@@ -35,6 +35,11 @@ spec:
           values: |
             csiDriver:
               name: "org.democratic-csi.iscsi"
+            node:
+              driver:
+                # Hadron has no /etc/localtime (no zoneinfo, UTC); mounting the
+                # missing hostPath breaks the csi-driver container start.
+                localtimeHostPath: null
             storageClasses:
               - name: freenas-iscsi-csi
                 defaultClass: false
