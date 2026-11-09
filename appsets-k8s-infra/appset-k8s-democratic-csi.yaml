@@ -40,6 +40,10 @@ spec:
                 # Hadron has no /etc/localtime (no zoneinfo, UTC); mounting the
                 # missing hostPath breaks the csi-driver container start.
                 localtimeHostPath: null
+              # Run the node plugin everywhere, including tainted control-plane
+              # and dedicated (e.g. gpu-inference) nodes.
+              tolerations:
+                - operator: Exists
             storageClasses:
               - name: freenas-iscsi-csi
                 defaultClass: false
