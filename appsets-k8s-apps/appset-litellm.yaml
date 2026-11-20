@@ -290,12 +290,12 @@ spec:
                 #
                 # max_parallel_requests: 1 matches the server's real -np 1 capacity
                 # (single request slot, deliberately not raised - see
-                # appset-ik-llama-qwen3-6-27b.yaml for why). Confirmed from LiteLLM's own
-                # source this is enforced via an asyncio.Semaphore per deployment - extra
-                # concurrent requests queue and wait here rather than being rejected, and
-                # rather than all piling up unbounded against the backend's own queue.
-                # Model-specific: read from this deployment's own litellm_params, doesn't
-                # affect any other model_list entry.
+                # appset-ik-llama-qwen3-6-27b.yaml for why). As of 1.108.x a request
+                # arriving while the slot is taken gets an immediate 429 (it used to
+                # queue on a semaphore), and the counter is per LiteLLM process - with
+                # 2 replicas up to 2 requests can still reach ik_llama, the second
+                # waiting in its own queue. Model-specific: read from this
+                # deployment's own litellm_params, doesn't affect any other entry.
                 - model_name: qwen3.6-27b
                   litellm_params:
                     model: openai/qwen3.6-27b
@@ -305,6 +305,43 @@ spec:
                   model_info:
                     input_cost_per_token: 0
                     output_cost_per_token: 0
+
+                # agent-pool: Qwen first, gpt-6-luna as paid overflow, so opencode
+                # agent tasks (the hybrid auto-router's tiers point here) can run 2-3
+                # at a time instead of one. A request that finds Qwen's slot taken gets
+                # the 429 above, and because the group has two `order` levels the
+                # router retries it on order 2 (Luna) instead of failing it. Each
+                # task is then pinned to whichever model served its first request -
+                # session_affinity under router_settings, keyed on opencode's
+                # X-Session-Id header, pin stored in Redis so both replicas agree -
+                # so a task never switches models mid-run. Luna is capped at $3/day
+                # (max_budget/budget_duration, spend tracked in Redis across both
+                # replicas); once spent it drops out of the group and everything
+                # waits on Qwen. Luna's max_parallel_requests is per replica like
+                # Qwen's; the hard cap on total concurrency is the opencode-hive
+                # key's own max_parallel_requests (Redis-backed, set in the UI). A
+                # separate group rather than extra entries under qwen3.6-27b, so
+                # direct qwen3.6-27b callers (Hermes, ai-feed, k8s agents) never
+                # land on Luna.
+                - model_name: agent-pool
+                  litellm_params:
+                    model: openai/qwen3.6-27b
+                    api_base: http://ik-llama-qwen3-6-27b.ik-llama.svc.cluster.local:8080/v1
+                    api_key: "not-needed"
+                    order: 1
+                    max_parallel_requests: 1
+                  model_info:
+                    input_cost_per_token: 0
+                    output_cost_per_token: 0
+
+                - model_name: agent-pool
+                  litellm_params:
+                    model: openai/gpt-6-luna
+                    api_key: os.environ/OPENAI_API_KEY
+                    order: 2
+                    max_parallel_requests: 2
+                    max_budget: 3
+                    budget_duration: 1d
 
                 # --- Ollama (CPU-only, no GPU contention with vLLM) ---
                 # No api_key: Ollama has no auth enabled (OLLAMA_AUTH unset, defaults to
@@ -625,6 +662,21 @@ spec:
                   port: os.environ/REDIS_PORT
                   password: os.environ/REDIS_PASSWORD
                   ttl: 3600
+
+              router_settings:
+                # The Router does NOT inherit Redis from cache_params or
+                # coordination_redis - without these, agent-pool's Luna budget
+                # and session pins would be tracked per replica (in memory),
+                # so the $3/day cap would really be $3 per pod and the two pods
+                # could pin the same task differently. Same Redis as above.
+                redis_host: os.environ/REDIS_HOST
+                redis_port: os.environ/REDIS_PORT
+                redis_password: os.environ/REDIS_PASSWORD
+                # Pin each opencode task (X-Session-Id) to the agent-pool
+                # deployment that served its first request - see agent-pool in
+                # model_list. Pin TTL is 1h, refreshed on every request.
+                model_group_affinity_config:
+                  agent-pool: ["session_affinity"]
 
             # resources:
             #   requests:
